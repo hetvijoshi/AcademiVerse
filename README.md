@@ -55,9 +55,9 @@ In the frontend directory, run: ``` npm start ```
 
 ### In summary:
 
-Controller: Manages HTTP requests and responses.
-Service: Contains business logic and processing.
-Model: Defines the data structure and relationships.
-Repository: Handles data persistence and retrieval.
+1. Controller: Manages HTTP requests and responses.
+2. Service: Contains business logic and processing.
+3. Model: Defines the data structure and relationships.
+4. Repository: Handles data persistence and retrieval.
 
 
