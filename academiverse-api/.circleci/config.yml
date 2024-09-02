@@ -1,0 +1,17 @@
+version: 2.1
+
+jobs:
+  build:
+    docker:
+      - image: cimg/openjdk:21.0.2  # Use a Docker image with OpenJDK 11
+    steps:
+      - checkout  # Check out the source code from the repository
+
+      # Run Maven commands to build the project
+      - run: mvn spring-boot:run
+
+workflows:
+  version: 2
+  build-and-test:
+    jobs:
+      - build
