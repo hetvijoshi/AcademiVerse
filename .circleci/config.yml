@@ -8,7 +8,7 @@ jobs:
       - checkout  # Check out the source code from the repository
 
       # Run Maven commands to build the project
-      - run: cd academiverse-api && mvn spring-boot:run
+      - run: cd academiverse-api && mvn clean package
 
 workflows:
   version: 2
