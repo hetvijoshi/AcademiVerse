@@ -20,7 +20,7 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public User getUserById(Integer id){
+    public User getUserById(String id){
         Optional<User> optionalUser = userRepository.findById(id);
         return optionalUser.orElse(null);
     }
@@ -44,7 +44,7 @@ public class UserService {
         return updatedUser;
     }
 
-    public boolean deleteUserById (Integer id) {
+    public boolean deleteUserById (String id) {
         Optional<User> existingUser = userRepository.findById(id);
         if(existingUser.isPresent()){
             userRepository.deleteById(id);
