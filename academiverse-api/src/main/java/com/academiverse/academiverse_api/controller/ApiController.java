@@ -1,4 +1,4 @@
-package controller;
+package com.academiverse.academiverse_api.controller;
 
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

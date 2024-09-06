@@ -1,11 +1,11 @@
-package controller;
+package com.academiverse.academiverse_api.controller;
 
 import lombok.RequiredArgsConstructor;
-import model.User;
+import com.academiverse.academiverse_api.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import service.UserService;
+import com.academiverse.academiverse_api.service.UserService;
 
 import java.util.List;
 

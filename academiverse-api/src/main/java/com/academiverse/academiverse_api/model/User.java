@@ -1,4 +1,4 @@
-package model;
+package com.academiverse.academiverse_api.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

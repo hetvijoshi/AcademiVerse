@@ -1,10 +1,10 @@
-package service;
+package com.academiverse.academiverse_api.service;
 
+import com.academiverse.academiverse_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import model.User;
+import com.academiverse.academiverse_api.model.User;
 import org.springframework.stereotype.Service;
-import repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
