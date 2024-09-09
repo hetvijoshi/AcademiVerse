@@ -1,11 +1,11 @@
-package controller;
+package com.academiverse.academiverse_api.controller;
 
 import lombok.RequiredArgsConstructor;
-import model.User;
+import com.academiverse.academiverse_api.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import service.UserService;
+import com.academiverse.academiverse_api.service.UserService;
 
 import java.util.List;
 
@@ -22,7 +22,7 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Integer id)
+    public ResponseEntity<User> getUserById(@PathVariable String id)
     {
         return ResponseEntity.ok().body(userService.getUserById(id));
     }
@@ -40,7 +40,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteUserById(@PathVariable Integer id)
+    public ResponseEntity<String> deleteUserById(@PathVariable String id)
     {
         userService.deleteUserById(id);
         return ResponseEntity.ok().body("Deleted employee successfully");
