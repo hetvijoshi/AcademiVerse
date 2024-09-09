@@ -1,10 +1,10 @@
-import { CssBaseline, Grid2, Typography } from "@mui/material";
-
+// import { CssBaseline } from "@mui/material";
+import MainNavBar from "../components/LayoutWrapper/MainNavBar";
 
 export default function Home() {
   return (
     <>
-      <Typography>Succesfully logged in!!!</Typography>      
+      <MainNavBar />
     </>
   );
 }
