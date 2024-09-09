@@ -6,8 +6,8 @@ import { styled } from '@mui/system';
 import { School, AccountCircle, ExitToApp, ListAlt } from '@mui/icons-material';
 import { signOut } from "next-auth/react";
 import { useRouter } from 'next/navigation';
-import CourseScreen from '../../screens/CourseScreen';
-import ToDoListScreen from '../../screens/ToDoListScreen';
+import CourseScreen from '../../app/(routes)/courses/CourseScreen';
+import ToDoListScreen from '../../app/(routes)/toDoList/ToDoListScreen';
 
 const drawerWidth = '64px';
 
