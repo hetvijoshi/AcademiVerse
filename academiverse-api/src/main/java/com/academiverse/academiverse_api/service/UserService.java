@@ -3,7 +3,7 @@ package com.academiverse.academiverse_api.service;
 import com.academiverse.academiverse_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import com.academiverse.academiverse_api.model.User;
+import com.academiverse.academiverse_api.dto.User;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
