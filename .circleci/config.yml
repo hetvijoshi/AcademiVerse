@@ -23,12 +23,10 @@ jobs:
       - run:
           name: Set up Elastic Beanstalk
           command: |
+            cd academiverse-api
             eb init academiVerseApi -r $AWS_DEFAULT_REGION -p corretto-17
             echo "deploy:
                   artifact: target/academiverse-api-0.0.1-SNAPSHOT.jar" >> .elasticbeanstalk/config.yml
-      - run:
-          name: Deploy to Elastic Beanstalk
-          command: |
             eb deploy spring-environment
 
 workflows:
