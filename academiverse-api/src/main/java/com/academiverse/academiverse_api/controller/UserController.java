@@ -45,4 +45,6 @@ public class UserController {
         userService.deleteUserById(id);
         return ResponseEntity.ok().body("Deleted employee successfully");
     }
+
+
 }
