@@ -10,7 +10,7 @@ import com.academiverse.academiverse_api.service.UserService;
 import java.util.List;
 
 @RestController
-@RequestMapping("/user")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 @Validated
 public class UserController {
