@@ -43,6 +43,6 @@ public class UserController {
     public ResponseEntity<String> deleteUserById(@PathVariable String id)
     {
         userService.deleteUserById(id);
-        return ResponseEntity.ok().body("Deleted employee successfully");
+        return ResponseEntity.ok().body("Employee has been deleted successfully");
     }
 }

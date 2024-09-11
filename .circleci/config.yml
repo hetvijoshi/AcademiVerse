@@ -1,18 +1,45 @@
 version: 2.1
 
+orbs:
+  eb: circleci/aws-elastic-beanstalk@2.0.1
+
 jobs:
   build:
+    description: "Setup Spring boot application and run tests"
     docker:
-      - image: cimg/openjdk:21.0.2  # Use a Docker image with OpenJDK 11
+      - image: cimg/openjdk:21.0.2
     steps:
-      - checkout  # Check out the source code from the repository
+      - checkout
+      - run:
+          name: Build
+          command: cd academiverse-api && mvn -B -DskipTests clean package
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
 
-      # Run Maven commands to build the project
-      - run: cd academiverse-api && mvn clean package
+  deploy:
+    docker:
+      - image: "cimg/aws:2024.03"
+    description: "Deploying updates to Elastic Beanstalk"
+    steps:
+      - attach_workspace:
+          at: .
+      - eb/setup
+      - run:
+          name: Set up Elastic Beanstalk
+          command: |
+            eb init academiVerseApi -r $AWS_DEFAULT_REGION -p corretto-17
+            echo "deploy:
+                  artifact: /home/circleci/project/academiverse-api/target/academiverse-api-0.0.1-SNAPSHOT.jar" >> .elasticbeanstalk/config.yml
+            eb deploy spring-environment
 
 workflows:
-  version: 2
-  build-and-test:
+  build-and-deploy:
     jobs:
       - build
+      - deploy:
+          requires:
+            - build
+          context: aws-credentials
 
