@@ -1,13 +1,12 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 import React, { useState } from 'react';
 import { Box, List, ListItem, ListItemIcon, Tooltip, Drawer } from '@mui/material';
 import { styled } from '@mui/system';
 import { School, AccountCircle, ExitToApp, ListAlt } from '@mui/icons-material';
 import { signOut } from "next-auth/react";
-import { useRouter } from 'next/navigation';
-import CourseScreen from '../../app/(routes)/courses/CourseScreen';
-import ToDoListScreen from '../../app/(routes)/toDoList/ToDoListScreen';
 
 const drawerWidth = '64px';
 
@@ -34,18 +33,17 @@ const NavItem = styled(ListItem)`
   }
 `;
 
-const ContentWrapper = styled(Box)`
-  width: calc(100% - ${drawerWidth});
-  height: 100vh;
-  overflow-y: auto;
-`;
-
-const MainNavBar = () => {
-  const [selectedItem, setSelectedItem] = useState('courses');
+const MainNavBar = ({ selectedItem }) => {
   const router = useRouter();
 
   const handleItemClick = (item) => {
-    setSelectedItem(item);
+    if (item === 'courses') {
+      router.push('/');
+    } else if (item === 'toDoList') {
+      router.push('/toDoList');
+    } else if (item === 'account') {
+      router.push('/account');
+    }
   };
 
   return (
@@ -61,7 +59,7 @@ const MainNavBar = () => {
             </NavItem>
           </Tooltip>
           <Tooltip title="To Do List" placement="right">
-            <NavItem button onClick={() => handleItemClick('todo')} selected={selectedItem === 'todo'}>
+            <NavItem button onClick={() => handleItemClick('toDoList')} selected={selectedItem === 'toDoList'}>
               <ListItemIcon sx={{ color: 'white' }}><ListAlt /></ListItemIcon>
             </NavItem>
           </Tooltip>
@@ -77,10 +75,6 @@ const MainNavBar = () => {
           </Tooltip>
         </List>
       </StyledDrawer>
-      <ContentWrapper>
-        {selectedItem === 'courses' && <CourseScreen courses={[]} />}
-        {selectedItem === 'todo' && <ToDoListScreen />}
-      </ContentWrapper>
     </Box>
   );
 };

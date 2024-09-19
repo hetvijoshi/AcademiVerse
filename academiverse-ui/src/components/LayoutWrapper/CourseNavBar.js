@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Box, List, ListItem, ListItemIcon, ListItemText, IconButton, Drawer, Typography } from '@mui/material';
+import { Box, List, ListItem, ListItemIcon, ListItemText, IconButton, Typography, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import { useRouter } from 'next/navigation';
 import {
@@ -10,23 +10,18 @@ import {
   List as ListIcon, People as PeopleIcon, HowToReg as EnrollmentIcon
 } from '@mui/icons-material';
 
-const drawerWidth = '20%';
-
-const StyledDrawer = styled(Drawer)(({ theme, open }) => ({
-  width: open ? drawerWidth : '64px',
+const NavContainer = styled(Box)(({ theme, open }) => ({
+  width: open ? '240px' : '64px',
   flexShrink: 0,
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
-  '& .MuiDrawer-paper': {
-    width: open ? drawerWidth : '64px',
-    transition: 'width 225ms cubic-bezier(0.4, 0, 0.6, 1) 0ms',
-    overflowX: 'hidden',
-    position: 'fixed',
-    right: 0,
-    height: '100%',
-    background: 'linear-gradient(180deg, #1565C0, #1976D2)',
-    color: 'white',
-  },
+  transition: 'width 225ms cubic-bezier(0.4, 0, 0.6, 1) 0ms',
+  overflowX: 'hidden',
+  background: 'linear-gradient(180deg, #1565C0, #1976D2)',
+  color: 'white',
+  height: '100vh',
+  display: 'flex',
+  flexDirection: 'column',
 }));
 
 const NavItem = styled(ListItem)`
@@ -37,57 +32,60 @@ const NavItem = styled(ListItem)`
   }
 `;
 
-const CourseNavBar = ({ course }) => {
+const CourseNavBar = ({ course = {} }) => {
   const [open, setOpen] = useState(true);
   const router = useRouter();
 
   const navItems = [
-    { label: 'Announcements', path: `/courses/${course.id}/announcements`, icon: <AnnouncementIcon /> },
-    { label: 'Modules', path: `/courses/${course.id}/modules`, icon: <ModuleIcon /> },
-    { label: 'Assignments', path: `/courses/${course.id}/assignments`, icon: <AssignmentIcon /> },
-    { label: 'Grades', path: `/courses/${course.id}/grades`, icon: <GradeIcon /> },
-    { label: 'Quiz', path: `/courses/${course.id}/quiz`, icon: <QuizIcon /> },
-    { label: 'To Do List', path: `/courses/${course.id}/todo`, icon: <ListIcon /> },
-    { label: 'Classmates', path: `/courses/${course.id}/classmates`, icon: <PeopleIcon /> },
-    { label: 'Course Enrollments', path: `/courses/${course.id}/enrollments`, icon: <EnrollmentIcon /> },
+    { label: 'Announcements', path: `/courses`, section: 'announcements', icon: <AnnouncementIcon /> },
+    { label: 'Modules', path: `/courses`, section: 'modules', icon: <ModuleIcon /> },
+    { label: 'Assignments', path: `/courses`, section: 'assignments', icon: <AssignmentIcon /> },
+    { label: 'Grades', path: `/courses`, section: 'grades', icon: <GradeIcon /> },
+    { label: 'Quiz', path: `/courses`, section: 'quiz', icon: <QuizIcon /> },
+    { label: 'To Do List', path: `/courses`, section: 'todo', icon: <ListIcon /> },
+    { label: 'Classmates', path: `/courses`, section: 'classmates', icon: <PeopleIcon /> },
+    { label: 'Course Enrollments', path: `/courses`, section: 'enrollments', icon: <EnrollmentIcon /> },
   ];
 
   const handleDrawerToggle = () => {
     setOpen(!open);
   };
 
-  const handleNavItemClick = (path) => {
+  const handleNavItemClick = (path, section) => {
     if (typeof window !== 'undefined') {
-      router.push(path);
+      router.push(`${path}?id=${course.id}&section=${section}`);
     }
   };
 
   return (
-    <StyledDrawer
-      variant="permanent"
-      open={open}
-    >
+    <NavContainer open={open}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', p: 1 }}>
         <IconButton onClick={handleDrawerToggle} sx={{ color: 'white' }}>
           {open ? <ChevronRight /> : <ChevronLeft />}
         </IconButton>
       </Box>
-      {open && (
-        <Box sx={{ p: 2 }}>
-          <Typography variant="h6" component="div">
-            {course.name}
+      <Box sx={{ p: 2, height: '56px', display: 'flex', alignItems: 'center' }}>
+        {open ? (
+          <Typography variant="h6" component="div" noWrap>
+            {course.name || 'Course Name'}
           </Typography>
-        </Box>
-      )}
+        ) : (
+          <Tooltip title={course.name || 'Course Name'} placement="right">
+            <SchoolIcon />
+          </Tooltip>
+        )}
+      </Box>
       <List>
         {navItems.map((item, index) => (
-          <NavItem button key={index} onClick={() => handleNavItemClick(item.path)}>
-            <ListItemIcon sx={{ color: 'white' }}>{item.icon}</ListItemIcon>
-            {open && <ListItemText primary={item.label} />}
-          </NavItem>
+          <Tooltip title={open ? '' : item.label} placement="right" key={index}>
+            <NavItem button onClick={() => handleNavItemClick(item.path, item.section)}>
+              <ListItemIcon sx={{ color: 'white', minWidth: open ? '56px' : '24px' }}>{item.icon}</ListItemIcon>
+              {open && <ListItemText primary={item.label} />}
+            </NavItem>
+          </Tooltip>
         ))}
       </List>
-    </StyledDrawer>
+    </NavContainer>
   );
 };
 
