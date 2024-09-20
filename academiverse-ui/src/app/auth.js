@@ -11,6 +11,7 @@ export const {auth, handlers, signIn, signOut } = NextAuth({
     ],
     callbacks: {
         async signIn({ user, profile, account }) {
+            
             if (user && account) {
                 return true;
             }
@@ -19,7 +20,7 @@ export const {auth, handlers, signIn, signOut } = NextAuth({
             }
         },
         async jwt({ token, account }) {
-            console.log(token,account)
+            //console.log(token,account)
             if (account) {
                 const user = jwt.decode(account.id_token);
                 token.id_token = account.id_token;
