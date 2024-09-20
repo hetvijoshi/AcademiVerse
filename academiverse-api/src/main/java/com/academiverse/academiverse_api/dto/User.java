@@ -1,4 +1,4 @@
-package com.academiverse.academiverse_api.model;
+package com.academiverse.academiverse_api.dto;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
