@@ -70,14 +70,13 @@ const CourseScreen = () => {
   const router = useRouter();
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCourseId, setSelectedCourseId] = useState(null);
 
   useEffect(() => {
     // Simulating an API call to fetch courses
     const fetchCourses = async () => {
       try {
         // Replace this with your actual API call
-        const response = await new Promise(resolve =>
+        const response = await new Promise(resolve => 
           setTimeout(() => resolve([
             { id: '1', name: 'Introduction to Computer Science', color: '#FFE866' },
             { id: '2', name: 'Data Structures and Algorithms', color: '#BFFBBF' },
@@ -95,20 +94,19 @@ const CourseScreen = () => {
     fetchCourses();
   }, []);
 
-  const handleCourseClick = (courseId) => {
-    setSelectedCourseId(courseId);
-    router.push(`/courses`);
+  const handleIconClick = (courseId, path) => {
+    router.push(`/courses/${courseId}${path}`);
   };
 
   const icons = [
-    { icon: <AnnouncementIcon />, label: 'Announcements' },
-    { icon: <ModuleIcon />, label: 'Modules' },
-    { icon: <AssignmentIcon />, label: 'Assignments' },
-    { icon: <GradeIcon />, label: 'Grades' },
-    { icon: <QuizIcon />, label: 'Quiz' },
-    { icon: <ListIcon />, label: 'To Do List' },
-    { icon: <PeopleIcon />, label: 'Classmates' },
-    { icon: <EnrollmentIcon />, label: 'Enrollments' },
+    { icon: <AnnouncementIcon />, path: '/announcements', label: 'Announcements' },
+    { icon: <ModuleIcon />, path: '/modules', label: 'Modules' },
+    { icon: <AssignmentIcon />, path: '/assignments', label: 'Assignments' },
+    { icon: <GradeIcon />, path: '/grades', label: 'Grades' },
+    { icon: <QuizIcon />, path: '/quiz', label: 'Quiz' },
+    { icon: <ListIcon />, path: '/todo', label: 'To Do List' },
+    { icon: <PeopleIcon />, path: '/classmates', label: 'Classmates' },
+    { icon: <EnrollmentIcon />, path: '/enrollments', label: 'Enrollments' },
   ];
 
   return (
@@ -125,25 +123,19 @@ const CourseScreen = () => {
           ) : (
             courses.map((course) => (
               <CourseItem key={course.id}>
-                <StyledCard 
-                  bgcolor={course.color} 
-                  onClick={() => handleCourseClick(course.id)}
-                  sx={{ 
-                    border: selectedCourseId === course.id ? '2px solid #1976D2' : 'none',
-                    boxShadow: selectedCourseId === course.id ? '0 0 10px rgba(25, 118, 210, 0.5)' : 'none'
-                  }}
-                >
+                <StyledCard bgcolor={course.color}>
                   <CardContent>
                     <Typography variant="h6" component="div">
                       {course.name}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary" >
+                    <Typography variant="body2" color="text.secondary">
                       Course ID: {course.id}
                     </Typography>
                     <IconContainer>
                       {icons.map((item, index) => (
                         <IconButton
                           key={index}
+                          onClick={() => handleIconClick(course.id, item.path)}
                           title={item.label}
                         >
                           {item.icon}
