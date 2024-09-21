@@ -1,7 +1,7 @@
 package com.academiverse.academiverse_api.controller;
 
 import lombok.RequiredArgsConstructor;
-import com.academiverse.academiverse_api.dto.User;
+import com.academiverse.academiverse_api.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
