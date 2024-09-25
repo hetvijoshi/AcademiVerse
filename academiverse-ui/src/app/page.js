@@ -97,7 +97,7 @@ const CourseScreen = () => {
 
   const handleCourseClick = (courseId) => {
     setSelectedCourseId(courseId);
-    router.push(`/courses`);
+    router.push(`/courses?id=${courseId}`);
   };
 
   const icons = [
