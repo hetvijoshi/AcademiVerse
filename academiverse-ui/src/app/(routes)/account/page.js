@@ -1,11 +1,11 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Paper, Grid, Typography, TextField, Button, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Paper, Grid, Typography, TextField, Button, Select, MenuItem, FormControl, InputLabel, Snackbar, Alert } from '@mui/material';
 import { styled } from '@mui/system';
 import { useSession } from 'next-auth/react';
 import { getAllDepartment } from '../../services/departmentService';
 import { getAllDegree } from '../../services/degree';
-import { getUserDetails } from '../../services/userService';
+import { getUserDetails, putUserDetails } from '../../services/userService';
 
 
 const ProfileContainer = styled(Paper)(({ theme }) => ({
@@ -37,13 +37,20 @@ const AccountPage = () => {
     const [profile, setProfile] = useState({
         id: '',
         name: '',
-        email: '',
+        userEmail: '',
         role: '',
         department: '',
         degree: '',
+        departmentId: '',
+        degreeId: '',
     });
     const [departments, setDepartments] = useState([]);
     const [degrees, setDegrees] = useState([]);
+    const [snackbar, setSnackbar] = useState({
+        open: false,
+        message: '',
+        severity: 'success',
+    });
 
     useEffect(() => {
         // Fetch profile data
@@ -54,10 +61,12 @@ const AccountPage = () => {
                 const profileData = {
                     id: res.data?.userId,
                     name: res.data?.name,
-                    email: res.data?.userEmail,
+                    userEmail: res.data?.userEmail,
                     role: res.data?.role,
                     department: res.data?.department?.departmentName,
                     degree: res.data?.degree?.degreeName,
+                    departmentId: res.data?.department?.departmentId,
+                    degreeId: res.data?.degree?.degreeId,
                 };
                 setProfile(profileData);
             }
@@ -71,11 +80,6 @@ const AccountPage = () => {
             if (!res.isError) {
                 departmentsData = res.data;
             }
-            // const departmentsData = [
-            //     { id: 1, departmentName: 'Computer Science' },
-            //     { id: 2, departmentName: 'Mathematics' },
-            //     { id: 3, departmentName: 'Physics' }
-            // ];
             setDepartments(departmentsData);
         };
 
@@ -87,11 +91,6 @@ const AccountPage = () => {
             if (!res.isError) {
                 degreesData = res.data;
             }
-            // const degreesData = [
-            //     { id: 1, degreeName: 'Bachelor of Science' },
-            //     { id: 2, degreeName: 'Master of Science' },
-            //     { id: 3, degreeName: 'PhD' }
-            // ];
             setDegrees(degreesData);
         };
 
@@ -102,16 +101,52 @@ const AccountPage = () => {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
+        if (name === 'department') {
+            let id = departments.find(dept => dept.departmentName === value)?.departmentId;
+            setProfile((prevProfile) => ({
+                ...prevProfile,
+                departmentId: id
+            }));
+        } else if (name === 'degree') {
+            let id = degrees.find(deg => deg.degreeName === value)?.degreeId;
+            setProfile((prevProfile) => ({
+                ...prevProfile,
+                degreeId: id
+            }));
+        }
         setProfile((prevProfile) => ({
             ...prevProfile,
-            [name]: value,
+            [name]: value
         }));
     };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
         // Replace with actual API call to update profile
-        console.log('Updated profile:', profile);
+        let data = profile;
+        data.updatedBy = session.userDetails.userId;
+        console.log(data);
+        const res = await putUserDetails(data, session["id_token"]);
+        if (!res.isError) {
+            setSnackbar({
+                open: true,
+                message: res.message,
+                severity: 'success',
+            });
+        } else {
+            setSnackbar({
+                open: true,
+                message: res.message,
+                severity: 'error',
+            });
+        }
+    };
+
+    const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbar({ ...snackbar, open: false });
     };
 
     return (
@@ -141,7 +176,7 @@ const AccountPage = () => {
                     <StyledTextField
                         fullWidth
                         label="Email"
-                        value={profile.email}
+                        value={profile.userEmail}
                         disabled
                     />
                 </FormField>
@@ -193,6 +228,16 @@ const AccountPage = () => {
                     Save Changes
                 </StyledButton>
             </form>
+            <Snackbar
+                open={snackbar.open}
+                autoHideDuration={6000}
+                onClose={handleCloseSnackbar}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+                    {snackbar.message}
+                </Alert>
+            </Snackbar>
         </ProfileContainer>
     );
 };

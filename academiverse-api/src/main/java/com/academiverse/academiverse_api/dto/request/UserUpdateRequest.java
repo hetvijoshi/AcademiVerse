@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserUpdateRequest {
-    public Long Id;
+    public Long id;
     public String name;
     public String userEmail;
     public String role;

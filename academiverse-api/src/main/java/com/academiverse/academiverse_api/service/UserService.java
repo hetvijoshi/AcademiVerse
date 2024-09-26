@@ -101,7 +101,7 @@ public class UserService {
     }
 
     public BaseResponse<User> updateUser (UserUpdateRequest userRequest) {
-        Optional<User> existingUser = userRepository.findById(userRequest.Id);
+        Optional<User> existingUser = userRepository.findById(userRequest.id);
         if(existingUser.isPresent()){
             Optional<Department> department = departmentRepository.findById(userRequest.departmentId);
             Optional<Degree> degree = degreeRepository.findById(userRequest.degreeId);
@@ -134,7 +134,7 @@ public class UserService {
             BaseResponse<User> response = new BaseResponse<>();
             response.data = null;
             response.isError = true;
-            response.message = MessageFormat.format("User with id {0} does not exist.", userRequest.Id);
+            response.message = MessageFormat.format("User with id {0} does not exist.", userRequest.id);
             return response;
         }
     }
