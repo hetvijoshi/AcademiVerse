@@ -1,8 +1,9 @@
 import NextAuth from "next-auth";
 import jwt from "jsonwebtoken"
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
+import { fetchUserByEmail, postUserDetails } from "../app/services/userService";
 
-export const {auth, handlers, signIn, signOut } = NextAuth({
+export const { auth, handlers, signIn, signOut } = NextAuth({
     providers: [
         MicrosoftEntraID({
             clientId: process.env.AUTH_MICROSOFT_ENTRA_ID_ID,
@@ -11,32 +12,44 @@ export const {auth, handlers, signIn, signOut } = NextAuth({
     ],
     callbacks: {
         async signIn({ user, profile, account }) {
+            console.log(account)
             if (user && account) {
-                return true;
+                let existingUser = await fetchUserByEmail(user.email, account.id_token)
+                console.log(existingUser)
+                if (existingUser.data == null) {
+                    const tokenParams = jwt.decode(account.id_token);
+                    const userData = {}
+                    userData["name"] = tokenParams?.name
+                    userData["userEmail"] = tokenParams?.email
+                    let deptDeg = tokenParams?.roles[0]
+                    userData["role"] = deptDeg.split(";")[0]
+                    userData["departmentCode"] = deptDeg.split(";")[1]
+                    userData["createdBy"] = -1
+                    userData["updatedBy"] = -1
+                    existingUser = await postUserDetails(userData,account.id_token);
+                    return !existingUser.isError;
+                }else{
+                    return true;
+                }
             }
             else {
                 return false
             }
         },
         async jwt({ token, account }) {
-            console.log(token,account)
             if (account) {
-                const user = jwt.decode(account.id_token);
                 token.id_token = account.id_token;
                 token.access_token = account.access_token;
-                // token.name = user.name;
-                // token.email = user.family_name;
             }
-
             return token;
         },
         async session({ session, token }) {
-            //const userDetails = await fetchUser(session.user["email"], token.id_token);
-            // session["id_token"] = token.id_token;
-            // session["access_token"] = token.access_token;
-            // session.user["firstName"] = token.firstName;
-            // session.user["lastName"] = token.lastName;
-            //session.user["userId"] = userDetails.data.data._id
+            session["id_token"] = token.id_token;
+            session["access_token"] = token.access_token;
+            if(session["userDetails"] == null){
+                const userDetails = await fetchUserByEmail(session.user["email"], token.id_token);
+                session["userDetails"] = userDetails.data;    
+            }
             return session;
         },
     },

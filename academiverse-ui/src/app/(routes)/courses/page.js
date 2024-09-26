@@ -7,6 +7,7 @@ import CourseNavBar from '../../../components/LayoutWrapper/CourseNavBar';
 import { useSearchParams } from 'next/navigation';
 import AnnouncementPage from './announcements/annoucement';
 import ModulePage from './modules/page';
+import AssignmentPage from './assignments/page';
 
 const PageContainer = styled(Box)({
   display: 'flex',
@@ -36,6 +37,7 @@ const CoursePage = () => {
         <ContentArea>
           {(searchParams.get('section') === 'announcements' || searchParams.get('section') === null) && <AnnouncementPage />}
           {searchParams.get('section') === 'modules' && <ModulePage />}
+          {searchParams.get('section') === 'assignments' && <AssignmentPage />}
         </ContentArea>
       </PageContainer>
     );
