@@ -7,16 +7,10 @@ import {
   CardContent, 
   Typography, 
   IconButton, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  Button, 
-  TextField,
   CircularProgress
 } from '@mui/material';
 import { styled } from '@mui/system';
-import { Alarm as ReminderIcon, Flag as FlagIcon } from '@mui/icons-material';
+import { CheckCircle as DoneIcon } from '@mui/icons-material';
 
 const TodoCard = styled(Card)(({ theme }) => ({
   display: 'flex',
@@ -50,9 +44,9 @@ const TodoItem = styled(Box)(({ theme }) => ({
 }));
 
 const TitleSection = styled(Box)(({ theme }) => ({
-  height: '15vh',
+  height: '10vh',  // Decreased height
   width: '100%',
-  background: 'linear-gradient(45deg, #1976D2 30%, #21CBF3 90%)',
+  background: 'linear-gradient(45deg, #1976D2 30%, #21CBF3 90%)',  // Changed gradient colors
   display: 'flex',
   justifyContent: 'flex-start',
   alignItems: 'center',
@@ -60,7 +54,7 @@ const TitleSection = styled(Box)(({ theme }) => ({
 }));
 
 const ContentSection = styled(Box)(({ theme }) => ({
-  height: '85vh',
+  height: '90vh',  // Increased height to compensate for smaller title section
   width: '100%',
   padding: theme.spacing(3),
   overflowY: 'auto',
@@ -68,9 +62,6 @@ const ContentSection = styled(Box)(({ theme }) => ({
 
 const ToDoListScreen = () => {
   const [todos, setTodos] = useState([]);
-  const [openReminder, setOpenReminder] = useState(false);
-  const [selectedTodo, setSelectedTodo] = useState(null);
-  const [reminderTime, setReminderTime] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -78,9 +69,9 @@ const ToDoListScreen = () => {
       try {
         const response = await new Promise(resolve => 
           setTimeout(() => resolve([
-            { id: 1, name: 'Complete Project Proposal', dueDate: '2023-06-30T23:59', priority: false, course: 'Introduction to Computer Science' },
-            { id: 2, name: 'Submit Research Paper', dueDate: '2023-07-15T18:00', priority: true, course: 'Data Structures and Algorithms' },
-            { id: 3, name: 'Prepare Presentation', dueDate: '2023-07-05T14:30', priority: false, course: 'Web Development Fundamentals' },
+            { id: 1, name: 'Complete Project Proposal', dueDate: '2023-06-30T23:59', course: 'Introduction to Computer Science' },
+            { id: 2, name: 'Submit Research Paper', dueDate: '2023-07-15T18:00', course: 'Data Structures and Algorithms' },
+            { id: 3, name: 'Prepare Presentation', dueDate: '2023-07-05T14:30', course: 'Web Development Fundamentals' },
           ]), 1000)
         );
         setTodos(response.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)));
@@ -93,26 +84,8 @@ const ToDoListScreen = () => {
     fetchTodos();
   }, []);
 
-  const handleReminderClick = (todo) => {
-    setSelectedTodo(todo);
-    setOpenReminder(true);
-  };
-
-  const handleCloseReminder = () => {
-    setOpenReminder(false);
-    setSelectedTodo(null);
-    setReminderTime('');
-  };
-
-  const handleSetReminder = () => {
-    console.log(`Reminder set for ${selectedTodo.name} at ${reminderTime}`);
-    handleCloseReminder();
-  };
-
-  const handleTogglePriority = (id) => {
-    setTodos(todos.map(todo => 
-      todo.id === id ? { ...todo, priority: !todo.priority } : todo
-    ));
+  const handleDoneClick = (id) => {
+    setTodos(todos.filter(todo => todo.id !== id));
   };
 
   const formatDateTime = (dateTimeString) => {
@@ -123,8 +96,8 @@ const ToDoListScreen = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       <TitleSection>
-        <Typography variant="h4" sx={{ color: 'white', fontWeight: 'bold', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
-          My To-Do List
+        <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+          Task Tracker
         </Typography>
       </TitleSection>
       <ContentSection>
@@ -145,11 +118,8 @@ const ToDoListScreen = () => {
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton onClick={() => handleReminderClick(todo)} size="small">
-                        <ReminderIcon />
-                      </IconButton>
-                      <IconButton onClick={() => handleTogglePriority(todo.id)} size="small">
-                        <FlagIcon color={todo.priority ? 'error' : 'action'} />
+                      <IconButton onClick={() => handleDoneClick(todo.id)} size="small">
+                        <DoneIcon color="primary" />
                       </IconButton>
                     </Box>
                   </TodoContent>
@@ -158,28 +128,6 @@ const ToDoListScreen = () => {
             ))}
           </TodoContainer>
         )}
-        <Dialog open={openReminder} onClose={handleCloseReminder}>
-          <DialogTitle>Set Reminder</DialogTitle>
-          <DialogContent>
-            <TextField
-              label="Reminder Time"
-              type="datetime-local"
-              value={reminderTime}
-              onChange={(e) => setReminderTime(e.target.value)}
-              InputLabelProps={{
-                shrink: true,
-              }}
-              fullWidth
-              margin="normal"
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseReminder}>Cancel</Button>
-            <Button onClick={handleSetReminder} variant="contained" color="primary">
-              Set Reminder
-            </Button>
-          </DialogActions>
-        </Dialog>
       </ContentSection>
     </Box>
   );

@@ -1,14 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, List, ListItem, ListItemIcon, ListItemText, IconButton, Typography, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChevronRight, ChevronLeft, Announcement as AnnouncementIcon, School as SchoolIcon,
   ViewModule as ModuleIcon, Assignment as AssignmentIcon, Grade as GradeIcon, Quiz as QuizIcon,
   List as ListIcon, People as PeopleIcon, HowToReg as EnrollmentIcon
 } from '@mui/icons-material';
+import { useSession } from 'next-auth/react';
 
 const NavContainer = styled(Box)(({ theme, open }) => ({
   width: open ? '240px' : '64px',
@@ -24,28 +25,46 @@ const NavContainer = styled(Box)(({ theme, open }) => ({
   flexDirection: 'column',
 }));
 
-const NavItem = styled(ListItem)`
+const NavItem = styled(ListItem)(({ theme, isActive }) => `
   transition: all 0.3s ease;
+  cursor: pointer;
   &:hover {
     background-color: rgba(255, 255, 255, 0.2);
     transform: translateX(5px);
   }
-`;
+  ${isActive && `
+    background-color: rgba(255, 255, 255, 0.3);
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+  `}
+`);
 
 const CourseNavBar = ({ course = {} }) => {
   const [open, setOpen] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentSection = searchParams.get('section');
+  const { data: session } = useSession();
+  const [navItems, setNavItems] = useState([]);
 
-  const navItems = [
-    { label: 'Announcements', path: `/courses`, section: 'announcements', icon: <AnnouncementIcon /> },
-    { label: 'Modules', path: `/courses`, section: 'modules', icon: <ModuleIcon /> },
-    { label: 'Assignments', path: `/courses`, section: 'assignments', icon: <AssignmentIcon /> },
-    { label: 'Grades', path: `/courses`, section: 'grades', icon: <GradeIcon /> },
-    { label: 'Quiz', path: `/courses`, section: 'quiz', icon: <QuizIcon /> },
-    { label: 'To Do List', path: `/courses`, section: 'todo', icon: <ListIcon /> },
-    { label: 'Classmates', path: `/courses`, section: 'classmates', icon: <PeopleIcon /> },
-    { label: 'Course Enrollments', path: `/courses`, section: 'enrollments', icon: <EnrollmentIcon /> },
-  ];
+  useEffect(() => {
+    const items = [
+      { label: 'Announcements', path: `/courses`, section: 'announcements', icon: <AnnouncementIcon /> },
+      { label: 'Modules', path: `/courses`, section: 'modules', icon: <ModuleIcon /> },
+      { label: 'Assignments', path: `/courses`, section: 'assignments', icon: <AssignmentIcon /> },
+      { label: 'Grades', path: `/courses`, section: 'grades', icon: <GradeIcon /> },
+      { label: 'Quiz', path: `/courses`, section: 'quiz', icon: <QuizIcon /> },
+      { label: 'To Do List', path: `/courses`, section: 'todo', icon: <ListIcon /> },
+      { label: 'Classmates', path: `/courses`, section: 'classmates', icon: <PeopleIcon /> },
+    ];
+
+    if (session?.userDetails?.role === 'professor') {
+      items.push({ label: 'Course Enrollments', path: `/courses`, section: 'enrollments', icon: <EnrollmentIcon /> });
+    }
+
+    setNavItems(items);
+  }, [session]);
 
   const handleDrawerToggle = () => {
     setOpen(!open);
@@ -78,7 +97,10 @@ const CourseNavBar = ({ course = {} }) => {
       <List>
         {navItems.map((item, index) => (
           <Tooltip title={open ? '' : item.label} placement="right" key={index}>
-            <NavItem button onClick={() => handleNavItemClick(item.path, item.section)}>
+            <NavItem
+              onClick={() => handleNavItemClick(item.path, item.section)}
+              isActive={currentSection === item.section}
+            >
               <ListItemIcon sx={{ color: 'white', minWidth: open ? '56px' : '24px' }}>{item.icon}</ListItemIcon>
               {open && <ListItemText primary={item.label} />}
             </NavItem>
