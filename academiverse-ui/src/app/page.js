@@ -1,9 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, IconButton, CircularProgress } from '@mui/material';
+import { Box, Card, CardContent, Typography, IconButton, CircularProgress, Button } from '@mui/material';
 import { styled } from '@mui/system';
 import { useRouter } from 'next/navigation';
+import { useSession } from "next-auth/react";
 import {
   Announcement as AnnouncementIcon,
   ViewModule as ModuleIcon,
@@ -12,7 +13,8 @@ import {
   Quiz as QuizIcon,
   List as ListIcon,
   People as PeopleIcon,
-  HowToReg as EnrollmentIcon
+  HowToReg as EnrollmentIcon,
+  Add as AddIcon
 } from '@mui/icons-material';
 
 const StyledCard = styled(Card)(({ theme, bgcolor }) => ({
@@ -54,7 +56,7 @@ const TitleSection = styled(Box)(({ theme }) => ({
   width: '100%',
   background: 'linear-gradient(45deg, #1976D2 30%, #21CBF3 90%)',
   display: 'flex',
-  justifyContent: 'flex-start',
+  justifyContent: 'space-between',
   alignItems: 'center',
   padding: theme.spacing(0, 4),
 }));
@@ -71,6 +73,7 @@ const CourseScreen = () => {
   const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     // Simulating an API call to fetch courses
@@ -100,6 +103,11 @@ const CourseScreen = () => {
     router.push(`/courses?id=${courseId}`);
   };
 
+  const handleAddCourse = () => {
+    // Implement add course functionality
+    console.log('Add course clicked');
+  };
+
   const icons = [
     { icon: <AnnouncementIcon />, label: 'Announcements' },
     { icon: <ModuleIcon />, label: 'Modules' },
@@ -111,6 +119,8 @@ const CourseScreen = () => {
     { icon: <EnrollmentIcon />, label: 'Enrollments' },
   ];
 
+  const isProfessor = session?.userDetails?.role === 'professor';
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       <TitleSection>
@@ -119,41 +129,63 @@ const CourseScreen = () => {
         </Typography>
       </TitleSection>
       <ContentSection>
+        {isProfessor && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 2, paddingRight: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              onClick={handleAddCourse}
+              sx={{
+                backgroundColor: '#4CAF50',
+                '&:hover': { backgroundColor: '#45a049' },
+                maxWidth: 'calc(100% - 16px)',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              Add Course
+            </Button>
+          </Box>
+        )}
         <CourseContainer>
           {loading ? (
             <CircularProgress />
           ) : (
-            courses.map((course) => (
-              <CourseItem key={course.id}>
-                <StyledCard 
-                  bgcolor={course.color} 
-                  onClick={() => handleCourseClick(course.id)}
-                  sx={{ 
-                    border: selectedCourseId === course.id ? '2px solid #1976D2' : 'none',
-                    boxShadow: selectedCourseId === course.id ? '0 0 10px rgba(25, 118, 210, 0.5)' : 'none'
-                  }}
-                >
-                  <CardContent>
-                    <Typography variant="h6" component="div">
-                      {course.name}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" >
-                      Course ID: {course.id}
-                    </Typography>
-                    <IconContainer>
-                      {icons.map((item, index) => (
-                        <IconButton
-                          key={index}
-                          title={item.label}
-                        >
-                          {item.icon}
-                        </IconButton>
-                      ))}
-                    </IconContainer>
-                  </CardContent>
-                </StyledCard>
-              </CourseItem>
-            ))
+            <>
+              {courses.map((course) => (
+                <CourseItem key={course.id}>
+                  <StyledCard
+                    bgcolor={course.color}
+                    onClick={() => handleCourseClick(course.id)}
+                    sx={{
+                      border: selectedCourseId === course.id ? '2px solid #1976D2' : 'none',
+                      boxShadow: selectedCourseId === course.id ? '0 0 10px rgba(25, 118, 210, 0.5)' : 'none'
+                    }}
+                  >
+                    <CardContent>
+                      <Typography variant="h6" component="div">
+                        {course.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" >
+                        Course ID: {course.id}
+                      </Typography>
+                      <IconContainer>
+                        {icons.map((item, index) => (
+                          <IconButton
+                            key={index}
+                            title={item.label}
+                          >
+                            {item.icon}
+                          </IconButton>
+                        ))}
+                      </IconContainer>
+                    </CardContent>
+                  </StyledCard>
+                </CourseItem>
+              ))}
+            </>
           )}
         </CourseContainer>
       </ContentSection>

@@ -5,7 +5,6 @@ import { Box, Typography, List, Paper, Chip, Button } from '@mui/material';
 import { styled } from '@mui/system';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Assignment as AssignmentIcon } from '@mui/icons-material';
-import AssignmentDetail from './assignmentDetail/page';
 
 const AssignmentContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -29,11 +28,10 @@ const StyledChip = styled(Chip)(({ theme }) => ({
   marginRight: theme.spacing(1),
 }));
 
-const AssignmentPage = () => {
+const AssignmentPage = ({ course }) => {
   const [assignments, setAssignments] = useState([]);
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedAssignmentId = searchParams.get('assignmentId');
+  const courseId = useSearchParams().get('id');
 
   useEffect(() => {
     // Fetch assignments from API
@@ -51,13 +49,8 @@ const AssignmentPage = () => {
   }, []);
 
   const handleAssignmentClick = (assignmentId) => {
-    router.push(`/courses/assignments?assignmentId=${assignmentId}`);
+    router.push(`/courses?id=${courseId}&section=assignmentDetail&assignmentId=${assignmentId}`);
   };
-
-  if (selectedAssignmentId) {
-    const selectedAssignment = assignments.find(a => a.id === parseInt(selectedAssignmentId));
-    return <AssignmentDetail assignment={selectedAssignment} />;
-  }
 
   return (
     <AssignmentContainer>

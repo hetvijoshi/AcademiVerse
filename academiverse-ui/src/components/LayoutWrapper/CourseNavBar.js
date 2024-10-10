@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Box, List, ListItem, ListItemIcon, ListItemText, IconButton, Typography, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChevronRight, ChevronLeft, Announcement as AnnouncementIcon, School as SchoolIcon,
   ViewModule as ModuleIcon, Assignment as AssignmentIcon, Grade as GradeIcon, Quiz as QuizIcon,
@@ -24,17 +24,26 @@ const NavContainer = styled(Box)(({ theme, open }) => ({
   flexDirection: 'column',
 }));
 
-const NavItem = styled(ListItem)`
+const NavItem = styled(ListItem)(({ theme, isActive }) => `
   transition: all 0.3s ease;
+  cursor: pointer;
   &:hover {
     background-color: rgba(255, 255, 255, 0.2);
     transform: translateX(5px);
   }
-`;
+  ${isActive && `
+    background-color: rgba(255, 255, 255, 0.3);
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.4);
+    }
+  `}
+`);
 
 const CourseNavBar = ({ course = {} }) => {
   const [open, setOpen] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const currentSection = searchParams.get('section');
 
   const navItems = [
     { label: 'Announcements', path: `/courses`, section: 'announcements', icon: <AnnouncementIcon /> },
@@ -78,7 +87,10 @@ const CourseNavBar = ({ course = {} }) => {
       <List>
         {navItems.map((item, index) => (
           <Tooltip title={open ? '' : item.label} placement="right" key={index}>
-            <NavItem button onClick={() => handleNavItemClick(item.path, item.section)}>
+            <NavItem
+              onClick={() => handleNavItemClick(item.path, item.section)}
+              isActive={currentSection === item.section}
+            >
               <ListItemIcon sx={{ color: 'white', minWidth: open ? '56px' : '24px' }}>{item.icon}</ListItemIcon>
               {open && <ListItemText primary={item.label} />}
             </NavItem>
