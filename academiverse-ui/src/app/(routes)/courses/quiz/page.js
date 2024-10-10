@@ -22,6 +22,8 @@ import {
   LinearProgress
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { useSession } from 'next-auth/react';
+import QuizCreationPage from './quizCreation';
 
 const QuizContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
@@ -92,6 +94,7 @@ const QuizProgress = styled(LinearProgress)(({ theme }) => ({
 }));
 
 const QuizPage = () => {
+  const { data: session } = useSession();
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openQuiz, setOpenQuiz] = useState(null);
@@ -100,86 +103,87 @@ const QuizPage = () => {
 
   useEffect(() => {
     const fetchQuizzes = async () => {
-      try {
-        // Simulating API call
-        const response = await new Promise(resolve =>
-          setTimeout(() => resolve([
-            {
-              id: 1,
-              title: 'Midterm Quiz',
-              dueDate: '2023-07-15T23:59:59',
-              totalMarks: 100,
-              submitted: false,
-              questions: [
-                {
-                  question: 'What is the capital of France?',
-                  options: ['London', 'Berlin', 'Paris', 'Madrid'],
-                  correctAnswer: 'Paris'
-                },
-                {
-                  question: 'Which planet is known as the Red Planet?',
-                  options: ['Mars', 'Jupiter', 'Venus', 'Saturn'],
-                  correctAnswer: 'Mars'
-                }
-              ]
-            },
-            {
-              id: 2,
-              title: 'Final Quiz',
-              dueDate: '2023-08-30T23:59:59',
-              totalMarks: 150,
-              submitted: false,
-              questions: [
-                {
-                  question: 'Who painted the Mona Lisa?',
-                  options: ['Vincent van Gogh', 'Leonardo da Vinci', 'Pablo Picasso', 'Claude Monet'],
-                  correctAnswer: 'Leonardo da Vinci'
-                },
-                {
-                  question: 'What is the largest ocean on Earth?',
-                  options: ['Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean'],
-                  correctAnswer: 'Pacific Ocean'
-                }
-              ]
-            },
-            {
-              id: 3,
-              title: 'Chapter 1 Quiz',
-              dueDate: '2023-07-05T23:59:59',
-              totalMarks: 50,
-              submitted: true
-            },
-            {
-              id: 4,
-              title: 'Pop Quiz',
-              dueDate: '2024-12-10T23:59:59',
-              totalMarks: 25,
-              submitted: false,
-              questions: [
-                {
-                  question: 'Who painted the Mona Lisa?',
-                  options: ['Vincent van Gogh', 'Leonardo da Vinci', 'Pablo Picasso', 'Claude Monet'],
-                  correctAnswer: 'Leonardo da Vinci'
-                },
-                {
-                  question: 'What is the largest ocean on Earth?',
-                  options: ['Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean'],
-                  correctAnswer: 'Pacific Ocean'
-                }
-              ]
-            }
-          ]), 1000)
-        );
-        setQuizzes(response);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching quiz data:', error);
-        setLoading(false);
+      if (session?.userDetails?.role !== 'professor') {
+        try {
+          // Simulating API call
+          const response = await new Promise(resolve =>
+            setTimeout(() => resolve([
+              {
+                id: 1,
+                title: 'Midterm Quiz',
+                dueDate: '2023-07-15T23:59:59',
+                totalMarks: 100,
+                submitted: false,
+                questions: [
+                  {
+                    question: 'What is the capital of France?',
+                    options: ['London', 'Berlin', 'Paris', 'Madrid'],
+                    correctAnswer: 'Paris'
+                  },
+                  {
+                    question: 'Which planet is known as the Red Planet?',
+                    options: ['Mars', 'Jupiter', 'Venus', 'Saturn'],
+                    correctAnswer: 'Mars'
+                  }
+                ]
+              },
+              {
+                id: 2,
+                title: 'Final Quiz',
+                dueDate: '2023-08-30T23:59:59',
+                totalMarks: 150,
+                submitted: false,
+                questions: [
+                  {
+                    question: 'Who painted the Mona Lisa?',
+                    options: ['Vincent van Gogh', 'Leonardo da Vinci', 'Pablo Picasso', 'Claude Monet'],
+                    correctAnswer: 'Leonardo da Vinci'
+                  },
+                  {
+                    question: 'What is the largest ocean on Earth?',
+                    options: ['Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean'],
+                    correctAnswer: 'Pacific Ocean'
+                  }
+                ]
+              },
+              {
+                id: 3,
+                title: 'Chapter 1 Quiz',
+                dueDate: '2023-07-05T23:59:59',
+                totalMarks: 50,
+                submitted: true
+              },
+              {
+                id: 4,
+                title: 'Pop Quiz',
+                dueDate: '2024-12-10T23:59:59',
+                totalMarks: 25,
+                submitted: false,
+                questions: [
+                  {
+                    question: 'Who painted the Mona Lisa?',
+                    options: ['Vincent van Gogh', 'Leonardo da Vinci', 'Pablo Picasso', 'Claude Monet'],
+                    correctAnswer: 'Leonardo da Vinci'
+                  },
+                  {
+                    question: 'What is the largest ocean on Earth?',
+                    options: ['Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean'],
+                    correctAnswer: 'Pacific Ocean'
+                  }
+                ]
+              }
+            ]), 1000)
+          );
+          setQuizzes(response);
+        } catch (error) {
+          console.error('Error fetching quiz data:', error);
+        }
       }
+      setLoading(false);
     };
 
     fetchQuizzes();
-  }, []);
+  }, [session]);
 
   const formatDate = (dateString) => {
     const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
@@ -224,6 +228,10 @@ const QuizPage = () => {
         <CircularProgress />
       </Box>
     );
+  }
+
+  if (session?.userDetails?.role === 'professor') {
+    return <QuizCreationPage />;
   }
 
   return (

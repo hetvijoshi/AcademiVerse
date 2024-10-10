@@ -12,6 +12,8 @@ import GradePage from './grades/page';
 import AssignmentDetail from './assignments/assignmentDetail/page';
 import ToDoListScreen from './toDoList/page';
 import QuizPage from './quiz/page';
+import ClassmatePage from './classmates/page'
+import EnrollmentPage from './enrollment/page'
 
 const PageContainer = styled(Box)({
   display: 'flex',
@@ -40,12 +42,14 @@ const CoursePage = () => {
         <CourseNavBar course={{ id: courseId }} />
         <ContentArea>
           {(searchParams.get('section') === 'announcements' || searchParams.get('section') === null) && <AnnouncementPage course={{ id: courseId }} />}
-          {searchParams.get('section') === 'modules' && <ModulePage course={{ id: courseId }}/>}
-          {searchParams.get('section') === 'assignments' && <AssignmentPage course={{ id: courseId }}/>}
+          {searchParams.get('section') === 'modules' && <ModulePage course={{ id: courseId }} />}
+          {searchParams.get('section') === 'assignments' && <AssignmentPage course={{ id: courseId }} />}
           {searchParams.get('section') === 'assignmentDetail' && searchParams.get('assignmentId') && <AssignmentDetail assignment={parseInt(searchParams.get('assignmentId'))} />}
-          {searchParams.get('section') === 'grades' && <GradePage/>}
-          {searchParams.get('section') === 'todo' && <ToDoListScreen/>}
-          {searchParams.get('section') === 'quiz' && <QuizPage/>}
+          {searchParams.get('section') === 'grades' && <GradePage />}
+          {searchParams.get('section') === 'quiz' && <QuizPage />}
+          {searchParams.get('section') === 'todo' && <ToDoListScreen />}
+          {searchParams.get('section') === 'classmates' && <ClassmatePage />}
+          {searchParams.get('section') === 'enrollments' && <EnrollmentPage />}
         </ContentArea>
       </PageContainer>
     );

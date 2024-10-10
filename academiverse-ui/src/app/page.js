@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Card, CardContent, Typography, IconButton, CircularProgress, Button } from '@mui/material';
+import { Box, Card, CardContent, Typography, IconButton, CircularProgress, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, Checkbox, FormControlLabel, Autocomplete } from '@mui/material';
 import { styled } from '@mui/system';
 import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
@@ -14,7 +14,8 @@ import {
   List as ListIcon,
   People as PeopleIcon,
   HowToReg as EnrollmentIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Edit as EditIcon
 } from '@mui/icons-material';
 
 const StyledCard = styled(Card)(({ theme, bgcolor }) => ({
@@ -74,28 +75,47 @@ const CourseScreen = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const { data: session } = useSession();
+  const [openAddCourseDialog, setOpenAddCourseDialog] = useState(false);
+  const [openEditCourseDialog, setOpenEditCourseDialog] = useState(false);
+  const [editingCourse, setEditingCourse] = useState(null);
+  const [newCourse, setNewCourse] = useState({
+    department: null,
+    course: null,
+    capacity: '',
+    days: [],
+    startTime: '',
+    endTime: '',
+    semester: '',
+    year: new Date().getFullYear(),
+  });
+
+  const [departments, setDepartments] = useState([]);
+  const [courseList, setCourseList] = useState([]);
+  const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const semesters = ['Fall', 'Spring', 'Summer'];
 
   useEffect(() => {
-    // Simulating an API call to fetch courses
-    const fetchCourses = async () => {
-      try {
-        // Replace this with your actual API call
-        const response = await new Promise(resolve =>
-          setTimeout(() => resolve([
-            { id: '1', name: 'Introduction to Computer Science', color: '#FFE866' },
-            { id: '2', name: 'Data Structures and Algorithms', color: '#BFFBBF' },
-            { id: '3', name: 'Web Development Fundamentals', color: '#B3E0FF' },
-          ]), 1000)
-        );
-        setCourses(response);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching courses:', error);
-        setLoading(false);
-      }
-    };
+    // Simulating API calls with static data
+    const staticCourses = [
+      { id: 1, code: 'CS101', name: 'Introduction to Programming', color: '#FFB74D', days: ['Monday', 'Wednesday'], startTime: '09:00', endTime: '10:30' },
+      { id: 2, code: 'CS201', name: 'Data Structures', color: '#64B5F6', days: ['Tuesday', 'Thursday'], startTime: '11:00', endTime: '12:30' },
+      { id: 3, code: 'MATH101', name: 'Calculus I', color: '#81C784', days: ['Monday', 'Wednesday', 'Friday'], startTime: '14:00', endTime: '15:00' },
+    ];
+    const staticDepartments = [
+      { id: 'CS', name: 'Computer Science' },
+      { id: 'MATH', name: 'Mathematics' },
+      { id: 'ENG', name: 'English' },
+    ];
+    const staticCourseList = [
+      { id: 'CS101', code: 'CS101', title: 'Introduction to Programming' },
+      { id: 'CS201', code: 'CS201', title: 'Data Structures' },
+      { id: 'MATH101', code: 'MATH101', title: 'Calculus I' },
+    ];
 
-    fetchCourses();
+    setCourses(staticCourses);
+    setDepartments(staticDepartments);
+    setCourseList(staticCourseList);
+    setLoading(false);
   }, []);
 
   const handleCourseClick = (courseId) => {
@@ -104,22 +124,79 @@ const CourseScreen = () => {
   };
 
   const handleAddCourse = () => {
-    // Implement add course functionality
-    console.log('Add course clicked');
+    setOpenAddCourseDialog(true);
+  };
+
+  const handleCloseAddCourseDialog = () => {
+    setOpenAddCourseDialog(false);
+    setNewCourse({
+      department: null,
+      course: null,
+      capacity: '',
+      days: [],
+      startTime: '',
+      endTime: '',
+      semester: '',
+      year: new Date().getFullYear(),
+    });
+  };
+
+  const handleSaveNewCourse = () => {
+    // Add the new course to the static data
+    const newCourseData = {
+      id: courses.length + 1,
+      code: newCourse.course.code,
+      name: newCourse.course.title,
+      color: `#${Math.floor(Math.random()*16777215).toString(16)}`, // Random color
+      days: newCourse.days,
+      startTime: newCourse.startTime,
+      endTime: newCourse.endTime,
+    };
+    setCourses([...courses, newCourseData]);
+    handleCloseAddCourseDialog();
+  };
+
+  const handleNewCourseChange = (field, value) => {
+    setNewCourse(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleEditCourse = (course) => {
+    setEditingCourse(course);
+    setOpenEditCourseDialog(true);
+  };
+
+  const handleCloseEditCourseDialog = () => {
+    setOpenEditCourseDialog(false);
+    setEditingCourse(null);
+  };
+
+  const handleSaveEditedCourse = () => {
+    const updatedCourses = courses.map(course => 
+      course.id === editingCourse.id ? editingCourse : course
+    );
+    setCourses(updatedCourses);
+    handleCloseEditCourseDialog();
+  };
+
+  const handleEditCourseChange = (field, value) => {
+    setEditingCourse(prev => ({ ...prev, [field]: value }));
   };
 
   const icons = [
-    { icon: <AnnouncementIcon />, label: 'Announcements' },
-    { icon: <ModuleIcon />, label: 'Modules' },
-    { icon: <AssignmentIcon />, label: 'Assignments' },
-    { icon: <GradeIcon />, label: 'Grades' },
-    { icon: <QuizIcon />, label: 'Quiz' },
-    { icon: <ListIcon />, label: 'To Do List' },
-    { icon: <PeopleIcon />, label: 'Classmates' },
-    { icon: <EnrollmentIcon />, label: 'Enrollments' },
+    { icon: <AnnouncementIcon />, label: 'Announcements', section:'announcements' },
+    { icon: <ModuleIcon />, label: 'Modules', section:'modules' },
+    { icon: <AssignmentIcon />, label: 'Assignments', section:'assignments' },
+    { icon: <GradeIcon />, label: 'Grades' , section:'grades'},
+    { icon: <QuizIcon />, label: 'Quiz' , section:'quiz'},
+    { icon: <ListIcon />, label: 'To Do List' , section:'todo'},
+    { icon: <PeopleIcon />, label: 'Classmates' , section:'classmates'},
   ];
 
   const isProfessor = session?.userDetails?.role === 'professor';
+
+  const handleIconClick = (courseId, section) => {
+    router.push(`/courses?id=${courseId}&section=${section}`);
+  };
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
@@ -166,20 +243,49 @@ const CourseScreen = () => {
                   >
                     <CardContent>
                       <Typography variant="h6" component="div">
-                        {course.name}
+                        {course.code}: {course.name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary" >
-                        Course ID: {course.id}
+                      <Typography variant="body2" color="text.secondary">
+                        Days: {course.days.join(', ')}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Time: {course.startTime} - {course.endTime}
                       </Typography>
                       <IconContainer>
                         {icons.map((item, index) => (
                           <IconButton
                             key={index}
                             title={item.label}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleIconClick(course.id, item.section.toLowerCase());
+                            }}
                           >
                             {item.icon}
                           </IconButton>
                         ))}
+                        {isProfessor && (
+                          <>
+                            <IconButton
+                              title="Enrollments"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleIconClick(course.id, 'enrollments');
+                              }}
+                            >
+                              <EnrollmentIcon />
+                            </IconButton>
+                            <IconButton
+                              title="Edit Course"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleEditCourse(course);
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          </>
+                        )}
                       </IconContainer>
                     </CardContent>
                   </StyledCard>
@@ -189,6 +295,173 @@ const CourseScreen = () => {
           )}
         </CourseContainer>
       </ContentSection>
+
+      <Dialog open={openAddCourseDialog} onClose={handleCloseAddCourseDialog}>
+        <DialogTitle>Add New Course</DialogTitle>
+        <DialogContent>
+          <Autocomplete
+            options={departments}
+            getOptionLabel={(option) => option.name}
+            value={newCourse.department}
+            onChange={(_, newValue) => handleNewCourseChange('department', newValue)}
+            renderInput={(params) => <TextField {...params} label="Select Department" fullWidth sx={{ mt: 2 }} />}
+          />
+
+          <Autocomplete
+            options={courseList}
+            getOptionLabel={(option) => `${option.code}: ${option.title}`}
+            value={newCourse.course}
+            onChange={(_, newValue) => handleNewCourseChange('course', newValue)}
+            renderInput={(params) => <TextField {...params} label="Select Course" fullWidth sx={{ mt: 2 }} />}
+          />
+
+          <TextField
+            fullWidth
+            label="Course Capacity"
+            type="number"
+            value={newCourse.capacity}
+            onChange={(e) => handleNewCourseChange('capacity', e.target.value)}
+            sx={{ mt: 2 }}
+          />
+
+          <Box sx={{ mt: 2 }}>
+            {days.map((day) => (
+              <FormControlLabel
+                key={day}
+                control={
+                  <Checkbox
+                    checked={newCourse.days.includes(day)}
+                    onChange={(e) => {
+                      let newDays;
+                      if (e.target.checked) {
+                        newDays = [...newCourse.days, day];
+                      } else {
+                        newDays = newCourse.days.filter(d => d !== day);
+                      }
+                      // Sort the days according to their order in the 'days' array
+                      newDays.sort((a, b) => days.indexOf(a) - days.indexOf(b));
+                      handleNewCourseChange('days', newDays);
+                    }}
+                  />
+                }
+                label={day}
+              />
+            ))}
+          </Box>
+
+          <TextField
+            fullWidth
+            label="Start Time"
+            type="time"
+            value={newCourse.startTime}
+            onChange={(e) => handleNewCourseChange('startTime', e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ step: 300 }}
+            sx={{ mt: 2 }}
+          />
+
+          <TextField
+            fullWidth
+            label="End Time"
+            type="time"
+            value={newCourse.endTime}
+            onChange={(e) => handleNewCourseChange('endTime', e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ step: 300 }}
+            sx={{ mt: 2 }}
+          />
+
+          <Select
+            fullWidth
+            value={newCourse.semester}
+            onChange={(e) => handleNewCourseChange('semester', e.target.value)}
+            displayEmpty
+            sx={{ mt: 2 }}
+          >
+            <MenuItem value="" disabled>Select Semester</MenuItem>
+            {semesters.map((sem) => (
+              <MenuItem key={sem} value={sem}>{sem}</MenuItem>
+            ))}
+          </Select>
+
+          <TextField
+            fullWidth
+            label="Year"
+            type="number"
+            value={newCourse.year}
+            onChange={(e) => handleNewCourseChange('year', e.target.value)}
+            sx={{ mt: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAddCourseDialog}>Cancel</Button>
+          <Button onClick={handleSaveNewCourse} variant="contained" color="primary">Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openEditCourseDialog} onClose={handleCloseEditCourseDialog}>
+        <DialogTitle>Edit Course</DialogTitle>
+        <DialogContent>
+          {editingCourse && (
+            <>
+              <TextField
+                fullWidth
+                label="Course Name"
+                value={editingCourse.name}
+                onChange={(e) => handleEditCourseChange('name', e.target.value)}
+                sx={{ mt: 2 }}
+              />
+              <Box sx={{ mt: 2 }}>
+                {days.map((day) => (
+                  <FormControlLabel
+                    key={day}
+                    control={
+                      <Checkbox
+                        checked={editingCourse.days.includes(day)}
+                        onChange={(e) => {
+                          let newDays;
+                          if (e.target.checked) {
+                            newDays = [...editingCourse.days, day];
+                            newDays.sort((a, b) => days.indexOf(a) - days.indexOf(b));
+                          } else {
+                            newDays = editingCourse.days.filter(d => d !== day);
+                          }
+                          handleEditCourseChange('days', newDays);
+                        }}
+                      />
+                    }
+                    label={day}
+                  />
+                ))}
+              </Box>
+              <TextField
+                fullWidth
+                label="Start Time"
+                type="time"
+                value={editingCourse.startTime}
+                onChange={(e) => handleEditCourseChange('startTime', e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ step: 300 }}
+                sx={{ mt: 2 }}
+              />
+              <TextField
+                fullWidth
+                label="End Time"
+                type="time"
+                value={editingCourse.endTime}
+                onChange={(e) => handleEditCourseChange('endTime', e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                inputProps={{ step: 300 }}
+                sx={{ mt: 2 }}
+              />
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditCourseDialog}>Cancel</Button>
+          <Button onClick={handleSaveEditedCourse} variant="contained" color="primary">Save</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
