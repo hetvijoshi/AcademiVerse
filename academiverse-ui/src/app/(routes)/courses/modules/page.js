@@ -13,7 +13,8 @@ import {
   Folder as FolderIcon,
   Description as FileIcon,
   Add as AddIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 
@@ -178,6 +179,20 @@ const ModulePage = () => {
     setSelectedMaterial(null);
   };
 
+  const handleDeleteMaterial = (e, moduleId, materialId) => {
+    e.stopPropagation();
+    const updatedModules = modules.map(module => {
+      if (module.id === moduleId) {
+        return {
+          ...module,
+          materials: module.materials.filter(material => material.id !== materialId)
+        };
+      }
+      return module;
+    });
+    setModules(updatedModules);
+  };
+
   return (
     <PageContainer>
       <ContentWrapper>
@@ -241,6 +256,11 @@ const ModulePage = () => {
                           {material.type === 'folder' ? <FolderIcon color="primary" /> : <FileIcon color="primary" />}
                         </ListItemIcon>
                         <ListItemText primary={material.name} />
+                        {isProfessor && (
+                          <IconButton onClick={(e) => handleDeleteMaterial(e, module.id, material.id)}>
+                            <DeleteIcon color="primary" />
+                          </IconButton>
+                        )}
                       </MaterialItem>
                     ))}
                   </List>
