@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, Typography, List, ListItem, ListItemIcon, ListItemText, 
+import {
+  Box, Typography, List, ListItem, ListItemIcon, ListItemText,
   Accordion, AccordionSummary, AccordionDetails, CircularProgress,
   Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, IconButton
 } from '@mui/material';
 import { styled } from '@mui/material';
-import { 
+import {
   ExpandMore as ExpandMoreIcon,
   Folder as FolderIcon,
   Description as FileIcon,
@@ -46,6 +46,10 @@ const ModuleAccordion = styled(Accordion)(({ theme }) => ({
     display: 'none',
   },
   boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+  backgroundColor: theme.palette.grey[100],
+  '&.Mui-expanded': {
+    backgroundColor: theme.palette.background.paper,
+  },
 }));
 
 const ModuleTitle = styled(Typography)(({ theme }) => ({
@@ -76,6 +80,9 @@ const ModulePage = () => {
   const [newModuleTitle, setNewModuleTitle] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedModuleId, setSelectedModuleId] = useState(null);
+  const [expandedModules, setExpandedModules] = useState({});
+  const [openFileViewer, setOpenFileViewer] = useState(false);
+  const [selectedMaterial, setSelectedMaterial] = useState(null);
 
   useEffect(() => {
     // Simulating an API call to fetch modules
@@ -88,8 +95,8 @@ const ModulePage = () => {
               id: 1,
               title: 'Introduction to the Course',
               materials: [
-                { id: 1, type: 'file', name: 'Syllabus.pdf' },
-                { id: 2, type: 'file', name: 'Course Overview.pptx' },
+                { id: 1, type: 'file', name: 'Syllabus.pdf', url: '/sample_mcq_quiz.pdf' },
+                { id: 2, type: 'file', name: 'Course Overview.pptx', url: '/sample_mcq_quiz.pdf' },
               ]
             },
             {
@@ -97,14 +104,20 @@ const ModulePage = () => {
               title: 'Fundamentals of Programming',
               materials: [
                 { id: 3, type: 'folder', name: 'Lecture Notes' },
-                { id: 4, type: 'file', name: 'Programming Basics.pdf' },
-                { id: 5, type: 'file', name: 'Coding Exercise 1.zip' },
+                { id: 4, type: 'file', name: 'Programming Basics.pdf', url: '/sample_mcq_quiz.pdf' },
+                { id: 5, type: 'file', name: 'Coding Exercise 1.zip', url: '/sample_mcq_quiz.pdf' },
               ]
             },
             // Add more modules as needed
           ]), 1000)
         );
         setModules(response);
+        // Set all modules to expanded by default
+        const initialExpandedState = response.reduce((acc, module) => {
+          acc[module.id] = true;
+          return acc;
+        }, {});
+        setExpandedModules(initialExpandedState);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching modules:', error);
@@ -125,6 +138,7 @@ const ModulePage = () => {
       materials: []
     };
     setModules([...modules, newModule]);
+    setExpandedModules(prev => ({ ...prev, [newModule.id]: true }));
     setOpenAddModule(false);
     setNewModuleTitle('');
   };
@@ -136,7 +150,7 @@ const ModulePage = () => {
         if (module.id === selectedModuleId) {
           return {
             ...module,
-            materials: [...module.materials, { id: Date.now(), type: 'file', name: selectedFile.name }]
+            materials: [...module.materials, { id: Date.now(), type: 'file', name: selectedFile.name, url: URL.createObjectURL(selectedFile) }]
           };
         }
         return module;
@@ -146,6 +160,22 @@ const ModulePage = () => {
       setSelectedFile(null);
       setSelectedModuleId(null);
     }
+  };
+
+  const handleAccordionChange = (moduleId) => (event, isExpanded) => {
+    setExpandedModules(prev => ({ ...prev, [moduleId]: isExpanded }));
+  };
+
+  const handleMaterialClick = (material) => {
+    if (material.type === 'file') {
+      setSelectedMaterial(material);
+      setOpenFileViewer(true);
+    }
+  };
+
+  const handleCloseFileViewer = () => {
+    setOpenFileViewer(false);
+    setSelectedMaterial(null);
   };
 
   return (
@@ -182,14 +212,31 @@ const ModulePage = () => {
             </LoadingContainer>
           ) : (
             modules.map((module) => (
-              <ModuleAccordion key={module.id} defaultExpanded>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <ModuleAccordion
+                key={module.id}
+                expanded={expandedModules[module.id]}
+                onChange={handleAccordionChange(module.id)}
+              >
+                <AccordionSummary
+                  expandIcon={<ExpandMoreIcon />}
+                  sx={{
+                    backgroundColor: 'grey.100',
+                    '&.Mui-expanded': {
+                      backgroundColor: 'background.paper',
+                    },
+                  }}
+                >
                   <ModuleTitle variant="h6">{module.title}</ModuleTitle>
                 </AccordionSummary>
-                <AccordionDetails>
+                <AccordionDetails sx={{ backgroundColor: 'background.paper' }}>
                   <List>
                     {module.materials.map((material) => (
-                      <MaterialItem key={material.id} button>
+                      <MaterialItem 
+                        key={material.id} 
+                        button 
+                        sx={{ cursor: 'pointer' }} 
+                        onClick={() => handleMaterialClick(material)}
+                      >
                         <ListItemIcon>
                           {material.type === 'folder' ? <FolderIcon color="primary" /> : <FileIcon color="primary" />}
                         </ListItemIcon>
@@ -243,7 +290,6 @@ const ModulePage = () => {
               native: true,
             }}
           >
-            <option value="">Select a module</option>
             {modules.map((module) => (
               <option key={module.id} value={module.id}>
                 {module.title}
@@ -273,6 +319,40 @@ const ModulePage = () => {
           <Button onClick={() => setOpenAddDocument(false)}>Cancel</Button>
           <Button onClick={handleAddDocument} variant="contained" color="primary">Upload</Button>
         </DialogActions>
+      </Dialog>
+
+      {/* File Viewer Dialog */}
+      <Dialog
+        open={openFileViewer}
+        onClose={handleCloseFileViewer}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>
+          {selectedMaterial?.name}
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseFileViewer}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {selectedMaterial && (
+            <iframe
+              src={selectedMaterial.url}
+              width="100%"
+              height="600px"
+              title={selectedMaterial.name}
+            />
+          )}
+        </DialogContent>
       </Dialog>
     </PageContainer>
   );

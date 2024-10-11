@@ -49,6 +49,7 @@ const CourseNavBar = ({ course = {} }) => {
   const [navItems, setNavItems] = useState([]);
 
   useEffect(() => {
+    console.log(course);
     const items = [
       { label: 'Announcements', path: `/courses`, section: 'announcements', icon: <AnnouncementIcon /> },
       { label: 'Modules', path: `/courses`, section: 'modules', icon: <ModuleIcon /> },
@@ -72,7 +73,7 @@ const CourseNavBar = ({ course = {} }) => {
 
   const handleNavItemClick = (path, section) => {
     if (typeof window !== 'undefined') {
-      router.push(`${path}?id=${course.id}&section=${section}`);
+      router.push(`${path}?id=${course?.id}&section=${section}`);
     }
   };
 
@@ -86,10 +87,10 @@ const CourseNavBar = ({ course = {} }) => {
       <Box sx={{ p: 2, height: '56px', display: 'flex', alignItems: 'center' }}>
         {open ? (
           <Typography variant="h6" component="div" noWrap>
-            {course.name || 'Course Name'}
+            {course?.name || 'Course Name'}
           </Typography>
         ) : (
-          <Tooltip title={course.name || 'Course Name'} placement="right">
+          <Tooltip title={course?.name || 'Course Name'} placement="right">
             <SchoolIcon />
           </Tooltip>
         )}
