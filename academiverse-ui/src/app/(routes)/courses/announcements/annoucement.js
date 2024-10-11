@@ -2,11 +2,13 @@
 
 import React, { useState } from 'react';
 import { 
-  Box, Typography, Card, CardContent, IconButton, Button,
-  Avatar, Chip, Tooltip
+  Box, Typography, Card, CardContent, Button,
+  Avatar, Chip, Dialog, DialogTitle, DialogContent, DialogActions,
+  TextField
 } from '@mui/material';
 import { styled } from '@mui/system';
-import { Alarm as ReminderIcon, Flag as FlagIcon, Comment as CommentIcon } from '@mui/icons-material';
+import { Comment as CommentIcon } from '@mui/icons-material';
+import { useSession } from 'next-auth/react';
 
 const PageContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -19,6 +21,7 @@ const AnnouncementCard = styled(Card)(({ theme }) => ({
   '&:hover': { 
     transform: 'translateY(-5px)',
     boxShadow: '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)',
+    cursor: 'pointer'
   },
   height: '100%',
   display: 'flex',
@@ -64,8 +67,6 @@ const announcements = [
     date: '2023-09-30',
     author: 'Prof. Johnson',
     avatar: '/path-to-avatar1.jpg',
-    comments: 5,
-    important: true,
   },
   {
     id: 2,
@@ -74,8 +75,6 @@ const announcements = [
     date: '2023-10-01',
     author: 'Dr. Williams',
     avatar: '/path-to-avatar2.jpg',
-    comments: 3,
-    important: false,
   },
   {
     id: 3,
@@ -84,29 +83,64 @@ const announcements = [
     date: '2023-10-03',
     author: 'Prof. Davis',
     avatar: '/path-to-avatar3.jpg',
-    comments: 8,
-    important: true,
   },
 ];
 
 const AnnouncementPage = () => {
-  const [hoveredCard, setHoveredCard] = useState(null);
+  const { data: session } = useSession();
+  const isProfessor = session?.userDetails?.role === 'professor';
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [isNewAnnouncementDialogOpen, setIsNewAnnouncementDialogOpen] = useState(false);
+  const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
+
+  const handleAnnouncementClick = (announcement) => {
+    setSelectedAnnouncement(announcement);
+  };
+
+  const handleCloseDialog = () => {
+    setSelectedAnnouncement(null);
+  };
+
+  const handleOpenNewAnnouncementDialog = () => {
+    setIsNewAnnouncementDialogOpen(true);
+  };
+
+  const handleCloseNewAnnouncementDialog = () => {
+    setIsNewAnnouncementDialogOpen(false);
+    setNewAnnouncement({ title: '', content: '' });
+  };
+
+  const handleNewAnnouncementChange = (event) => {
+    const { name, value } = event.target;
+    setNewAnnouncement(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmitNewAnnouncement = () => {
+    // Here you would typically send the new announcement to your backend
+    const announcementWithAuthor = {
+      ...newAnnouncement,
+      author: session?.userDetails?.name || 'Unknown Professor',
+      date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
+      avatar: session?.userDetails?.image || '/path-to-default-avatar.jpg'
+    };
+    console.log('New announcement:', announcementWithAuthor);
+    handleCloseNewAnnouncementDialog();
+  };
 
   return (
     <PageContainer>
       <TitleSection>
         <Typography variant="h4" fontWeight="bold" color="primary">Course Announcements</Typography>
-        <Button variant="contained" color="primary" startIcon={<CommentIcon />}>
-          New Announcement
-        </Button>
+        {isProfessor && (
+          <Button variant="contained" color="primary" startIcon={<CommentIcon />} onClick={handleOpenNewAnnouncementDialog}>
+            New Announcement
+          </Button>
+        )}
       </TitleSection>
       <AnnouncementsContainer>
         {announcements.map((announcement) => (
           <AnnouncementItem key={announcement.id}>
-            <AnnouncementCard 
-              onMouseEnter={() => setHoveredCard(announcement.id)}
-              onMouseLeave={() => setHoveredCard(null)}
-            >
+            <AnnouncementCard onClick={() => handleAnnouncementClick(announcement)}>
               <AnnouncementContent>
                 <Box mb={2}>
                   <Typography variant="h6" gutterBottom color="primary">{announcement.title}</Typography>
@@ -124,32 +158,86 @@ const AnnouncementPage = () => {
                       {announcement.date}
                     </Typography>
                   </Box>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Chip 
-                      label={`${announcement.comments} comments`}
-                      size="small" 
-                      color="primary" 
-                      variant="outlined"
-                    />
-                    <Box>
-                      <Tooltip title="Set reminder">
-                        <IconButton size="small" color={hoveredCard === announcement.id ? "primary" : "default"}>
-                          <ReminderIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={announcement.important ? "Important" : "Mark as important"}>
-                        <IconButton size="small" color={announcement.important ? "error" : "default"}>
-                          <FlagIcon />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </Box>
                 </Box>
               </AnnouncementContent>
             </AnnouncementCard>
           </AnnouncementItem>
         ))}
       </AnnouncementsContainer>
+      <Dialog open={!!selectedAnnouncement} onClose={handleCloseDialog} maxWidth="md" fullWidth>
+        {selectedAnnouncement && (
+          <>
+            <DialogTitle>
+              <Typography variant="h6" fontWeight="bold">
+                {selectedAnnouncement.title}
+              </Typography>
+            </DialogTitle>
+            <DialogContent>
+              <Typography variant="body1" paragraph>
+                {selectedAnnouncement.content}
+              </Typography>
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Box display="flex" alignItems="center">
+                  <Avatar src={selectedAnnouncement.avatar} alt={selectedAnnouncement.author} sx={{ width: 32, height: 32, mr: 1 }} />
+                  <Typography variant="subtitle1">{selectedAnnouncement.author}</Typography>
+                </Box>
+                <Typography variant="subtitle2" color="text.secondary">
+                  {selectedAnnouncement.date}
+                </Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleCloseDialog} color="primary">
+                Close
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+      <Dialog open={isNewAnnouncementDialogOpen} onClose={handleCloseNewAnnouncementDialog} maxWidth="md" fullWidth>
+        <DialogTitle>
+          <Typography variant="h6" fontWeight="bold">
+            New Announcement
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="title"
+            label="Announcement Title"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newAnnouncement.title}
+            onChange={handleNewAnnouncementChange}
+          />
+          <TextField
+            margin="dense"
+            name="content"
+            label="Announcement Content"
+            type="text"
+            fullWidth
+            variant="outlined"
+            multiline
+            rows={4}
+            value={newAnnouncement.content}
+            onChange={handleNewAnnouncementChange}
+          />
+          <Box mt={2} display="flex" alignItems="center">
+            <Avatar src={session?.userDetails?.image || '/path-to-default-avatar.jpg'} alt={session?.userDetails?.name} sx={{ width: 32, height: 32, mr: 1 }} />
+            <Typography variant="subtitle1">{session?.userDetails?.name || 'Unknown Professor'}</Typography>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseNewAnnouncementDialog} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleSubmitNewAnnouncement} color="primary" variant="contained">
+            Post Announcement
+          </Button>
+        </DialogActions>
+      </Dialog>
     </PageContainer>
   );
 };

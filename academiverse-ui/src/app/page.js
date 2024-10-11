@@ -22,11 +22,31 @@ const StyledCard = styled(Card)(({ theme, bgcolor }) => ({
   height: '100%',
   display: 'flex',
   flexDirection: 'column',
-  transition: 'transform 0.3s ease-in-out',
+  transition: 'all 0.3s ease-in-out',
   backgroundColor: bgcolor,
+  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+  borderRadius: '12px',
+  overflow: 'hidden',
   '&:hover': {
-    transform: 'scale(1.05)',
+    transform: 'translateY(-5px)',
+    boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+    cursor: 'pointer'
   },
+}));
+
+const CardHeader = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  background: 'linear-gradient(45deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)',
+  borderBottom: '1px solid rgba(0,0,0,0.1)',
+}));
+
+const CardBody = styled(CardContent)(({ theme }) => ({
+  flexGrow: 1,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between',
+  background: 'linear-gradient(45deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)',
+  color: 'black'
 }));
 
 const IconContainer = styled(Box)(({ theme }) => ({
@@ -238,19 +258,23 @@ const CourseScreen = () => {
                     onClick={() => handleCourseClick(course.id)}
                     sx={{
                       border: selectedCourseId === course.id ? '2px solid #1976D2' : 'none',
-                      boxShadow: selectedCourseId === course.id ? '0 0 10px rgba(25, 118, 210, 0.5)' : 'none'
+                      boxShadow: selectedCourseId === course.id ? '0 0 20px rgba(25, 118, 210, 0.5)' : 'none'
                     }}
                   >
-                    <CardContent>
-                      <Typography variant="h6" component="div">
+                    <CardHeader>
+                      <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: 'rgba(0,0,0,0.8)' }}>
                         {course.code}: {course.name}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Days: {course.days.join(', ')}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Time: {course.startTime} - {course.endTime}
-                      </Typography>
+                    </CardHeader>
+                    <CardBody>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          Days: {course.days.join(', ')}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Time: {course.startTime} - {course.endTime}
+                        </Typography>
+                      </Box>
                       <IconContainer>
                         {icons.map((item, index) => (
                           <IconButton
@@ -260,6 +284,7 @@ const CourseScreen = () => {
                               e.stopPropagation();
                               handleIconClick(course.id, item.section.toLowerCase());
                             }}
+                            sx={{ color: 'rgba(0,0,0,0.6)', '&:hover': { color: 'rgba(0,0,0,0.8)' } }}
                           >
                             {item.icon}
                           </IconButton>
@@ -272,6 +297,7 @@ const CourseScreen = () => {
                                 e.stopPropagation();
                                 handleIconClick(course.id, 'enrollments');
                               }}
+                              sx={{ color: 'rgba(0,0,0,0.6)', '&:hover': { color: 'rgba(0,0,0,0.8)' } }}
                             >
                               <EnrollmentIcon />
                             </IconButton>
@@ -281,13 +307,14 @@ const CourseScreen = () => {
                                 e.stopPropagation();
                                 handleEditCourse(course);
                               }}
+                              sx={{ color: 'rgba(0,0,0,0.6)', '&:hover': { color: 'rgba(0,0,0,0.8)' } }}
                             >
                               <EditIcon />
                             </IconButton>
                           </>
                         )}
                       </IconContainer>
-                    </CardContent>
+                    </CardBody>
                   </StyledCard>
                 </CourseItem>
               ))}
