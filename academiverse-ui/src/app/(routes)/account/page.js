@@ -55,7 +55,6 @@ const AccountPage = () => {
     useEffect(() => {
         // Fetch profile data
         const fetchProfile = async () => {
-            // Replace with actual API call
             const res = await getUserDetails(session.userDetails?.userId, session["id_token"]);
             if (!res.isError) {
                 const profileData = {
@@ -74,7 +73,6 @@ const AccountPage = () => {
 
         // Fetch departments
         const fetchDepartments = async () => {
-            // Replace with actual API call
             const res = await getAllDepartment(session["id_token"]);
             let departmentsData = [];
             if (!res.isError) {
@@ -85,7 +83,6 @@ const AccountPage = () => {
 
         // Fetch degrees
         const fetchDegrees = async () => {
-            // Replace with actual API call
             const res = await getAllDegree(session["id_token"]);
             let degreesData = [];
             if (!res.isError) {
