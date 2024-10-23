@@ -140,7 +140,7 @@ const CourseScreen = () => {
 
   const handleCourseClick = (courseId) => {
     setSelectedCourseId(courseId);
-    router.push(`/courses?id=${courseId}`);
+    router.push(`/courses?id=${courseId}&section=announcements`);
   };
 
   const handleAddCourse = () => {
