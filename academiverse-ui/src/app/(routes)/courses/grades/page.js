@@ -15,6 +15,8 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
+import GradeCreationPage from './gradeCreation';
+import { useSession } from 'next-auth/react';
 
 const GradeContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -47,6 +49,7 @@ const GradePage = () => {
   const [overallGrade, setOverallGrade] = useState('');
   const searchParams = useSearchParams();
   const courseId = searchParams.get('id');
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchGrades = async () => {
@@ -96,42 +99,46 @@ const GradePage = () => {
     );
   }
 
-  return (
-    <GradeContainer>
-      <Typography variant="h4" gutterBottom align="left" style={{ marginBottom: '24px' }}>
-        Course Grades
-      </Typography>
-      <TableContainer component={Paper} style={{ marginBottom: '24px' }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <StyledTableCell>Name</StyledTableCell>
-              <StyledTableCell align="left">Marks Obtained</StyledTableCell>
-              <StyledTableCell align="left">Total Marks</StyledTableCell>
-              <StyledTableCell align="left">Due Date</StyledTableCell>
-              <StyledTableCell align="left">Submitted Date</StyledTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {grades.map((grade) => (
-              <StyledTableRow key={grade.id}>
-                <TableCell component="th" scope="row" style={{ padding: '16px' }}>
-                  {grade.name}
-                </TableCell>
-                <TableCell align="left" style={{ padding: '16px' }}>{grade.marksObtained}</TableCell>
-                <TableCell align="left" style={{ padding: '16px' }}>{grade.totalMarks}</TableCell>
-                <TableCell align="left" style={{ padding: '16px' }}>{new Date(grade.dueDate).toLocaleDateString()}</TableCell>
-                <TableCell align="left" style={{ padding: '16px' }}>{new Date(grade.submittedDate).toLocaleDateString()}</TableCell>
-              </StyledTableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <OverallGrade align="left">
-        Overall Grade: {overallGrade}
-      </OverallGrade>
-    </GradeContainer>
-  );
+  if (session?.userDetails?.role === 'professor') {
+    return <GradeCreationPage courseId={courseId} />;
+  } else {
+    return (
+      <GradeContainer>
+        <Typography variant="h4" gutterBottom align="left" style={{ marginBottom: '24px' }}>
+          Course Grades
+        </Typography>
+        <TableContainer component={Paper} style={{ marginBottom: '24px' }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <StyledTableCell>Name</StyledTableCell>
+                <StyledTableCell align="left">Marks Obtained</StyledTableCell>
+                <StyledTableCell align="left">Total Marks</StyledTableCell>
+                <StyledTableCell align="left">Due Date</StyledTableCell>
+                <StyledTableCell align="left">Submitted Date</StyledTableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {grades.map((grade) => (
+                <StyledTableRow key={grade.id}>
+                  <TableCell component="th" scope="row" style={{ padding: '16px' }}>
+                    {grade.name}
+                  </TableCell>
+                  <TableCell align="left" style={{ padding: '16px' }}>{grade.marksObtained}</TableCell>
+                  <TableCell align="left" style={{ padding: '16px' }}>{grade.totalMarks}</TableCell>
+                  <TableCell align="left" style={{ padding: '16px' }}>{new Date(grade.dueDate).toLocaleDateString()}</TableCell>
+                  <TableCell align="left" style={{ padding: '16px' }}>{new Date(grade.submittedDate).toLocaleDateString()}</TableCell>
+                </StyledTableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <OverallGrade align="left">
+          Overall Grade: {overallGrade}
+        </OverallGrade>
+      </GradeContainer>
+    );
+  }
 };
 
 export default GradePage;
