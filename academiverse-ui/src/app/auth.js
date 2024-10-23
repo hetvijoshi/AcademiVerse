@@ -14,7 +14,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         async signIn({ user, profile, account }) {
             console.log(account)
             if (user && account) {
-                return true;
                 let existingUser = await fetchUserByEmail(user.email, account.id_token)
                 console.log(existingUser)
                 if (existingUser.data == null) {
@@ -47,7 +46,6 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         async session({ session, token }) {
             session["id_token"] = token.id_token;
             session["access_token"] = token.access_token;
-            session["userDetails"] = {role: "student"};
             if(session["userDetails"] == null){
                 const userDetails = await fetchUserByEmail(session.user["email"], token.id_token);
                 session["userDetails"] = userDetails.data;    
