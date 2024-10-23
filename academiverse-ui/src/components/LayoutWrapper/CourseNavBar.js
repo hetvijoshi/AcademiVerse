@@ -56,12 +56,13 @@ const CourseNavBar = ({ course = {} }) => {
       { label: 'Assignments', path: `/courses`, section: 'assignments', icon: <AssignmentIcon /> },
       { label: 'Grades', path: `/courses`, section: 'grades', icon: <GradeIcon /> },
       { label: 'Quiz', path: `/courses`, section: 'quiz', icon: <QuizIcon /> },
-      { label: 'To Do List', path: `/courses`, section: 'todo', icon: <ListIcon /> },
-      { label: 'Classmates', path: `/courses`, section: 'classmates', icon: <PeopleIcon /> },
     ];
 
     if (session?.userDetails?.role === 'professor') {
       items.push({ label: 'Course Enrollments', path: `/courses`, section: 'enrollments', icon: <EnrollmentIcon /> });
+    } else {
+      items.push({ label: 'To Do List', path: `/courses`, section: 'todo', icon: <ListIcon /> });
+      items.push({ label: 'Classmates', path: `/courses`, section: 'classmates', icon: <PeopleIcon /> });
     }
 
     setNavItems(items);

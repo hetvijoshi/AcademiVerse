@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Box, Typography, Paper } from '@mui/material';
 import { styled } from '@mui/system';
 import CourseNavBar from '../../../components/LayoutWrapper/CourseNavBar';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AnnouncementPage from './announcements/annoucement';
 import ModulePage from './modules/page';
 import AssignmentPage from './assignments/page';
@@ -12,8 +12,9 @@ import GradePage from './grades/page';
 import AssignmentDetail from './assignments/assignmentDetail/page';
 import ToDoListScreen from './toDoList/page';
 import QuizPage from './quiz/page';
-import ClassmatePage from './classmates/page'
-import EnrollmentPage from './enrollment/page'
+import ClassmatePage from './classmates/page';
+import EnrollmentPage from './enrollment/page';
+import GradesDetail from './grades/gradesDetail';
 
 const PageContainer = styled(Box)({
   display: 'flex',
@@ -26,6 +27,7 @@ const ContentArea = styled(Box)(({ theme }) => ({
 }));
 
 const CoursePage = () => {
+  const router = useRouter();
   const [courseId, setCourseId] = useState(null);
   const [course, setCourse] = useState(null);
   const searchParams = useSearchParams();
@@ -39,8 +41,10 @@ const CoursePage = () => {
     const id = searchParams.get('id');
     if (id) {
       //API for course detail
-      setCourse(staticCourses.find(x=> x.id == id))
+      setCourse(staticCourses.find(x => x.id == id))
       setCourseId(id);
+    } else {
+      router.push(`/`);
     }
   }, [searchParams]);
 
@@ -54,6 +58,7 @@ const CoursePage = () => {
           {searchParams.get('section') === 'assignments' && <AssignmentPage course={{ id: courseId }} />}
           {searchParams.get('section') === 'assignmentDetail' && searchParams.get('assignmentId') && <AssignmentDetail assignment={parseInt(searchParams.get('assignmentId'))} />}
           {searchParams.get('section') === 'grades' && <GradePage />}
+          {searchParams.get('section') === 'gradesDetail' && searchParams.get('assignmentId') && <GradesDetail courseId={courseId} assignmentId={parseInt(searchParams.get('assignmentId'))} />}
           {searchParams.get('section') === 'quiz' && <QuizPage />}
           {searchParams.get('section') === 'todo' && <ToDoListScreen />}
           {searchParams.get('section') === 'classmates' && <ClassmatePage />}
