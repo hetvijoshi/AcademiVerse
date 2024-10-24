@@ -5,8 +5,10 @@ import com.academiverse.academiverse_api.dto.request.InstructUpdateRequest;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
 import com.academiverse.academiverse_api.model.Course;
 import com.academiverse.academiverse_api.model.Instruct;
+import com.academiverse.academiverse_api.model.Enrolment;
 import com.academiverse.academiverse_api.model.User;
 import com.academiverse.academiverse_api.repository.CourseRepository;
+import com.academiverse.academiverse_api.repository.EnrolmentRepository;
 import com.academiverse.academiverse_api.repository.InstructRepository;
 import com.academiverse.academiverse_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ public class InstructService {
     private final InstructRepository instructRepository;
     private final CourseRepository courseRepository;
     private final UserRepository userRepository;
+    private final EnrolmentRepository enrolmentRepository;
 
     public BaseResponse<List<Instruct>> getAllInstructs() {
         List<Instruct> instructList = instructRepository.findAll();
@@ -139,6 +142,29 @@ public class InstructService {
             response.isError = true;
             response.message = MessageFormat.format("Instruct with id {0} not found.", id);
         }
+        return response;
+    }
+
+    // For professors: Retrieve courses taught by the professor in the current semester and year
+    public BaseResponse<List<Instruct>> getProfessorCourses(Long userId, int year, String semester) {
+        List<Instruct> courses = instructRepository.findByProfessorUserIdAndYearAndSemester(userId, year, semester);
+
+        BaseResponse<List<Instruct>> response = new BaseResponse<>();
+        response.isError = false;
+        response.message = "Courses retrieved successfully";
+        response.data = courses;
+
+        return response;
+    }
+    // For students: Retrieve courses the student is enrolled in
+    public BaseResponse<List<Enrolment>> getStudentEnrolledCourses(Long userId) {
+        List<Enrolment> enrolments = enrolmentRepository.findByUserIdAndIsActive(userId, true);
+
+        BaseResponse<List<Enrolment>> response = new BaseResponse<>();
+        response.isError = false;
+        response.message = "Enrolled courses retrieved successfully";
+        response.data = enrolments;
+
         return response;
     }
 }
