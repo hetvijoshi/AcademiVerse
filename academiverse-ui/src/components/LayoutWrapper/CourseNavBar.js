@@ -80,7 +80,15 @@ const CourseNavBar = ({ course = {} }) => {
 
   return (
     <NavContainer open={open}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', p: 1 }}>
+      <Box sx={{ height:'62px',display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}>
+        <Typography 
+          variant="h5" 
+          component="div" 
+          sx={{ cursor: 'pointer', flexGrow: 1 }} 
+          onClick={() => router.push('/')}
+        >
+          Academiverse
+        </Typography>
         <IconButton onClick={handleDrawerToggle} sx={{ color: 'white' }}>
           {open ? <ChevronRight /> : <ChevronLeft />}
         </IconButton>
