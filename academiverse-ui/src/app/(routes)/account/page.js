@@ -122,7 +122,6 @@ const AccountPage = () => {
         // Replace with actual API call to update profile
         let data = profile;
         data.updatedBy = session.userDetails.userId;
-        console.log(data);
         const res = await putUserDetails(data, session["id_token"]);
         if (!res.isError) {
             setSnackbar({

@@ -26,6 +26,20 @@ public class InstructController {
         return ResponseEntity.ok().body(instructService.getInstructById(id));
     }
 
+    // Endpoint for professors to get only their courses for the current year and semester
+    @GetMapping("/professor/{userId}")
+    public ResponseEntity<BaseResponse> getProfessorCourses(@PathVariable Long userId,
+                                                            @RequestParam int year,
+                                                            @RequestParam String semester) {
+        return ResponseEntity.ok().body(instructService.getProfessorCourses(userId, year, semester));
+    }
+
+    // Endpoint for students to get their enrolled courses
+    @GetMapping("/student/{userId}")
+    public ResponseEntity<BaseResponse> getStudentEnrolledCourses(@PathVariable Long userId) {
+        return ResponseEntity.ok().body(instructService.getStudentEnrolledCourses(userId));
+    }
+
     @PostMapping("/")
     public ResponseEntity<BaseResponse> saveInstruct(@RequestBody InstructSaveRequest instructRequest){
         return ResponseEntity.ok().body(instructService.saveInstruct(instructRequest));
