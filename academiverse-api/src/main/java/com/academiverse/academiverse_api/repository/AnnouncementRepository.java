@@ -9,5 +9,5 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface AnnouncementRepository extends JpaRepository<Announcement, Long> {
-    List<Announcement> findByInstructInstructId(Long instructId);
+    List<Announcement> findByInstructsInstructId(Long instructId);
 }
