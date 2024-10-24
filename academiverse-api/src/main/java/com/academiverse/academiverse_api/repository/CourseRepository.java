@@ -4,7 +4,9 @@ import com.academiverse.academiverse_api.model.Course;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface CourseRepository extends JpaRepository<Course, Long> {
-    // You can add custom query methods here if needed
+    List<Course> findByDepartmentDepartmentId(long departmentId);
 }
