@@ -32,6 +32,9 @@ public class Announcement {
     private Instruct instructs;
     private String announcementTitle;
     private String announcementDescription;
+    @ManyToOne
+    @JoinColumn(name = "userId", referencedColumnName = "userId", nullable=true)
+    private User author;
     private Long createdBy;
     private Long updatedBy;
     private LocalDateTime createdAt;

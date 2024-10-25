@@ -30,7 +30,7 @@ const StyledChip = styled(Chip)(({ theme }) => ({
   marginRight: theme.spacing(1),
 }));
 
-const AssignmentPage = ({ course }) => {
+const AssignmentPage = () => {
   const [assignments, setAssignments] = useState([]);
   const router = useRouter();
   const courseId = useSearchParams().get('id');

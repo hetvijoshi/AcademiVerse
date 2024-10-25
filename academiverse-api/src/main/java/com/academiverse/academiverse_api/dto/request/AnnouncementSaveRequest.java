@@ -12,5 +12,4 @@ public class AnnouncementSaveRequest {
     public String announcementTitle;
     public String announcementDescription;
     public Long createdBy;
-    public Long updatedBy;
 }

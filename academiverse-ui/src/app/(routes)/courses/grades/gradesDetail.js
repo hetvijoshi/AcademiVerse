@@ -41,7 +41,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const GradesDetail = ({ courseId, assignmentId }) => {
+const GradesDetail = ({ assignmentId }) => {
   const [students, setStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -50,6 +50,7 @@ const GradesDetail = ({ courseId, assignmentId }) => {
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const courseId = searchParams.get('id');
 
   useEffect(() => {
     if (session?.userDetails?.role !== 'professor') {

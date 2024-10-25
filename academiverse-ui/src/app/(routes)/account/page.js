@@ -4,7 +4,7 @@ import { Paper, Grid, Typography, TextField, Button, Select, MenuItem, FormContr
 import { styled } from '@mui/system';
 import { useSession } from 'next-auth/react';
 import { getAllDepartment } from '../../services/departmentService';
-import { getAllDegree } from '../../services/degree';
+import { getAllDegree } from '../../services/degreeService';
 import { getUserDetails, putUserDetails } from '../../services/userService';
 
 
@@ -122,7 +122,6 @@ const AccountPage = () => {
         // Replace with actual API call to update profile
         let data = profile;
         data.updatedBy = session.userDetails.userId;
-        console.log(data);
         const res = await putUserDetails(data, session["id_token"]);
         if (!res.isError) {
             setSnackbar({
