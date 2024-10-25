@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +26,7 @@ public class QuizService {
     private final QuestionRepository questionRepository;
     private final InstructRepository instructRepository;
     private final GradeRepository gradeRepository;
+    private final EnrolmentRepository enrolmentRepository;
 
     public BaseResponse<List<Quiz>> getQuizzes(long instructId){
         List<Quiz> quizList = quizRepository.findByInstructInstructIdAndIsActive(instructId, true);
@@ -217,6 +219,16 @@ public class QuizService {
     public BaseResponse<QuizSubmitResponse> submitQuiz(QuizSubmitRequest quizSubmitRequest){
         Optional<Quiz> q = quizRepository.findById(quizSubmitRequest.quizId);
         if(q.isPresent()){
+
+            Optional<Enrolment> el = enrolmentRepository.findByInstructIdAndUserIdAndIsActive(q.get().getInstruct().getInstructId(), quizSubmitRequest.userId, true);
+            if(!el.isPresent()){
+                BaseResponse<QuizSubmitResponse> response = new BaseResponse<>();
+                response.data = null;
+                response.message = MessageFormat.format("You are not enrolled in {0}.", q.get().getInstruct().getCourse().getCourseCode());
+                response.isError = true;
+                return response;
+            }
+
             Optional<Grade> eg = gradeRepository.findByQuizQuizIdAndUserId(quizSubmitRequest.quizId, quizSubmitRequest.userId);
             if(!eg.isPresent()){
                 List<Question> questions = questionRepository.findByQuizQuizId(quizSubmitRequest.quizId);
