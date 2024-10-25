@@ -117,18 +117,12 @@ const AssignmentCreationPage = () => {
 			isActive: true,
 		};
 		// Send the formatted data to the API
-		const response = postAssignmentsByInstructId(
+		await postAssignmentsByInstructId(
 			formattedData,
 			session.id_token,
 		);
 		await fetchAssignment();
 		setOpenDialog(false);
-		setNewAssignment({
-			title: "",
-			description: "",
-			dueDate: dayjs(),
-			totalMarks: 0,
-		});
 		setSnackbarMessage("Assignment created successfully!");
 		setSnackbarOpen(true);
 	};
@@ -388,7 +382,7 @@ const AssignmentCreationPage = () => {
 				<DialogActions>
 					<Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
 					<Button
-						onClick={() => handleConfirmDelete(assignmentToDelete.id)}
+						onClick={() => handleConfirmDelete()}
 						variant="contained"
 						color="primary"
 					>
