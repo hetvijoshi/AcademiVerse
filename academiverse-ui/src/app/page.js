@@ -19,6 +19,8 @@ import {
 	Checkbox,
 	FormControlLabel,
 	Autocomplete,
+	Snackbar,
+	Alert,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { useRouter } from "next/navigation";
@@ -35,7 +37,7 @@ import {
 	Add as AddIcon,
 	Edit as EditIcon,
 } from "@mui/icons-material";
-import { fetchInstructCourses } from "./services/instructService";
+import { editInstruct, fetchInstructCourses } from "./services/instructService";
 import { getCourseByDeptId } from "./services/courseService";
 import { getAllDepartment } from "./services/departmentService";
 import { saveInstruct } from "./services/instructService";
@@ -157,9 +159,10 @@ const CourseScreen = () => {
 			"Fall",
 			session.id_token,
 		);
-		if (res) {
+		if (!res.isError) {
 			const mappedCourses = res.data.map((course) => ({
 				id: course.instructId,
+				courseId: course.course.courseId,
 				code: course.course.courseCode,
 				name: course.course.courseName,
 				color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
@@ -168,13 +171,11 @@ const CourseScreen = () => {
 					: [],
 				startTime: course.courseStartTime,
 				endTime: course.courseEndTime,
+				capacity: course.courseCapacity,
+				semester: course.semester,
+				year: course.year,
 			}));
 			setCourses(mappedCourses);
-			setSnackbar({
-				open: true,
-				message: res.message,
-				severity: "success",
-			});
 		} else {
 			setSnackbar({
 				open: true,
@@ -238,7 +239,7 @@ const CourseScreen = () => {
 			updatedBy: session.userDetails?.userId
 		}
 		const res = await saveInstruct(reqData, session.id_token);
-		if (res) {
+		if (!res.isError) {
 			setSnackbar({
 				open: true,
 				message: res.message,
@@ -271,11 +272,39 @@ const CourseScreen = () => {
 		setEditingCourse(null);
 	};
 
+	const editCourse = async (course) => {
+		const reqData = {
+			instructId: course.id,
+			courseId: course.courseId,
+			courseCapacity: course.capacity,
+			courseDays: course.days.join(","),
+			courseStartTime: course.startTime,
+			courseEndTime: course.endTime,
+			userId: session.userDetails?.userId,
+			semester: course.semester,
+			year: course.year,
+			updatedBy: session.userDetails?.userId
+		}
+
+		const res = await editInstruct(reqData, session.id_token);
+		if (!res.isError) {
+			professorEnrolledCourses();
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: "success",
+			});
+		} else {
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: "error",
+			});
+		}
+	};
+
 	const handleSaveEditedCourse = () => {
-		const updatedCourses = courses.map((course) =>
-			course.id === editingCourse.id ? editingCourse : course,
-		);
-		setCourses(updatedCourses);
+		editCourse(editingCourse);
 		handleCloseEditCourseDialog();
 	};
 
@@ -302,6 +331,13 @@ const CourseScreen = () => {
 	const handleIconClick = (courseId, section) => {
 		router.push(`/courses?id=${courseId}&section=${section}`);
 	};
+
+	const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbar({ ...snackbar, open: false });
+    };
 
 	return (
 		<Box
@@ -455,6 +491,16 @@ const CourseScreen = () => {
 							))}
 						</>
 					)}
+					<Snackbar
+						open={snackbar.open}
+						autoHideDuration={6000}
+						onClose={handleCloseSnackbar}
+						anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+					>
+						<Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+							{snackbar.message}
+						</Alert>
+					</Snackbar>
 				</CourseContainer>
 			</ContentSection>
 
@@ -599,6 +645,15 @@ const CourseScreen = () => {
 								label="Course Name"
 								value={editingCourse.name}
 								onChange={(e) => handleEditCourseChange("name", e.target.value)}
+								sx={{ mt: 2 }}
+								disabled
+							/>
+							<TextField
+								fullWidth
+								label="Course Capacity"
+								type="number"
+								value={editingCourse.capacity}
+								onChange={(e) => handleEditCourseChange("capacity", e.target.value)}
 								sx={{ mt: 2 }}
 							/>
 							<Box sx={{ mt: 2 }}>

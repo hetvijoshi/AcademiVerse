@@ -8,6 +8,7 @@ import com.academiverse.academiverse_api.model.Instruct;
 import com.academiverse.academiverse_api.model.User;
 import com.academiverse.academiverse_api.repository.AnnouncementRepository;
 import com.academiverse.academiverse_api.repository.InstructRepository;
+import com.academiverse.academiverse_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,8 @@ import java.util.Optional;
 public class AnnouncementService {
     private final AnnouncementRepository announcementRepository;
     private final InstructRepository instructRepository;
+    private final UserRepository userRepository;
+
     public BaseResponse<List<Announcement>> getAnnouncementsByInstructId(Long instructId){
         Optional<Instruct> instruct = instructRepository.findById(instructId);
         if(instruct.isPresent()){
@@ -45,13 +48,16 @@ public class AnnouncementService {
 
     public BaseResponse<Announcement> saveAnnouncement(AnnouncementSaveRequest announcementSaveRequest){
         Optional<Instruct> instruct = instructRepository.findById(announcementSaveRequest.instructId);
-        if(instruct.isPresent()){
+        Optional<User> author = userRepository.findById(announcementSaveRequest.createdBy);
+        if(instruct.isPresent() && author.isPresent()){
             Announcement a = new Announcement();
             a.setInstructs(instruct.get());
             a.setAnnouncementTitle(announcementSaveRequest.announcementTitle);
             a.setAnnouncementDescription(announcementSaveRequest.announcementDescription);
+            //Save author
+            a.setAuthor(author.get());
             a.setCreatedBy(announcementSaveRequest.createdBy);
-            a.setUpdatedBy(announcementSaveRequest.updatedBy);
+            a.setUpdatedBy(announcementSaveRequest.createdBy);
             a.setCreatedAt(LocalDateTime.now());
             a.setUpdatedAt(LocalDateTime.now());
             Announcement savedAnnouncement = announcementRepository.save(a);
@@ -65,7 +71,7 @@ public class AnnouncementService {
             BaseResponse<Announcement> response = new BaseResponse<>();
             response.data = null;
             response.isError = true;
-            response.message = MessageFormat.format("Instruct with id: {0} does not exist", announcementSaveRequest.instructId);
+            response.message = MessageFormat.format("Instruct with id: {0} or user with id: {1} does not exist", announcementSaveRequest.instructId, announcementSaveRequest.createdBy);
             return response;
         }
 

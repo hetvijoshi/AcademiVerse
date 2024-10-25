@@ -19,16 +19,18 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
   Divider,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
+import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
+import { saveQuiz, fetchInstructQuizzes,fetchQuizById, deleteQuiz } from '../../../services/quizService';
 
 const QuizCreationContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
@@ -61,37 +63,59 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
 const QuizCreationPage = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [currentQuiz, setCurrentQuiz] = useState(null);
+  const [currentQuizId, setcurrentQuizId] = useState(null);
   const [quizTitle, setQuizTitle] = useState('');
   const [quizDueDate, setQuizDueDate] = useState(dayjs());
   const [quizTotalMarks, setQuizTotalMarks] = useState('');
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState('');
   const [options, setOptions] = useState(['', '', '', '']);
-  const [correctAnswer, setCorrectAnswer] = useState('');
-  const [questionMarks, setQuestionMarks] = useState('');
+  const [answer, setAnswer] = useState('');
+  const searchParams = useSearchParams();
+  const instructId = searchParams.get('id');
+  const { data: session } = useSession();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  const fetchAllQuizzes = async () => {
+    const res = await fetchInstructQuizzes(instructId, session["id_token"]);
+    if (!res.isError) {
+      setQuizzes(res.data);
+    } else {
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
+  }
 
   useEffect(() => {
     // Fetch quizzes from API
     // This is a mock implementation
-    setQuizzes([
-      { id: 1, title: 'Midterm Quiz', dueDate: '2023-07-15T23:59:59', totalMarks: 100 },
-      { id: 2, title: 'Final Quiz', dueDate: '2023-08-30T23:59:59', totalMarks: 150 },
-    ]);
+    fetchAllQuizzes();
   }, []);
 
-  const handleOpenDialog = (quiz = null) => {
-    setCurrentQuiz(quiz);
-    if (quiz) {
-      setQuizTitle(quiz.title);
-      setQuizDueDate(dayjs(quiz.dueDate));
-      setQuizTotalMarks(quiz.totalMarks.toString());
-      // Fetch questions for this quiz
-      // For now, let's add some mock questions
-      setQuestions([
-        { question: "What is 2+2?", options: ["3", "4", "5", "6"], correctAnswer: "4", marks: 5 },
-        { question: "What is the capital of France?", options: ["London", "Berlin", "Paris", "Madrid"], correctAnswer: "Paris", marks: 5 },
-      ]);
+  const handleOpenDialog = async (quizId = null) => {
+    setcurrentQuizId(quizId);
+    if (quizId > 0) {
+      const res = await fetchQuizById(quizId, session["id_token"]);
+      if (!res.isError) {
+        const quiz = res.data;
+        setQuizTitle(quiz.quizName);
+        setQuizDueDate(dayjs(quiz.quizDueDate));
+        setQuizTotalMarks(quiz.totalMarks.toString());
+        setQuestions(quiz.questions);
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
+      }
     } else {
       setQuizTitle('');
       setQuizDueDate(dayjs());
@@ -103,22 +127,49 @@ const QuizCreationPage = () => {
 
   const handleCloseDialog = () => {
     setOpenDialog(false);
-    setCurrentQuiz(null);
+    setcurrentQuizId(null);
   };
 
-  const handleSaveQuiz = () => {
+  const handleSaveQuiz = async () => {
     // Save quiz to API
+    const reqData = {
+      instructId: instructId,
+      quizName: quizTitle,
+      quizDescription: quizTitle,
+      quizDueDate: quizDueDate.format('YYYY-MM-DDTHH:mm:ss'),
+      totalMarks: quizTotalMarks,
+      quizWeightage: 0.0,
+      questions: questions,
+      isActive: true,
+      createdBy: session?.userDetails?.userId,
+    }
+
+    const res = await saveQuiz(reqData, session["id_token"]);
+    if (!res.isError) {
+      fetchAllQuizzes();
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'success',
+      });
+    } else {
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
+
     console.log('Saving quiz:', { quizTitle, quizDueDate, quizTotalMarks, questions });
     handleCloseDialog();
   };
 
   const handleAddQuestion = () => {
-    if (currentQuestion && options.every(option => option !== '') && correctAnswer && questionMarks) {
-      setQuestions([...questions, { question: currentQuestion, options, correctAnswer, marks: questionMarks }]);
+    if (currentQuestion && options.every(option => option !== '') && answer) {
+      setQuestions([...questions, { questionText: currentQuestion, options, answer }]);
       setCurrentQuestion('');
       setOptions(['', '', '', '']);
-      setCorrectAnswer('');
-      setQuestionMarks('');
+      setAnswer('');
     }
   };
 
@@ -130,10 +181,9 @@ const QuizCreationPage = () => {
 
   const handleEditQuestion = (index) => {
     const questionToEdit = questions[index];
-    setCurrentQuestion(questionToEdit.question);
+    setCurrentQuestion(questionToEdit.questionText);
     setOptions(questionToEdit.options);
-    setCorrectAnswer(questionToEdit.correctAnswer);
-    setQuestionMarks(questionToEdit.marks.toString());
+    setAnswer(questionToEdit.answer);
     // Remove the question from the list
     setQuestions(questions.filter((_, i) => i !== index));
   };
@@ -141,6 +191,31 @@ const QuizCreationPage = () => {
   const handleDeleteQuestion = (index) => {
     setQuestions(questions.filter((_, i) => i !== index));
   };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
+
+  const handleDeleteQuiz = async (quizId) => {
+    const res = await deleteQuiz(quizId, session["id_token"]);
+    if (!res.isError) {
+      fetchAllQuizzes();
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'success',
+      });
+    }else{
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
+  }
 
   return (
     <QuizCreationContainer>
@@ -156,15 +231,15 @@ const QuizCreationPage = () => {
       </Button>
       <QuizList>
         {quizzes.map((quiz) => (
-          <QuizListItem key={quiz.id}>
+          <QuizListItem key={quiz.quizId}>
             <ListItemText
-              primary={quiz.title}
-              secondary={`Due: ${new Date(quiz.dueDate).toLocaleString()} | Total Marks: ${quiz.totalMarks}`}
+              primary={quiz.quizName}
+              secondary={`Due: ${dayjs(quiz.quizDueDate).format('DD-MM-YYYY HH:mm')} | Total Marks: ${quiz.totalMarks}`}
             />
-            <IconButton onClick={() => handleOpenDialog(quiz)}>
+            <IconButton onClick={() => handleOpenDialog(quiz.quizId)}>
               <EditIcon />
             </IconButton>
-            <IconButton>
+            <IconButton onClick={() => handleDeleteQuiz(quiz.quizId)}>
               <DeleteIcon />
             </IconButton>
             <IconButton>
@@ -173,9 +248,19 @@ const QuizCreationPage = () => {
           </QuizListItem>
         ))}
       </QuizList>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>{currentQuiz ? 'Edit Quiz' : 'Create New Quiz'}</DialogTitle>
+        <DialogTitle>{currentQuizId ? 'Edit Quiz' : 'Create New Quiz'}</DialogTitle>
         <DialogContent>
           <StyledTextField
             autoFocus
@@ -206,10 +291,9 @@ const QuizCreationPage = () => {
           <Typography variant="h6">Questions</Typography>
           {questions.map((q, index) => (
             <Paper key={index} style={{ padding: '10px', margin: '10px 0' }}>
-              <Typography variant="subtitle1">{q.question}</Typography>
+              <Typography variant="subtitle1">{q.questionText}</Typography>
               <Typography variant="body2">Options: {q.options.join(', ')}</Typography>
-              <Typography variant="body2">Correct Answer: {q.correctAnswer}</Typography>
-              <Typography variant="body2">Marks: {q.marks}</Typography>
+              <Typography variant="body2">Correct Answer: {q.answer}</Typography>
               <Box mt={1}>
                 <Button size="small" startIcon={<EditIcon />} onClick={() => handleEditQuestion(index)}>
                   Edit
@@ -242,8 +326,8 @@ const QuizCreationPage = () => {
           <FormControl fullWidth margin="dense" style={{ marginBottom: '16px' }}>
             <InputLabel>Correct Answer</InputLabel>
             <Select
-              value={correctAnswer}
-              onChange={(e) => setCorrectAnswer(e.target.value)}
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
               label="Correct Answer"
             >
               {options.map((option, index) => (
@@ -251,14 +335,6 @@ const QuizCreationPage = () => {
               ))}
             </Select>
           </FormControl>
-          <StyledTextField
-            margin="dense"
-            label="Question Marks"
-            type="number"
-            fullWidth
-            value={questionMarks}
-            onChange={(e) => setQuestionMarks(e.target.value)}
-          />
           <Button onClick={handleAddQuestion} color="primary">
             Add Question
           </Button>

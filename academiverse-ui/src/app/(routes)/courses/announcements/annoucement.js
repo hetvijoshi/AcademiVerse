@@ -1,14 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
-import { 
+import React, { useEffect, useState } from 'react';
+import {
   Box, Typography, Card, CardContent, Button,
   Avatar, Chip, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField
+  TextField,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { styled } from '@mui/system';
 import { Comment as CommentIcon } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { fetchInstructAnnouncements, saveAnnouncement } from '../../../services/announcementService';
+import { create } from 'domain';
+import dayjs from 'dayjs';
 
 const PageContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -18,12 +24,12 @@ const PageContainer = styled(Box)(({ theme }) => ({
 
 const AnnouncementCard = styled(Card)(({ theme }) => ({
   transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
-  '&:hover': { 
+  '&:hover': {
     transform: 'translateY(-5px)',
     boxShadow: '0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)',
     cursor: 'pointer'
   },
-  height: '100%',
+  width: '100%',
   display: 'flex',
   flexDirection: 'column',
 }));
@@ -34,6 +40,7 @@ const AnnouncementContent = styled(CardContent)({
   flexDirection: 'column',
   justifyContent: 'space-between',
   padding: '16px',
+  overflow: 'auto', // Add scroll for overflow content
 });
 
 const TitleSection = styled(Box)(({ theme }) => ({
@@ -41,50 +48,26 @@ const TitleSection = styled(Box)(({ theme }) => ({
   justifyContent: 'space-between',
   alignItems: 'center',
   marginBottom: theme.spacing(3),
+  width: '100%',
 }));
 
 const AnnouncementsContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexWrap: 'wrap',
   gap: theme.spacing(3),
+  justifyContent: 'flex-start', // Left align items
 }));
 
 const AnnouncementItem = styled(Box)(({ theme }) => ({
-  flexBasis: 'calc(33.333% - 16px)',
+  width: 'calc(33.333% - 16px)', // Fixed width with gap consideration
+  minWidth: '300px', // Minimum width
   [theme.breakpoints.down('md')]: {
-    flexBasis: 'calc(50% - 16px)',
+    width: 'calc(50% - 16px)',
   },
   [theme.breakpoints.down('sm')]: {
-    flexBasis: '100%',
+    width: '100%',
   },
 }));
-
-const announcements = [
-  {
-    id: 1,
-    title: 'Midterm Exam Date Announced',
-    content: 'The midterm exam will be held on October 15th. Please review chapters 1-5.',
-    date: '2023-09-30',
-    author: 'Prof. Johnson',
-    avatar: '/path-to-avatar1.jpg',
-  },
-  {
-    id: 2,
-    title: 'Guest Lecture Next Week',
-    content: 'We will have a guest lecture by Dr. Jane Smith on AI Ethics on October 5th.',
-    date: '2023-10-01',
-    author: 'Dr. Williams',
-    avatar: '/path-to-avatar2.jpg',
-  },
-  {
-    id: 3,
-    title: 'Project Deadline Extended',
-    content: 'The deadline for submitting your group projects has been extended to November 10th.',
-    date: '2023-10-03',
-    author: 'Prof. Davis',
-    avatar: '/path-to-avatar3.jpg',
-  },
-];
 
 const AnnouncementPage = () => {
   const { data: session } = useSession();
@@ -92,6 +75,54 @@ const AnnouncementPage = () => {
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
   const [isNewAnnouncementDialogOpen, setIsNewAnnouncementDialogOpen] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({ title: '', content: '' });
+  const [announcements, setAnnouncements] = useState([]);
+  const searchParams = useSearchParams();
+  const instructId = searchParams.get('id');
+  const router = useRouter();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  const fetchAllAnnouncements = async () => {
+    const res = await fetchInstructAnnouncements(instructId, session["id_token"]);
+    if (!res.isError) {
+      setAnnouncements(res.data);
+    } else {
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
+  };
+
+  const addAnnouncement = async (announcement) => {
+    const res = await saveAnnouncement(announcement, session["id_token"]);
+    if (!res.isError) {
+      fetchAllAnnouncements();
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'success',
+      });
+    } else {
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (instructId > 0) {
+      fetchAllAnnouncements();
+    } else {
+      router.push(`/`);
+    }
+  }, []);
 
   const handleAnnouncementClick = (announcement) => {
     setSelectedAnnouncement(announcement);
@@ -116,15 +147,21 @@ const AnnouncementPage = () => {
   };
 
   const handleSubmitNewAnnouncement = () => {
-    // Here you would typically send the new announcement to your backend
-    const announcementWithAuthor = {
-      ...newAnnouncement,
-      author: session?.userDetails?.name || 'Unknown Professor',
-      date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
-      avatar: session?.userDetails?.image || '/path-to-default-avatar.jpg'
+    const reqData = {
+      instructId: instructId,
+      announcementTitle: newAnnouncement.title,
+      announcementDescription: newAnnouncement.content,
+      createdBy: session?.userDetails?.userId,
     };
-    console.log('New announcement:', announcementWithAuthor);
+    addAnnouncement(reqData);
     handleCloseNewAnnouncementDialog();
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -139,23 +176,23 @@ const AnnouncementPage = () => {
       </TitleSection>
       <AnnouncementsContainer>
         {announcements.map((announcement) => (
-          <AnnouncementItem key={announcement.id}>
+          <AnnouncementItem key={announcement.announcementId}>
             <AnnouncementCard onClick={() => handleAnnouncementClick(announcement)}>
               <AnnouncementContent>
                 <Box mb={2}>
-                  <Typography variant="h6" gutterBottom color="primary">{announcement.title}</Typography>
+                  <Typography variant="h6" gutterBottom color="primary">{announcement.announcementTitle}</Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
-                    {announcement.content}
+                    {announcement.announcementDescription}
                   </Typography>
                 </Box>
                 <Box>
                   <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                     <Box display="flex" alignItems="center">
-                      <Avatar src={announcement.avatar} alt={announcement.author} sx={{ width: 24, height: 24, mr: 1 }} />
-                      <Typography variant="subtitle2">{announcement.author}</Typography>
+                      <Avatar alt={announcement.author.name} sx={{ width: 24, height: 24, mr: 1 }} />
+                      <Typography variant="subtitle2">{announcement.author.name}</Typography>
                     </Box>
                     <Typography variant="caption" color="text.secondary">
-                      {announcement.date}
+                      {dayjs(announcement.createdAt).format('DD MMM YYYY')}
                     </Typography>
                   </Box>
                 </Box>
@@ -163,26 +200,36 @@ const AnnouncementPage = () => {
             </AnnouncementCard>
           </AnnouncementItem>
         ))}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </AnnouncementsContainer>
       <Dialog open={!!selectedAnnouncement} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         {selectedAnnouncement && (
           <>
             <DialogTitle>
               <Typography variant="h6" fontWeight="bold">
-                {selectedAnnouncement.title}
+                {selectedAnnouncement.announcementTitle}
               </Typography>
             </DialogTitle>
             <DialogContent>
               <Typography variant="body1" paragraph>
-                {selectedAnnouncement.content}
+                {selectedAnnouncement.announcementDescription}
               </Typography>
               <Box display="flex" justifyContent="space-between" alignItems="center">
                 <Box display="flex" alignItems="center">
-                  <Avatar src={selectedAnnouncement.avatar} alt={selectedAnnouncement.author} sx={{ width: 32, height: 32, mr: 1 }} />
-                  <Typography variant="subtitle1">{selectedAnnouncement.author}</Typography>
+                  <Avatar alt={selectedAnnouncement.author.name} sx={{ width: 32, height: 32, mr: 1 }} />
+                  <Typography variant="subtitle1">{selectedAnnouncement.author.name}</Typography>
                 </Box>
                 <Typography variant="subtitle2" color="text.secondary">
-                  {selectedAnnouncement.date}
+                  {dayjs(selectedAnnouncement.createdAt).format('DD MMM YYYY')}
                 </Typography>
               </Box>
             </DialogContent>

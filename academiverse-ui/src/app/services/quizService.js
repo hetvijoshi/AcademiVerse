@@ -1,6 +1,6 @@
 import { Nextclient } from "../lib/client/http";
 
-export const fetchInstructCourses = async (userId, year, semester, token) => {
+export const fetchInstructQuizzes = async (instructId, token) => {
 	let response;
 
 	const config = {
@@ -8,7 +8,7 @@ export const fetchInstructCourses = async (userId, year, semester, token) => {
 	};
 	try {
 		response = await Nextclient.get(
-			`instructs/professor/${userId}?year=${year}&semester=${semester}`,
+			`quiz/${instructId}`,
 			config,
 		);
 	} catch (err) {
@@ -18,7 +18,7 @@ export const fetchInstructCourses = async (userId, year, semester, token) => {
 	return response.data;
 };
 
-export const getInstruct = async (instructId, token) => {
+export const fetchQuizById = async (quizId, token) => {
 	let response;
 
 	const config = {
@@ -26,7 +26,7 @@ export const getInstruct = async (instructId, token) => {
 	};
 	try {
 		response = await Nextclient.get(
-			`instructs/${instructId}`,
+			`quiz/${instructId}`,
 			config,
 		);
 	} catch (err) {
@@ -36,7 +36,7 @@ export const getInstruct = async (instructId, token) => {
 	return response.data;
 };
 
-export const saveInstruct = async (data, token) => {
+export const saveQuiz = async (data, token) => {
 	let response;
 
 	const config = {
@@ -44,7 +44,7 @@ export const saveInstruct = async (data, token) => {
 	};
 	try {
 		response = await Nextclient.post(
-			'instructs/',
+			'quiz/',
 			data,
 			config,
 		);
@@ -55,7 +55,7 @@ export const saveInstruct = async (data, token) => {
 	return response.data;
 };
 
-export const editInstruct = async (data, token) => {
+export const editQuiz = async (data, token) => {
 	let response;
 
 	const config = {
@@ -63,8 +63,26 @@ export const editInstruct = async (data, token) => {
 	};
 	try {
 		response = await Nextclient.put(
-			'instructs/',
+			'quiz/',
 			data,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+};
+
+export const deleteQuiz = async (quizId, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.delete(
+			`quiz/${quizId}`,
 			config,
 		);
 	} catch (err) {
