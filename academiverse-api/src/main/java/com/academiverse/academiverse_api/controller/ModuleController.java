@@ -24,4 +24,10 @@ public class ModuleController {
     public ResponseEntity<BaseResponse> saveModule(@RequestBody ModuleSaveRequest moduleSaveRequest){
         return ResponseEntity.ok().body(moduleService.saveModule(moduleSaveRequest));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<BaseResponse> deleteModuleById(@PathVariable Long id)
+    {
+        return ResponseEntity.ok().body(moduleService.deleteModuleById(id));
+    }
 }

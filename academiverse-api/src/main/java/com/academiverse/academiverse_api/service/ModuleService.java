@@ -4,6 +4,7 @@ import com.academiverse.academiverse_api.dto.request.ModuleSaveRequest;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
 import com.academiverse.academiverse_api.model.Instruct;
 import com.academiverse.academiverse_api.model.Module;
+import com.academiverse.academiverse_api.model.User;
 import com.academiverse.academiverse_api.repository.InstructRepository;
 import com.academiverse.academiverse_api.repository.ModuleRepository;
 import lombok.RequiredArgsConstructor;
@@ -66,5 +67,20 @@ public class ModuleService {
             response.message = MessageFormat.format("Module with id: {0} does not exist", moduleSaveRequest.instructId);
             return response;
         }
+    }
+
+    public BaseResponse deleteModuleById (Long id) {
+        Optional<Module> existingModule = moduleRepository.findById(id);
+        BaseResponse response = new BaseResponse<>();
+        response.data = null;
+        if(existingModule.isPresent()){
+            moduleRepository.deleteById(id);
+            response.isError = false;
+            response.message = MessageFormat.format("Module with id {0} is deleted.", id);
+        }else{
+            response.isError = true;
+            response.message = MessageFormat.format("Module with id {0} not found.", id);
+        }
+        return response;
     }
 }

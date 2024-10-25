@@ -27,7 +27,7 @@ public class Module {
     @JoinColumn(name = "parentModuleId", referencedColumnName = "moduleId", nullable=true)
     @JsonIgnore
     private Module parentModule;
-    @OneToMany(mappedBy = "parentModule", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "parentModule", cascade = CascadeType.REMOVE, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Module> documents;
     private boolean isActive;
     private Long createdBy;

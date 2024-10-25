@@ -19,4 +19,10 @@ public class DocumentController {
     public ResponseEntity<BaseResponse> saveDocument(@RequestBody DocumentSaveRequest documentSaveRequest){
         return ResponseEntity.ok().body(documentService.saveDocument(documentSaveRequest));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<BaseResponse> deleteDocumentById(@PathVariable Long id)
+    {
+        return ResponseEntity.ok().body(documentService.deleteDocumentById(id));
+    }
 }

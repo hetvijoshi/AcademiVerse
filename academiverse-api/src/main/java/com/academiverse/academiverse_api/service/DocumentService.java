@@ -59,4 +59,19 @@ public class DocumentService {
             return response;
         }
     }
+
+    public BaseResponse deleteDocumentById (Long id) {
+        Optional<Module> existingDocument = moduleRepository.findById(id);
+        BaseResponse response = new BaseResponse<>();
+        response.data = null;
+        if(existingDocument.isPresent()){
+            moduleRepository.deleteById(id);
+            response.isError = false;
+            response.message = MessageFormat.format("Document with id {0} is deleted.", id);
+        }else{
+            response.isError = true;
+            response.message = MessageFormat.format("Document with id {0} not found.", id);
+        }
+        return response;
+    }
 }
