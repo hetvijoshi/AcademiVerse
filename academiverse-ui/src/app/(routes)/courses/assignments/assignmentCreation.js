@@ -32,6 +32,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { postAssignmentsByInstructId } from "../../../services/assignmentService";
 import { useSearchParams } from "next/navigation";
+import { getAssignmentsByInstructId } from "../../../services/assignmentService";
 const PageContainer = styled(Box)(({ theme }) => ({
 	padding: theme.spacing(3),
 	width: "100%",
@@ -79,26 +80,32 @@ const AssignmentCreationPage = () => {
 	const searchParams = useSearchParams();
 	const instructId = searchParams.get("id");
 	useEffect(() => {
-		// Fetch assignments from API
-		// This is a placeholder. Replace with actual API call.
-		setAssignments([
-			{
-				id: 1,
-				title: "Assignment 1",
-				description: "Description 1",
-				dueDate: dayjs(),
-				totalMarks: 100,
-				isActive: true,
-			},
-			{
-				id: 2,
-				title: "Assignment 2",
-				description: "Description 2",
-				dueDate: dayjs(),
-				totalMarks: 50,
-				isActive: false,
-			},
-		]);
+		const fetchAssignment = async () => {
+			const response = await getAssignmentsByInstructId(
+				instructId,
+				session.id_token,
+			);
+			console.log("getAssignmentsssssssssss", response);
+			if (response.data) {
+				const mappedAssignments = response.data.map((assignment) => ({
+					id: assignment.assignmentId,
+					title: assignment.assignmentTitle,
+					dueDate: dayjs(assignment.assignmentDueDate).format(
+						"YYYY-MM-DD HH:mm",
+					),
+					description: assignment.assignmentDescription,
+					totalMarks: assignment.totalMarks,
+					isActive: assignment.isActive,
+				}));
+				console.log("Mapped assignments:", mappedAssignments);
+				setAssignments(mappedAssignments);
+				console.log("Assignments stateeeeeeeee:", assignments);
+			} else {
+				console.error("No assignments data received from API");
+				setAssignments([]);
+			}
+		};
+		fetchAssignment();
 	}, []);
 
 	const handleCreateAssignment = (data) => {
@@ -112,7 +119,6 @@ const AssignmentCreationPage = () => {
 			totalMarks: Number.parseInt(data.totalMarks),
 			isActive: true,
 		};
-		console.log("formattedData by param shah is ", formattedData);
 		// Send the formatted data to the API
 		const response = postAssignmentsByInstructId(
 			formattedData,
