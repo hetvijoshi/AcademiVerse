@@ -15,8 +15,6 @@ const LayoutWrapper = ({ children }) => {
     const [selectedCourseId, setSelectedCourseId] = useState(null);
 
     useEffect(() => {
-        console.log("Selected Item:", selectedItem);
-        console.log("Selected Course ID:", selectedCourseId);
     }, [selectedCourseId]);
 
     if (status === "loading") {

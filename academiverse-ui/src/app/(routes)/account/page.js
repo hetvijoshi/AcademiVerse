@@ -4,7 +4,7 @@ import { Paper, Grid, Typography, TextField, Button, Select, MenuItem, FormContr
 import { styled } from '@mui/system';
 import { useSession } from 'next-auth/react';
 import { getAllDepartment } from '../../services/departmentService';
-import { getAllDegree } from '../../services/degree';
+import { getAllDegree } from '../../services/degreeService';
 import { getUserDetails, putUserDetails } from '../../services/userService';
 
 

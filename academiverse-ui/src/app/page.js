@@ -19,6 +19,8 @@ import {
 	Checkbox,
 	FormControlLabel,
 	Autocomplete,
+	Snackbar,
+	Alert,
 } from "@mui/material";
 import { styled } from "@mui/system";
 import { useRouter } from "next/navigation";
@@ -35,7 +37,11 @@ import {
 	Add as AddIcon,
 	Edit as EditIcon,
 } from "@mui/icons-material";
-import { fetchInstructCourses } from "./services/instructService";
+import { editInstruct, fetchInstructCourses } from "./services/instructService";
+import { getCourseByDeptId } from "./services/courseService";
+import { getAllDepartment } from "./services/departmentService";
+import { saveInstruct } from "./services/instructService";
+
 const StyledCard = styled(Card)(({ theme, bgcolor }) => ({
 	height: "100%",
 	display: "flex",
@@ -146,55 +152,41 @@ const CourseScreen = () => {
 	];
 	const semesters = ["Fall", "Spring", "Summer"];
 
-	useEffect(() => {
-		// Simulating API calls with static data
-		const staticDepartments = [
-			{ id: "CS", name: "Computer Science" },
-			{ id: "MATH", name: "Mathematics" },
-			{ id: "ENG", name: "English" },
-		];
-		const staticCourseList = [
-			{ id: "CS101", code: "CS101", title: "Introduction to Programming" },
-			{ id: "CS201", code: "CS201", title: "Data Structures" },
-			{ id: "MATH101", code: "MATH101", title: "Calculus I" },
-		];
+	const professorEnrolledCourses = async () => {
+		const res = await fetchInstructCourses(
+			session.userDetails?.userId,
+			"2024",
+			"Fall",
+			session.id_token,
+		);
+		if (!res.isError) {
+			const mappedCourses = res.data.map((course) => ({
+				id: course.instructId,
+				courseId: course.course.courseId,
+				code: course.course.courseCode,
+				name: course.course.courseName,
+				color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+				days: course.courseDays
+					? course.courseDays.split(",").map((day) => day.trim())
+					: [],
+				startTime: course.courseStartTime,
+				endTime: course.courseEndTime,
+				capacity: course.courseCapacity,
+				semester: course.semester,
+				year: course.year,
+			}));
+			setCourses(mappedCourses);
+		} else {
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: "error",
+			});
+		}
+	};
 
-		const professorEnrolledCourses = async () => {
-			const res = await fetchInstructCourses(
-				session.userDetails?.userId,
-				"2024",
-				"Fall",
-				session.id_token,
-			);
-			if (res) {
-				const mappedCourses = res.data.map((course) => ({
-					id: course.course.courseId,
-					code: course.course.courseCode,
-					name: course.course.courseName,
-					color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
-					days: course.courseDays
-						? course.courseDays.split(",").map((day) => day.trim())
-						: [],
-					startTime: course.courseStartTime,
-					endTime: course.courseEndTime,
-				}));
-				setCourses(mappedCourses);
-				setSnackbar({
-					open: true,
-					message: res.message,
-					severity: "success",
-				});
-			} else {
-				setSnackbar({
-					open: true,
-					message: res.message,
-					severity: "error",
-				});
-			}
-		};
+	useEffect(() => {
 		professorEnrolledCourses();
-		setDepartments(staticDepartments);
-		setCourseList(staticCourseList);
 		setLoading(false);
 	}, []);
 
@@ -203,11 +195,23 @@ const CourseScreen = () => {
 		router.push(`/courses?id=${courseId}&section=announcements`);
 	};
 
+	const getDepartments = async () => {
+		const res = await getAllDepartment(session.id_token);
+		setDepartments(res.data);
+	};
+
+	const getCourses = async (departmentId) => {
+		const res = await getCourseByDeptId(departmentId, session.id_token);
+		setCourseList(res.data);
+	};
+
 	const handleAddCourse = () => {
+		getDepartments();
 		setOpenAddCourseDialog(true);
 	};
 
 	const handleCloseAddCourseDialog = () => {
+		professorEnrolledCourses();
 		setOpenAddCourseDialog(false);
 		setNewCourse({
 			department: null,
@@ -221,22 +225,40 @@ const CourseScreen = () => {
 		});
 	};
 
-	const handleSaveNewCourse = () => {
-		// Add the new course to the static data
-		const newCourseData = {
-			id: courses.length + 1,
-			code: newCourse.course.code,
-			name: newCourse.course.title,
-			color: `#${Math.floor(Math.random() * 16777215).toString(16)}`, // Random color
-			days: newCourse.days,
-			startTime: newCourse.startTime,
-			endTime: newCourse.endTime,
-		};
-		setCourses([...courses, newCourseData]);
+	const handleSaveNewCourse = async () => {
+		const reqData = {
+			courseId: newCourse.course.courseId,
+			courseCapacity: newCourse.capacity,
+			courseDays: newCourse.days.join(","),
+			courseStartTime: newCourse.startTime,
+			courseEndTime: newCourse.endTime,
+			userId: session.userDetails?.userId,
+			semester: newCourse.semester,
+			year: newCourse.year,
+			createdBy: session.userDetails?.userId,
+			updatedBy: session.userDetails?.userId
+		}
+		const res = await saveInstruct(reqData, session.id_token);
+		if (!res.isError) {
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: "success",
+			});
+		} else {
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: "error",
+			});
+		}
 		handleCloseAddCourseDialog();
 	};
 
 	const handleNewCourseChange = (field, value) => {
+		if (field === "department") {
+			getCourses(value.departmentId);
+		}
 		setNewCourse((prev) => ({ ...prev, [field]: value }));
 	};
 
@@ -250,11 +272,39 @@ const CourseScreen = () => {
 		setEditingCourse(null);
 	};
 
+	const editCourse = async (course) => {
+		const reqData = {
+			instructId: course.id,
+			courseId: course.courseId,
+			courseCapacity: course.capacity,
+			courseDays: course.days.join(","),
+			courseStartTime: course.startTime,
+			courseEndTime: course.endTime,
+			userId: session.userDetails?.userId,
+			semester: course.semester,
+			year: course.year,
+			updatedBy: session.userDetails?.userId
+		}
+
+		const res = await editInstruct(reqData, session.id_token);
+		if (!res.isError) {
+			professorEnrolledCourses();
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: "success",
+			});
+		} else {
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: "error",
+			});
+		}
+	};
+
 	const handleSaveEditedCourse = () => {
-		const updatedCourses = courses.map((course) =>
-			course.id === editingCourse.id ? editingCourse : course,
-		);
-		setCourses(updatedCourses);
+		editCourse(editingCourse);
 		handleCloseEditCourseDialog();
 	};
 
@@ -281,6 +331,13 @@ const CourseScreen = () => {
 	const handleIconClick = (courseId, section) => {
 		router.push(`/courses?id=${courseId}&section=${section}`);
 	};
+
+	const handleCloseSnackbar = (event, reason) => {
+        if (reason === 'clickaway') {
+            return;
+        }
+        setSnackbar({ ...snackbar, open: false });
+    };
 
 	return (
 		<Box
@@ -434,6 +491,16 @@ const CourseScreen = () => {
 							))}
 						</>
 					)}
+					<Snackbar
+						open={snackbar.open}
+						autoHideDuration={6000}
+						onClose={handleCloseSnackbar}
+						anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+					>
+						<Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+							{snackbar.message}
+						</Alert>
+					</Snackbar>
 				</CourseContainer>
 			</ContentSection>
 
@@ -442,7 +509,7 @@ const CourseScreen = () => {
 				<DialogContent>
 					<Autocomplete
 						options={departments}
-						getOptionLabel={(option) => option.name}
+						getOptionLabel={(option) => option.departmentName}
 						value={newCourse.department}
 						onChange={(_, newValue) =>
 							handleNewCourseChange("department", newValue)
@@ -459,7 +526,7 @@ const CourseScreen = () => {
 
 					<Autocomplete
 						options={courseList}
-						getOptionLabel={(option) => `${option.code}: ${option.title}`}
+						getOptionLabel={(option) => `${option.courseCode}: ${option.courseName}`}
 						value={newCourse.course}
 						onChange={(_, newValue) =>
 							handleNewCourseChange("course", newValue)
@@ -578,6 +645,15 @@ const CourseScreen = () => {
 								label="Course Name"
 								value={editingCourse.name}
 								onChange={(e) => handleEditCourseChange("name", e.target.value)}
+								sx={{ mt: 2 }}
+								disabled
+							/>
+							<TextField
+								fullWidth
+								label="Course Capacity"
+								type="number"
+								value={editingCourse.capacity}
+								onChange={(e) => handleEditCourseChange("capacity", e.target.value)}
 								sx={{ mt: 2 }}
 							/>
 							<Box sx={{ mt: 2 }}>

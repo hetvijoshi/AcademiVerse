@@ -15,6 +15,8 @@ import QuizPage from './quiz/page';
 import ClassmatePage from './classmates/page';
 import EnrollmentPage from './enrollment/page';
 import GradesDetail from './grades/gradesDetail';
+import { getInstruct } from '../../services/instructService';
+import { useSession } from 'next-auth/react';
 
 const PageContainer = styled(Box)({
   display: 'flex',
@@ -28,21 +30,21 @@ const ContentArea = styled(Box)(({ theme }) => ({
 
 const CoursePage = () => {
   const router = useRouter();
+  const { data: session } = useSession();
   const [courseId, setCourseId] = useState(null);
   const [course, setCourse] = useState(null);
   const searchParams = useSearchParams();
-  const staticCourses = [
-    { id: 1, code: 'CS101', name: 'Introduction to Programming', color: '#FFB74D', days: ['Monday', 'Wednesday'], startTime: '09:00', endTime: '10:30' },
-    { id: 2, code: 'CS201', name: 'Data Structures', color: '#64B5F6', days: ['Tuesday', 'Thursday'], startTime: '11:00', endTime: '12:30' },
-    { id: 3, code: 'MATH101', name: 'Calculus I', color: '#81C784', days: ['Monday', 'Wednesday', 'Friday'], startTime: '14:00', endTime: '15:00' },
-  ];
 
   useEffect(() => {
     const id = searchParams.get('id');
     if (id) {
-      //API for course detail
-      setCourse(staticCourses.find(x => x.id == id))
       setCourseId(id);
+      //API for course detail
+      getInstruct(id, session["id_token"]).then(res => {
+        if (!res.isError) {
+          setCourse(res.data);
+        }
+      });
     } else {
       router.push(`/`);
     }
@@ -53,12 +55,12 @@ const CoursePage = () => {
       <PageContainer>
         <CourseNavBar course={course} />
         <ContentArea>
-          {(searchParams.get('section') === 'announcements' || searchParams.get('section') === null) && <AnnouncementPage course={{ id: courseId }} />}
-          {searchParams.get('section') === 'modules' && <ModulePage course={{ id: courseId }} />}
-          {searchParams.get('section') === 'assignments' && <AssignmentPage course={{ id: courseId }} />}
+          {(searchParams.get('section') === 'announcements' || searchParams.get('section') === null) && <AnnouncementPage />}
+          {searchParams.get('section') === 'modules' && <ModulePage />}
+          {searchParams.get('section') === 'assignments' && <AssignmentPage />}
           {searchParams.get('section') === 'assignmentDetail' && searchParams.get('assignmentId') && <AssignmentDetail assignment={parseInt(searchParams.get('assignmentId'))} />}
           {searchParams.get('section') === 'grades' && <GradePage />}
-          {searchParams.get('section') === 'gradesDetail' && searchParams.get('assignmentId') && <GradesDetail courseId={courseId} assignmentId={parseInt(searchParams.get('assignmentId'))} />}
+          {searchParams.get('section') === 'gradesDetail' && searchParams.get('assignmentId') && <GradesDetail assignmentId={parseInt(searchParams.get('assignmentId'))} />}
           {searchParams.get('section') === 'quiz' && <QuizPage />}
           {searchParams.get('section') === 'todo' && <ToDoListScreen />}
           {searchParams.get('section') === 'classmates' && <ClassmatePage />}
