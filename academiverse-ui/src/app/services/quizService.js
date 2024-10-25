@@ -36,6 +36,24 @@ export const fetchQuizById = async (quizId, token) => {
 	return response.data;
 };
 
+export const fetchQuizQuestions = async (quizId, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.get(
+			`quiz/questions/${quizId}`,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+};
+
 export const saveQuiz = async (data, token) => {
 	let response;
 
@@ -91,3 +109,22 @@ export const deleteQuiz = async (quizId, token) => {
 
 	return response.data;
 };
+
+export const activeQuiz = async (quizId, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.post(
+			`quiz/active/${quizId}`,
+			null,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+}

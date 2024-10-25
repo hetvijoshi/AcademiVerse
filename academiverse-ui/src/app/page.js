@@ -37,7 +37,7 @@ import {
 	Add as AddIcon,
 	Edit as EditIcon,
 } from "@mui/icons-material";
-import { editInstruct, fetchInstructCourses } from "./services/instructService";
+import { editInstruct, fetchInstructCourses, fetchStudentCourses } from "./services/instructService";
 import { getCourseByDeptId } from "./services/courseService";
 import { getAllDepartment } from "./services/departmentService";
 import { saveInstruct } from "./services/instructService";
@@ -152,6 +152,39 @@ const CourseScreen = () => {
 	];
 	const semesters = ["Fall", "Spring", "Summer"];
 
+	const studentEnrolledCourses = async () => {
+		const res = await fetchStudentCourses(
+			session.userDetails?.userId,
+			"2024",
+			"Fall",
+			session.id_token,
+		);
+		if (!res.isError) {
+			const mappedCourses = res.data.map((course) => ({
+				id: course.instructId,
+				courseId: course.course.courseId,
+				code: course.course.courseCode,
+				name: course.course.courseName,
+				color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+				days: course.courseDays
+					? course.courseDays.split(",").map((day) => day.trim())
+					: [],
+				startTime: course.courseStartTime,
+				endTime: course.courseEndTime,
+				capacity: course.courseCapacity,
+				semester: course.semester,
+				year: course.year,
+			}));
+			setCourses(mappedCourses);
+		} else {
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: "error",
+			});
+		}
+	}
+
 	const professorEnrolledCourses = async () => {
 		const res = await fetchInstructCourses(
 			session.userDetails?.userId,
@@ -186,7 +219,11 @@ const CourseScreen = () => {
 	};
 
 	useEffect(() => {
-		professorEnrolledCourses();
+		if (session?.userDetails?.role === "professor") {
+			professorEnrolledCourses();
+		} else {
+			studentEnrolledCourses();
+		}
 		setLoading(false);
 	}, []);
 
@@ -333,11 +370,11 @@ const CourseScreen = () => {
 	};
 
 	const handleCloseSnackbar = (event, reason) => {
-        if (reason === 'clickaway') {
-            return;
-        }
-        setSnackbar({ ...snackbar, open: false });
-    };
+		if (reason === 'clickaway') {
+			return;
+		}
+		setSnackbar({ ...snackbar, open: false });
+	};
 
 	return (
 		<Box

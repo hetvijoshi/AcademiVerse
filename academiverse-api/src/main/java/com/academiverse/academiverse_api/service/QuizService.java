@@ -29,7 +29,7 @@ public class QuizService {
     private final EnrolmentRepository enrolmentRepository;
 
     public BaseResponse<List<Quiz>> getQuizzes(long instructId){
-        List<Quiz> quizList = quizRepository.findByInstructInstructIdAndIsActive(instructId, true);
+        List<Quiz> quizList = quizRepository.findByInstructInstructId(instructId);
         BaseResponse<List<Quiz>> response = new BaseResponse<>();
         response.data = quizList;
         response.message = "List of all quizzes.";
@@ -197,6 +197,27 @@ public class QuizService {
         }
     }
 
+    public BaseResponse<Quiz> inactiveQuiz(long quizId){
+        Optional<Quiz> quiz = quizRepository.findById(quizId);
+        if(quiz.isPresent()){
+            Quiz q = quiz.get();
+            q.setActive(!q.isActive());
+            Quiz savedQuiz = quizRepository.save(q);
+
+            BaseResponse<Quiz> response = new BaseResponse<>();
+            response.data = savedQuiz;
+            response.message = "Quiz saved successfully.";
+            response.isError = false;
+            return response;
+        }else{
+            BaseResponse<Quiz> response = new BaseResponse<>();
+            response.data = null;
+            response.message = "Quiz not found.";
+            response.isError = true;
+            return response;
+        }
+    }
+
     public BaseResponse deleteQuiz(long quizId){
         Optional<Quiz> quiz = quizRepository.findById(quizId);
         if(quiz.isPresent()){
@@ -220,7 +241,7 @@ public class QuizService {
         Optional<Quiz> q = quizRepository.findById(quizSubmitRequest.quizId);
         if(q.isPresent()){
 
-            Optional<Enrolment> el = enrolmentRepository.findByInstructIdAndUserIdAndIsActive(q.get().getInstruct().getInstructId(), quizSubmitRequest.userId, true);
+            Optional<Enrolment> el = enrolmentRepository.findByInstructInstructIdAndUserUserIdAndIsActive(q.get().getInstruct().getInstructId(), quizSubmitRequest.userId, true);
             if(!el.isPresent()){
                 BaseResponse<QuizSubmitResponse> response = new BaseResponse<>();
                 response.data = null;

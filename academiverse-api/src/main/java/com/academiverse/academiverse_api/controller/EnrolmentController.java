@@ -1,6 +1,8 @@
 package com.academiverse.academiverse_api.controller;
 
+import com.academiverse.academiverse_api.dto.request.EnrolmentSaveRequest;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
+import com.academiverse.academiverse_api.model.Enrolment;
 import com.academiverse.academiverse_api.service.EnrolmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +24,7 @@ public class EnrolmentController {
     }
 
     @PostMapping("/")
-    public ResponseEntity<BaseResponse<String>> enrollStudent(@RequestParam Long userId, @RequestParam Long instructId) {
-        return ResponseEntity.ok().body(enrolmentService.enrollStudent(userId, instructId));
+    public ResponseEntity<BaseResponse<Enrolment>> enrollStudent(@RequestBody EnrolmentSaveRequest enrolmentSaveRequest) {
+        return ResponseEntity.ok().body(enrolmentService.enrollStudent(enrolmentSaveRequest));
     }
 }

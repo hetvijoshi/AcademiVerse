@@ -19,6 +19,7 @@ import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -157,10 +158,16 @@ public class InstructService {
         return response;
     }
     // For students: Retrieve courses the student is enrolled in
-    public BaseResponse<List<Enrolment>> getStudentEnrolledCourses(Long userId) {
-        List<Enrolment> enrolments = enrolmentRepository.findByUserIdAndIsActive(userId, true);
+    public BaseResponse<List<Instruct>> getStudentEnrolledCourses(Long userId, int year, String semester) {
+        List<Instruct> enrolments = enrolmentRepository
+                .findByUserUserIdAndInstructYearAndInstructSemesterAndIsActive(userId, year, semester, true)
+                .stream()
+                .map(Enrolment::getInstruct)
+                .collect(Collectors.toList());;
 
-        BaseResponse<List<Enrolment>> response = new BaseResponse<>();
+
+
+        BaseResponse<List<Instruct>> response = new BaseResponse<>();
         response.isError = false;
         response.message = "Enrolled courses retrieved successfully";
         response.data = enrolments;

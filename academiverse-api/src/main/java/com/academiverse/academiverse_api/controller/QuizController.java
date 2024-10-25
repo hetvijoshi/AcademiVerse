@@ -32,6 +32,11 @@ public class QuizController {
         return ResponseEntity.ok().body(quizService.saveQuiz(quizSaveRequest));
     }
 
+    @PostMapping("/active/{quizId}")
+    public ResponseEntity<BaseResponse> inactiveQuiz(@PathVariable long quizId){
+        return ResponseEntity.ok().body(quizService.inactiveQuiz(quizId));
+    }
+
     @PutMapping("/")
     public ResponseEntity<BaseResponse> updateQuiz(@RequestBody QuizUpdateRequest quizUpdateRequest){
         return ResponseEntity.ok().body(quizService.updateQuiz(quizUpdateRequest));

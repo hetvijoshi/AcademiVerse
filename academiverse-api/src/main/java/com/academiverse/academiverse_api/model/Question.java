@@ -27,7 +27,7 @@ public class Question {
     private List<QOption> qOptions;
     @OneToOne
     @JoinColumn(name = "answerId", referencedColumnName = "optionId", nullable = true)
-    @JsonIgnore
+    //@JsonIgnore
     private QOption answer;
     private float marks;
     private LocalDateTime createdAt;
