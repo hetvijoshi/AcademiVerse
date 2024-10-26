@@ -32,6 +32,8 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
 import { postAssignmentsByInstructId } from "../../../services/assignmentService";
 import { useSearchParams } from "next/navigation";
+import { getAssignmentsByInstructId } from "../../../services/assignmentService";
+import { deleteAssignment } from "../../../services/assignmentService";
 const PageContainer = styled(Box)(({ theme }) => ({
 	padding: theme.spacing(3),
 	width: "100%",
@@ -78,30 +80,32 @@ const AssignmentCreationPage = () => {
 	const [assignmentToDelete, setAssignmentToDelete] = useState(null);
 	const searchParams = useSearchParams();
 	const instructId = searchParams.get("id");
+	const fetchAssignment = async () => {
+		const response = await getAssignmentsByInstructId(
+			instructId,
+			session.id_token,
+		);
+		if (response.data) {
+			const mappedAssignments = response.data.map((assignment) => ({
+				id: assignment.assignmentId,
+				title: assignment.assignmentTitle,
+				dueDate: dayjs(assignment.assignmentDueDate).format("YYYY-MM-DD HH:mm"),
+				description: assignment.assignmentDescription,
+				totalMarks: assignment.totalMarks,
+				isActive: assignment.isActive,
+			}));
+			setAssignments(mappedAssignments);
+		} else {
+			console.error("No assignments data received from API");
+			setAssignments([]);
+		}
+	};
+
 	useEffect(() => {
-		// Fetch assignments from API
-		// This is a placeholder. Replace with actual API call.
-		setAssignments([
-			{
-				id: 1,
-				title: "Assignment 1",
-				description: "Description 1",
-				dueDate: dayjs(),
-				totalMarks: 100,
-				isActive: true,
-			},
-			{
-				id: 2,
-				title: "Assignment 2",
-				description: "Description 2",
-				dueDate: dayjs(),
-				totalMarks: 50,
-				isActive: false,
-			},
-		]);
+		fetchAssignment();
 	}, []);
 
-	const handleCreateAssignment = (data) => {
+	const handleCreateAssignment = async (data) => {
 		// Format the data according to the API requirements
 		const formattedData = {
 			instructId: instructId,
@@ -112,23 +116,13 @@ const AssignmentCreationPage = () => {
 			totalMarks: Number.parseInt(data.totalMarks),
 			isActive: true,
 		};
-		console.log("formattedData by param shah is ", formattedData);
 		// Send the formatted data to the API
-		const response = postAssignmentsByInstructId(
+		await postAssignmentsByInstructId(
 			formattedData,
 			session.id_token,
 		);
-		setAssignments([
-			...assignments,
-			{ ...response, id: Date.now(), isActive: true },
-		]);
+		await fetchAssignment();
 		setOpenDialog(false);
-		setNewAssignment({
-			title: "",
-			description: "",
-			dueDate: dayjs(),
-			totalMarks: 0,
-		});
 		setSnackbarMessage("Assignment created successfully!");
 		setSnackbarOpen(true);
 	};
@@ -158,19 +152,15 @@ const AssignmentCreationPage = () => {
 	};
 
 	const handleDeleteAssignment = (id) => {
-		setAssignmentToDelete(
-			assignments.find((assignment) => assignment.id === id),
-		);
+		setAssignmentToDelete(id);
 		setDeleteDialogOpen(true);
 	};
 
-	const handleConfirmDelete = () => {
+	const handleConfirmDelete = async () => {
 		// Implement delete functionality
-		setAssignments(
-			assignments.filter(
-				(assignment) => assignment.id !== assignmentToDelete.id,
-			),
-		);
+		console.log("id 2", assignmentToDelete);
+		await deleteAssignment(assignmentToDelete, session.id_token);
+		await fetchAssignment();
 		setDeleteDialogOpen(false);
 		setAssignmentToDelete(null);
 		setSnackbarMessage("Assignment deleted successfully!");
@@ -392,7 +382,7 @@ const AssignmentCreationPage = () => {
 				<DialogActions>
 					<Button onClick={() => setDeleteDialogOpen(false)}>Cancel</Button>
 					<Button
-						onClick={handleConfirmDelete}
+						onClick={() => handleConfirmDelete()}
 						variant="contained"
 						color="primary"
 					>
