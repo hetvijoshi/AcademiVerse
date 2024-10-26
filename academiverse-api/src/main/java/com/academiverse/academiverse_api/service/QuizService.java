@@ -5,6 +5,7 @@ import com.academiverse.academiverse_api.dto.request.QuizSubmitRequest;
 import com.academiverse.academiverse_api.dto.request.QuizUpdateRequest;
 import com.academiverse.academiverse_api.dto.request.SubmitQuestion;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
+import com.academiverse.academiverse_api.dto.response.QuizResponse;
 import com.academiverse.academiverse_api.dto.response.QuizSubmitResponse;
 import com.academiverse.academiverse_api.model.*;
 import com.academiverse.academiverse_api.repository.*;
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +30,24 @@ public class QuizService {
     private final GradeRepository gradeRepository;
     private final EnrolmentRepository enrolmentRepository;
 
-    public BaseResponse<List<Quiz>> getQuizzes(long instructId){
+    public BaseResponse<List<QuizResponse>> getQuizzes(long instructId, long userId){
+        BaseResponse<List<QuizResponse>> res = new BaseResponse<>();
         List<Quiz> quizList = quizRepository.findByInstructInstructId(instructId);
-        BaseResponse<List<Quiz>> response = new BaseResponse<>();
-        response.data = quizList;
-        response.message = "List of all quizzes.";
-        response.isError = false;
-        return response;
+        List<Long> submittedQuizzes = gradeRepository.findByUserIdAndQuizIn(userId, quizList)
+                .stream()
+                .map((g)-> g.getQuiz().getQuizId())
+                .toList();
+
+        res.data = quizList.stream().map((q)-> {
+           QuizResponse response = new QuizResponse();
+           response.quiz = q;
+           response.submitted = submittedQuizzes.contains(q.getQuizId());
+           return response;
+        }).toList();
+
+        res.message = "List of all quizzes.";
+        res.isError = false;
+        return res;
     }
 
     public BaseResponse<Quiz> getQuiz(long quizId){
@@ -47,6 +60,27 @@ public class QuizService {
             return response;
         }else{
             BaseResponse<Quiz> response = new BaseResponse<>();
+            response.data = null;
+            response.message = "Quiz not found.";
+            response.isError = true;
+            return response;
+        }
+    }
+
+    public BaseResponse<List<Question>> getStudentQuestions(long quizId){
+        Optional<Quiz> quiz = quizRepository.findById(quizId);
+        if(quiz.isPresent()){
+            List<Question> questions = questionRepository.findByQuizQuizId(quizId);
+            BaseResponse<List<Question>> response = new BaseResponse<>();
+            questions.forEach((q)->{
+                q.setAnswer(null);
+            });
+            response.data = questions;
+            response.message = "Quiz questions.";
+            response.isError = false;
+            return response;
+        }else{
+            BaseResponse<List<Question>> response = new BaseResponse<>();
             response.data = null;
             response.message = "Quiz not found.";
             response.isError = true;

@@ -18,13 +18,18 @@ public class QuizController {
     private final QuizService quizService;
 
     @GetMapping("/{instructId}")
-    public ResponseEntity<BaseResponse> getQuizzes(@PathVariable Long instructId){
-        return ResponseEntity.ok().body(quizService.getQuizzes(instructId));
+    public ResponseEntity<BaseResponse> getQuizzes(@PathVariable Long instructId, @RequestParam Long userId){
+        return ResponseEntity.ok().body(quizService.getQuizzes(instructId, userId));
     }
 
     @GetMapping("/questions/{quizId}")
     public ResponseEntity<BaseResponse> getQuestions(@PathVariable Long quizId){
         return ResponseEntity.ok().body(quizService.getQuestions(quizId));
+    }
+
+    @GetMapping("/stuquestions/{quizId}")
+    public ResponseEntity<BaseResponse> getStudentQuestions(@PathVariable Long quizId){
+        return ResponseEntity.ok().body(quizService.getStudentQuestions(quizId));
     }
 
     @PostMapping("/")

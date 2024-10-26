@@ -19,11 +19,16 @@ import {
   RadioGroup,
   FormControlLabel,
   FormControl,
-  LinearProgress
+  LinearProgress,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import QuizCreationPage from './quizCreation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { fetchQuizByInstructId, fetchStudentQuizQuestions, submitQuiz } from '../../../services/quizService';
+import dayjs from 'dayjs';
 
 const QuizContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
@@ -98,128 +103,122 @@ const QuizPage = () => {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openQuiz, setOpenQuiz] = useState(null);
+  const [submission, setSubmission] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState('');
+  const searchParams = useSearchParams();
+  const instructId = searchParams.get('id');
+  const router = useRouter();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
-  useEffect(() => {
-    const fetchQuizzes = async () => {
-      if (session?.userDetails?.role !== 'professor') {
-        try {
-          // Simulating API call
-          const response = await new Promise(resolve =>
-            setTimeout(() => resolve([
-              {
-                id: 1,
-                title: 'Midterm Quiz',
-                dueDate: '2023-07-15T23:59:59',
-                totalMarks: 100,
-                submitted: false,
-                questions: [
-                  {
-                    question: 'What is the capital of France?',
-                    options: ['London', 'Berlin', 'Paris', 'Madrid'],
-                    correctAnswer: 'Paris'
-                  },
-                  {
-                    question: 'Which planet is known as the Red Planet?',
-                    options: ['Mars', 'Jupiter', 'Venus', 'Saturn'],
-                    correctAnswer: 'Mars'
-                  }
-                ]
-              },
-              {
-                id: 2,
-                title: 'Final Quiz',
-                dueDate: '2023-08-30T23:59:59',
-                totalMarks: 150,
-                submitted: false,
-                questions: [
-                  {
-                    question: 'Who painted the Mona Lisa?',
-                    options: ['Vincent van Gogh', 'Leonardo da Vinci', 'Pablo Picasso', 'Claude Monet'],
-                    correctAnswer: 'Leonardo da Vinci'
-                  },
-                  {
-                    question: 'What is the largest ocean on Earth?',
-                    options: ['Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean'],
-                    correctAnswer: 'Pacific Ocean'
-                  }
-                ]
-              },
-              {
-                id: 3,
-                title: 'Chapter 1 Quiz',
-                dueDate: '2023-07-05T23:59:59',
-                totalMarks: 50,
-                submitted: true
-              },
-              {
-                id: 4,
-                title: 'Pop Quiz',
-                dueDate: '2024-12-10T23:59:59',
-                totalMarks: 25,
-                submitted: false,
-                questions: [
-                  {
-                    question: 'Who painted the Mona Lisa?',
-                    options: ['Vincent van Gogh', 'Leonardo da Vinci', 'Pablo Picasso', 'Claude Monet'],
-                    correctAnswer: 'Leonardo da Vinci'
-                  },
-                  {
-                    question: 'What is the largest ocean on Earth?',
-                    options: ['Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean'],
-                    correctAnswer: 'Pacific Ocean'
-                  }
-                ]
-              }
-            ]), 1000)
-          );
-          setQuizzes(response);
-        } catch (error) {
-          console.error('Error fetching quiz data:', error);
+  const fetchQuizzes = async () => {
+    if (session?.userDetails?.role !== 'professor') {
+      try {
+        // Simulating API call
+        const res = await fetchQuizByInstructId(instructId, session?.userDetails?.userId, session["id_token"]);
+        if (!res.isError) {
+          setQuizzes(res.data);
+        } else {
+          setSnackbar({
+            open: true,
+            message: res.message,
+            severity: 'error',
+          });
         }
+      } catch (error) {
+        console.error('Error fetching quiz data:', error);
       }
-      setLoading(false);
-    };
-
-    fetchQuizzes();
-  }, [session]);
-
-  const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    }
+    setLoading(false);
   };
 
-  const handleTakeQuiz = (quiz) => {
-    setOpenQuiz(quiz);
-    setCurrentQuestion(0);
-    setSelectedAnswer('');
+  useEffect(() => {
+    if (instructId > 0) {
+      fetchQuizzes();
+    } else {
+      router.push('/');
+    }
+  }, []);
+
+
+  const handleTakeQuiz = async (quiz) => {
+    //fetch quiz questions
+    const res = await fetchStudentQuizQuestions(quiz.quiz.quizId, session["id_token"]);
+    if (!res.isError) {
+      quiz.questions = res.data;
+      setOpenQuiz(quiz);
+      setCurrentQuestion(0);
+      setSelectedAnswer('');
+      setSubmission([]);
+    } else {
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
   };
 
   const handleCloseQuiz = () => {
     setOpenQuiz(null);
     setCurrentQuestion(0);
     setSelectedAnswer('');
+    setSubmission([]);
   };
 
-  const handleAnswerChange = (event) => {
-    setSelectedAnswer(event.target.value);
+  const handleAnswerChange = (questionId, optionId) => {
+    setSelectedAnswer(optionId);
+    const existingSubmission = submission.filter(item => item.questionId == questionId);
+    if (existingSubmission.length == 0) {
+      setSubmission([...submission, { questionId: questionId, optionId: optionId }]);
+    } else {
+      setSubmission(submission.map(item => item.questionId == questionId ? { ...item, optionId: optionId } : item));
+    }
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
     if (currentQuestion < openQuiz.questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setSelectedAnswer('');
     } else {
       // Quiz completed
+      const reqData = {
+        quizId: openQuiz.quiz.quizId,
+        submission: submission,
+        userId: session?.userDetails?.userId
+      }
+      const res = await submitQuiz(reqData, session["id_token"]);
+      if (!res.isError) {
+        fetchQuizzes();
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'success',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
+      }
       handleCloseQuiz();
-      // Here you would typically submit the quiz results
-      console.log('Quiz completed');
     }
   };
 
   const isQuizAvailable = (quiz) => {
-    return !quiz.submitted && new Date(quiz.dueDate) > new Date();
+    return !quiz.submitted && dayjs(quiz.quiz.quizDueDate) > dayjs();
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   if (loading) {
@@ -241,18 +240,18 @@ const QuizPage = () => {
       </QuizHeader>
       <List>
         {quizzes.map((quiz, index) => (
-          <React.Fragment key={quiz.id}>
+          <React.Fragment key={quiz.quiz.quizId}>
             {index > 0 && <Divider variant="inset" component="li" />}
             <ListItem alignItems="flex-start">
               <ListItemText
-                primary={<QuizTitle>{quiz.title}</QuizTitle>}
+                primary={<QuizTitle>{quiz.quiz.quizName}</QuizTitle>}
                 secondary={
                   <React.Fragment>
                     <QuizDetails>
-                      Due Date: {formatDate(quiz.dueDate)}
+                      Due Date: {dayjs(quiz.quiz.quizDueDate).format('DD-MM-YYYY HH:mm A')}
                     </QuizDetails>
                     <QuizDetails>
-                      Total Marks: {quiz.totalMarks}
+                      Total Marks: {quiz.quiz.totalMarks}
                     </QuizDetails>
                   </React.Fragment>
                 }
@@ -278,7 +277,7 @@ const QuizPage = () => {
           fullWidth
         >
           <QuizDialogTitle id="quiz-dialog-title">
-            <Typography variant="h6">{openQuiz.title}</Typography>
+            <Typography variant="h6">{openQuiz.quizName}</Typography>
             <Typography variant="subtitle1">
               Question {currentQuestion + 1} of {openQuiz.questions.length}
             </Typography>
@@ -289,21 +288,21 @@ const QuizPage = () => {
               value={(currentQuestion + 1) / openQuiz.questions.length * 100}
             />
             <QuizQuestion variant="h6">
-              {openQuiz.questions[currentQuestion].question}
+              {openQuiz.questions[currentQuestion].quizQuestionText}
             </QuizQuestion>
             <FormControl component="fieldset">
               <RadioGroup
                 aria-label="quiz"
                 name="quiz"
                 value={selectedAnswer}
-                onChange={handleAnswerChange}
+                onChange={(event) => { handleAnswerChange(openQuiz.questions[currentQuestion].questionId, parseInt(event.target.value)) }}
               >
-                {openQuiz.questions[currentQuestion].options.map((option, index) => (
+                {openQuiz.questions[currentQuestion].qoptions.map((option, index) => (
                   <QuizOption
-                    key={index}
-                    value={option}
+                    key={option.optionId}
+                    value={option.optionId}
                     control={<Radio />}
-                    label={option}
+                    label={option.optionText}
                   />
                 ))}
               </RadioGroup>
@@ -324,6 +323,16 @@ const QuizPage = () => {
           </DialogActions>
         </QuizDialog>
       )}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </QuizContainer>
   );
 };
