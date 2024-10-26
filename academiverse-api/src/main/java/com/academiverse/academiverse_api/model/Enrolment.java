@@ -17,11 +17,15 @@ public class Enrolment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long enrolmentId;
 
-    private Long userId; // Student ID
-    private Long instructId; // Course ID
+    @OneToOne
+    @JoinColumn(name = "userId", referencedColumnName = "userId", nullable = false)
+    private User user; // Student ID
+    @ManyToOne
+    @JoinColumn(name = "instructId", referencedColumnName = "instructId", nullable = false)
+    private Instruct instruct; // Course ID
     private boolean isActive; // Enrollment status
-    private LocalDateTime createdAt; // Optional: add timestamps
-    private LocalDateTime updatedAt; // Optional: add timestamps
-
-    // Add createdBy and updatedBy fields if needed
+    private Long createdBy;
+    private Long updatedBy;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

@@ -36,8 +36,10 @@ public class InstructController {
 
     // Endpoint for students to get their enrolled courses
     @GetMapping("/student/{userId}")
-    public ResponseEntity<BaseResponse> getStudentEnrolledCourses(@PathVariable Long userId) {
-        return ResponseEntity.ok().body(instructService.getStudentEnrolledCourses(userId));
+    public ResponseEntity<BaseResponse> getStudentEnrolledCourses(@PathVariable Long userId,
+                                                                  @RequestParam int year,
+                                                                  @RequestParam String semester) {
+        return ResponseEntity.ok().body(instructService.getStudentEnrolledCourses(userId, year, semester));
     }
 
     @PostMapping("/")

@@ -24,13 +24,13 @@ import {
   Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import { saveQuiz, fetchInstructQuizzes,fetchQuizById, deleteQuiz } from '../../../services/quizService';
+import { saveQuiz, fetchInstructQuizzes, fetchQuizQuestions, deleteQuiz, editQuiz, activeQuiz } from '../../../services/quizService';
 
 const QuizCreationContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
@@ -99,16 +99,23 @@ const QuizCreationPage = () => {
     fetchAllQuizzes();
   }, []);
 
-  const handleOpenDialog = async (quizId = null) => {
-    setcurrentQuizId(quizId);
-    if (quizId > 0) {
-      const res = await fetchQuizById(quizId, session["id_token"]);
-      if (!res.isError) {
-        const quiz = res.data;
-        setQuizTitle(quiz.quizName);
-        setQuizDueDate(dayjs(quiz.quizDueDate));
-        setQuizTotalMarks(quiz.totalMarks.toString());
-        setQuestions(quiz.questions);
+  const handleOpenDialog = async (quiz = null) => {
+    if (quiz?.quizId > 0 && quiz.active) {
+      setcurrentQuizId(quiz?.quizId);
+      setQuizTitle(quiz.quizName);
+      setQuizDueDate(dayjs(quiz.quizDueDate));
+      setQuizTotalMarks(quiz.totalMarks.toString());
+
+      const quizQuestions = await fetchQuizQuestions(quiz.quizId, session["id_token"]);
+      if (!quizQuestions.isError) {
+        const ques = quizQuestions.data.map((q) => {
+          return {
+            questionText: q.quizQuestionText,
+            options: q.qoptions.map((o) => o.optionText),
+            answer: q.answer.optionText,
+          }
+        });
+        setQuestions(ques);
       } else {
         setSnackbar({
           open: true,
@@ -131,36 +138,65 @@ const QuizCreationPage = () => {
   };
 
   const handleSaveQuiz = async () => {
-    // Save quiz to API
-    const reqData = {
-      instructId: instructId,
-      quizName: quizTitle,
-      quizDescription: quizTitle,
-      quizDueDate: quizDueDate.format('YYYY-MM-DDTHH:mm:ss'),
-      totalMarks: quizTotalMarks,
-      quizWeightage: 0.0,
-      questions: questions,
-      isActive: true,
-      createdBy: session?.userDetails?.userId,
-    }
+    if (currentQuizId > 0) {
+      // Save quiz to API
+      const reqData = {
+        quizId: currentQuizId,
+        quizName: quizTitle,
+        quizDescription: quizTitle,
+        quizDueDate: quizDueDate.format('YYYY-MM-DDTHH:mm:ss'),
+        totalMarks: quizTotalMarks,
+        quizWeightage: 0.0,
+        questions: questions,
+        isActive: true,
+        updatedBy: session?.userDetails?.userId,
+      }
 
-    const res = await saveQuiz(reqData, session["id_token"]);
-    if (!res.isError) {
-      fetchAllQuizzes();
-      setSnackbar({
-        open: true,
-        message: res.message,
-        severity: 'success',
-      });
+      const res = await editQuiz(reqData, session["id_token"]);
+      if (!res.isError) {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'success',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
+      }
     } else {
-      setSnackbar({
-        open: true,
-        message: res.message,
-        severity: 'error',
-      });
-    }
+      // Save quiz to API
+      const reqData = {
+        instructId: instructId,
+        quizName: quizTitle,
+        quizDescription: quizTitle,
+        quizDueDate: quizDueDate.format('YYYY-MM-DDTHH:mm:ss'),
+        totalMarks: quizTotalMarks,
+        quizWeightage: 0.0,
+        questions: questions,
+        isActive: true,
+        createdBy: session?.userDetails?.userId,
+      }
 
-    console.log('Saving quiz:', { quizTitle, quizDueDate, quizTotalMarks, questions });
+      const res = await saveQuiz(reqData, session["id_token"]);
+      if (!res.isError) {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'success',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
+      }
+
+    }
+    fetchAllQuizzes();
     handleCloseDialog();
   };
 
@@ -208,6 +244,19 @@ const QuizCreationPage = () => {
         message: res.message,
         severity: 'success',
       });
+    } else {
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
+  }
+
+  const handleActiveQuiz = async (quizId) => {
+    const res = await activeQuiz(quizId, session["id_token"]);
+    if (!res.isError) {
+      fetchAllQuizzes();
     }else{
       setSnackbar({
         open: true,
@@ -236,14 +285,16 @@ const QuizCreationPage = () => {
               primary={quiz.quizName}
               secondary={`Due: ${dayjs(quiz.quizDueDate).format('DD-MM-YYYY HH:mm')} | Total Marks: ${quiz.totalMarks}`}
             />
-            <IconButton onClick={() => handleOpenDialog(quiz.quizId)}>
+            <IconButton disabled={!quiz.active} onClick={() => handleOpenDialog(quiz)}>
               <EditIcon />
             </IconButton>
-            <IconButton onClick={() => handleDeleteQuiz(quiz.quizId)}>
+            <IconButton disabled={!quiz.active} onClick={() => handleDeleteQuiz(quiz.quizId)}>
               <DeleteIcon />
             </IconButton>
-            <IconButton>
-              <VisibilityIcon />
+            <IconButton onClick={() => handleActiveQuiz(quiz.quizId)}>
+              {
+                quiz.active ? <VisibilityIcon titleAccess="Make Inactive" /> : <VisibilityOffIcon titleAccess="Make Active" />
+              }
             </IconButton>
           </QuizListItem>
         ))}
