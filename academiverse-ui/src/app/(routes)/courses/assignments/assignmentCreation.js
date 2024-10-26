@@ -111,10 +111,12 @@ const AssignmentCreationPage = () => {
 			instructId: instructId,
 			assignmentTitle: data.title,
 			assignmentDescription: data.description,
-			assignmentDueDate: data.dueDate.toISOString(),
+			assignmentDueDate: data.dueDate.format('YYYY-MM-DDTHH:mm:ss'),
 			assignmentWeightage: 0.0,
 			totalMarks: Number.parseInt(data.totalMarks),
 			isActive: true,
+			createdBy: session?.userDetails?.userId,
+			updatedBy: session?.userDetails?.userId
 		};
 		// Send the formatted data to the API
 		await postAssignmentsByInstructId(
