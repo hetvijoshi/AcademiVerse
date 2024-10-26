@@ -2,6 +2,7 @@ package com.academiverse.academiverse_api.service;
 
 import com.academiverse.academiverse_api.dto.request.EnrolmentSaveRequest;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
+import com.academiverse.academiverse_api.dto.response.EnrolEligibleResponse;
 import com.academiverse.academiverse_api.model.Enrolment;
 import com.academiverse.academiverse_api.model.Instruct;
 import com.academiverse.academiverse_api.model.User;
@@ -23,12 +24,46 @@ public class EnrolmentService {
     private final InstructRepository instructRepository;
     private final UserRepository userRepository;
 
-    public BaseResponse<List<Long>> getEligibleStudents(Long instructId) {
+    public BaseResponse<List<EnrolEligibleResponse>> getEligibleStudents(Long instructId) {
         Optional<Instruct> instruct = instructRepository.findById(instructId);
-        BaseResponse<List<Long>> response = new BaseResponse<>();
+        BaseResponse<List<EnrolEligibleResponse>> response = new BaseResponse<>();
+
 
         if (instruct.isPresent()) {
-            response.data = null;
+            Long departmentId = instruct.get().getCourse().getDepartment().getDepartmentId();
+
+            // Get all users
+            List<User> allUsers = userRepository.findAll(); // Fetch all users
+
+            // Get a list of enrolled students
+            List<Long> enrolledStudents = enrolmentRepository.findByInstructInstructId(instruct.get().getInstructId())
+                    .stream()
+                    .map(enrolment -> {
+                        return enrolment.getUser().getUserId();
+                    })
+                    .toList();
+
+            // Filter eligible students based on department and enrollment status
+            List<EnrolEligibleResponse> eligibleResponses = allUsers.stream()
+                    .filter(user -> user.getDepartment().getDepartmentId().equals(departmentId) || enrolledStudents.contains(user.getUserId()))
+                    .map(user -> {
+                        EnrolEligibleResponse enrolEligibleResponse = new EnrolEligibleResponse();
+
+                        if (enrolledStudents.contains(user.getUserId())) {
+                            enrolEligibleResponse.user = user;
+                            enrolEligibleResponse.isEnrolled = true;
+                        }
+
+                        if (user.getDepartment().getDepartmentId().equals(departmentId)) {
+                            enrolEligibleResponse.user = user;
+                            enrolEligibleResponse.isEnrolled = false;
+                        }
+
+                        return enrolEligibleResponse;
+                    })
+                    .toList();
+
+            response.data = eligibleResponses;
             response.isError = false;
             response.message = "Eligible students retrieved successfully.";
         } else {
