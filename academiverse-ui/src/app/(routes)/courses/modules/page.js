@@ -17,6 +17,9 @@ import {
   Delete as DeleteIcon
 } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getModules, saveModules } from '../../../services/moduleService';
+import { deleteDocument, saveDocument } from '../../../services/documentService';
 
 const PageContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(3),
@@ -84,79 +87,106 @@ const ModulePage = () => {
   const [expandedModules, setExpandedModules] = useState({});
   const [openFileViewer, setOpenFileViewer] = useState(false);
   const [selectedMaterial, setSelectedMaterial] = useState(null);
+  const searchParams = useSearchParams();
+  const instructId = searchParams.get('id');
+  const router = useRouter();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+
+  const fetchModules = async () => {
+    try {
+      // Replace this with your actual API call
+      const res = await getModules(instructId, session.id_token);
+      if (!res.isError) {
+        setModules(res.data);
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
+      }
+
+
+      // Set all modules to expanded by default
+      const initialExpandedState = res.data.reduce((acc, module) => {
+        acc[module.moduleId] = true;
+        return acc;
+      }, {});
+      setExpandedModules(initialExpandedState);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching modules:', error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Simulating an API call to fetch modules
-    const fetchModules = async () => {
-      try {
-        // Replace this with your actual API call
-        const response = await new Promise(resolve =>
-          setTimeout(() => resolve([
-            {
-              id: 1,
-              title: 'Introduction to the Course',
-              materials: [
-                { id: 1, type: 'file', name: 'Syllabus.pdf', url: '/sample_mcq_quiz.pdf' },
-                { id: 2, type: 'file', name: 'Course Overview.pptx', url: '/sample_mcq_quiz.pdf' },
-              ]
-            },
-            {
-              id: 2,
-              title: 'Fundamentals of Programming',
-              materials: [
-                { id: 3, type: 'folder', name: 'Lecture Notes' },
-                { id: 4, type: 'file', name: 'Programming Basics.pdf', url: '/sample_mcq_quiz.pdf' },
-                { id: 5, type: 'file', name: 'Coding Exercise 1.zip', url: '/sample_mcq_quiz.pdf' },
-              ]
-            },
-            // Add more modules as needed
-          ]), 1000)
-        );
-        setModules(response);
-        // Set all modules to expanded by default
-        const initialExpandedState = response.reduce((acc, module) => {
-          acc[module.id] = true;
-          return acc;
-        }, {});
-        setExpandedModules(initialExpandedState);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching modules:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchModules();
+    if (instructId > 0) {
+      fetchModules();
+    } else {
+      router.push(`/`);
+    }
   }, []);
 
   const isProfessor = session?.userDetails?.role === 'professor';
 
-  const handleAddModule = () => {
+  const handleAddModule = async () => {
     // Add logic to create a new module
-    const newModule = {
-      id: modules.length + 1,
-      title: newModuleTitle,
-      materials: []
-    };
-    setModules([...modules, newModule]);
-    setExpandedModules(prev => ({ ...prev, [newModule.id]: true }));
-    setOpenAddModule(false);
-    setNewModuleTitle('');
+    const reqData = {
+      instructId: instructId,
+      moduleName: newModuleTitle,
+      createdBy: session?.userDetails?.userId,
+      updatedBy: session?.userDetails?.userId
+    }
+    const res = await saveModules(reqData, session.id_token);
+    if (!res.isError) {
+      setExpandedModules(prev => ({ ...prev, [res.data.moduleId]: true }));
+      setOpenAddModule(false);
+      setNewModuleTitle('');
+    } else {
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
+    fetchModules();
   };
 
-  const handleAddDocument = () => {
+  const handleAddDocument = async () => {
     // Add logic to upload a document to the selected module
     if (selectedFile && selectedModuleId) {
-      const updatedModules = modules.map(module => {
-        if (module.id === selectedModuleId) {
-          return {
-            ...module,
-            materials: [...module.materials, { id: Date.now(), type: 'file', name: selectedFile.name, url: URL.createObjectURL(selectedFile) }]
-          };
-        }
-        return module;
-      });
-      setModules(updatedModules);
+
+      const reqData = {
+        instructId: instructId,
+        moduleId: selectedModuleId,
+        moduleName: selectedFile.name,
+        //moduleLink: URL.createObjectURL(selectedFile),
+        moduleLink: "https://www.rd.usda.gov/sites/default/files/pdf-sample_0.pdf",
+        createdBy: session?.userDetails?.userId,
+        updatedBy: session?.userDetails?.userId
+      };
+
+      const res = await saveDocument(reqData, session.id_token);
+      if (!res.isError) {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'success',
+        });
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
+      }
+      fetchModules();
       setOpenAddDocument(false);
       setSelectedFile(null);
       setSelectedModuleId(null);
@@ -168,10 +198,8 @@ const ModulePage = () => {
   };
 
   const handleMaterialClick = (material) => {
-    if (material.type === 'file') {
-      setSelectedMaterial(material);
-      setOpenFileViewer(true);
-    }
+    setSelectedMaterial(material);
+    setOpenFileViewer(true);
   };
 
   const handleCloseFileViewer = () => {
@@ -179,18 +207,23 @@ const ModulePage = () => {
     setSelectedMaterial(null);
   };
 
-  const handleDeleteMaterial = (e, moduleId, materialId) => {
+  const handleDeleteMaterial = async (e, moduleId, materialId) => {
     e.stopPropagation();
-    const updatedModules = modules.map(module => {
-      if (module.id === moduleId) {
-        return {
-          ...module,
-          materials: module.materials.filter(material => material.id !== materialId)
-        };
-      }
-      return module;
-    });
-    setModules(updatedModules);
+    const res = await deleteDocument(materialId, session.id_token);
+    if (!res.isError) {
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'success',
+      });
+      fetchModules();
+    } else {
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
   };
 
   return (
@@ -228,9 +261,9 @@ const ModulePage = () => {
           ) : (
             modules.map((module) => (
               <ModuleAccordion
-                key={module.id}
-                expanded={expandedModules[module.id]}
-                onChange={handleAccordionChange(module.id)}
+                key={module.moduleId}
+                expanded={expandedModules[module.moduleId]}
+                onChange={handleAccordionChange(module.moduleId)}
               >
                 <AccordionSummary
                   expandIcon={<ExpandMoreIcon />}
@@ -241,23 +274,23 @@ const ModulePage = () => {
                     },
                   }}
                 >
-                  <ModuleTitle variant="h6">{module.title}</ModuleTitle>
+                  <ModuleTitle variant="h6">{module.moduleName}</ModuleTitle>
                 </AccordionSummary>
                 <AccordionDetails sx={{ backgroundColor: 'background.paper' }}>
                   <List>
-                    {module.materials.map((material) => (
-                      <MaterialItem 
-                        key={material.id} 
-                        button 
-                        sx={{ cursor: 'pointer' }} 
+                    {module.documents.map((material) => (
+                      <MaterialItem
+                        key={material.moduleId}
+                        button
+                        sx={{ cursor: 'pointer' }}
                         onClick={() => handleMaterialClick(material)}
                       >
                         <ListItemIcon>
-                          {material.type === 'folder' ? <FolderIcon color="primary" /> : <FileIcon color="primary" />}
+                          <FileIcon color="primary" />
                         </ListItemIcon>
-                        <ListItemText primary={material.name} />
+                        <ListItemText primary={material.moduleName} />
                         {isProfessor && (
-                          <IconButton onClick={(e) => handleDeleteMaterial(e, module.id, material.id)}>
+                          <IconButton onClick={(e) => handleDeleteMaterial(e, module.moduleId, material.moduleId)}>
                             <DeleteIcon color="primary" />
                           </IconButton>
                         )}
@@ -310,9 +343,12 @@ const ModulePage = () => {
               native: true,
             }}
           >
+            <option>
+              Select Module
+            </option>
             {modules.map((module) => (
-              <option key={module.id} value={module.id}>
-                {module.title}
+              <option key={module.moduleId} value={module.moduleId}>
+                {module.moduleName}
               </option>
             ))}
           </TextField>
@@ -349,7 +385,7 @@ const ModulePage = () => {
         maxWidth="md"
       >
         <DialogTitle>
-          {selectedMaterial?.name}
+          {selectedMaterial?.moduleName}
           <IconButton
             aria-label="close"
             onClick={handleCloseFileViewer}
@@ -366,10 +402,10 @@ const ModulePage = () => {
         <DialogContent>
           {selectedMaterial && (
             <iframe
-              src={selectedMaterial.url}
+              src={selectedMaterial.moduleLink}
               width="100%"
               height="600px"
-              title={selectedMaterial.name}
+              title={selectedMaterial.moduleName}
             />
           )}
         </DialogContent>
