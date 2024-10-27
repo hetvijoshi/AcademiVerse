@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface GradeRepository extends JpaRepository<Grade, Long> {
     Optional<Grade> findByQuizQuizIdAndUserId(Long quizId, Long userId);
     List<Grade> findByUserIdAndQuizIn(long userId, List<Quiz> quizzes);
+    Optional<List<Grade>> findByQuizQuizId(Long quizId);
 }

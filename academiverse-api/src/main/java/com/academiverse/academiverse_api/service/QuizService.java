@@ -5,19 +5,28 @@ import com.academiverse.academiverse_api.dto.request.QuizSubmitRequest;
 import com.academiverse.academiverse_api.dto.request.QuizUpdateRequest;
 import com.academiverse.academiverse_api.dto.request.SubmitQuestion;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
+import com.academiverse.academiverse_api.dto.response.OpenAIResponse;
 import com.academiverse.academiverse_api.dto.response.QuizResponse;
 import com.academiverse.academiverse_api.dto.response.QuizSubmitResponse;
 import com.academiverse.academiverse_api.model.*;
 import com.academiverse.academiverse_api.repository.*;
+import com.academiverse.academiverse_api.util.TextExtract;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +38,16 @@ public class QuizService {
     private final InstructRepository instructRepository;
     private final GradeRepository gradeRepository;
     private final EnrolmentRepository enrolmentRepository;
+
+    public BaseResponse<List<Quiz>> getProfQuizzes(long instructId){
+        BaseResponse<List<Quiz>> res = new BaseResponse<>();
+        List<Quiz> quizList = quizRepository.findByInstructInstructId(instructId);
+
+        res.data = quizList;
+        res.message = "List of all quizzes.";
+        res.isError = false;
+        return res;
+    }
 
     public BaseResponse<List<QuizResponse>> getQuizzes(long instructId, long userId){
         BaseResponse<List<QuizResponse>> res = new BaseResponse<>();
@@ -255,13 +274,23 @@ public class QuizService {
     public BaseResponse deleteQuiz(long quizId){
         Optional<Quiz> quiz = quizRepository.findById(quizId);
         if(quiz.isPresent()){
-            questionRepository.deleteByQuizQuizId(quizId);
-            quizRepository.delete(quiz.get());
-            BaseResponse<Quiz> response = new BaseResponse<>();
-            response.data = null;
-            response.message = "Quiz deleted successfully.";
-            response.isError = false;
-            return response;
+            Optional<List<Grade>> grades = gradeRepository.findByQuizQuizId(quizId);
+            if(grades.get().size() > 0){
+                BaseResponse<Quiz> response = new BaseResponse<>();
+                response.data = null;
+                response.message = "Quiz can not be deleted as it is already been taken by 1 or more students.";
+                response.isError = true;
+                return response;
+            }else{
+                questionRepository.deleteByQuizQuizId(quizId);
+                quizRepository.delete(quiz.get());
+                BaseResponse<Quiz> response = new BaseResponse<>();
+                response.data = null;
+                response.message = "Quiz deleted successfully.";
+                response.isError = false;
+                return response;
+            }
+
         }else{
             BaseResponse<Quiz> response = new BaseResponse<>();
             response.data = null;
@@ -337,5 +366,51 @@ public class QuizService {
             response.isError = true;
             return response;
         }
+    }
+
+    public BaseResponse<List<com.academiverse.academiverse_api.dto.request.Question>> generateQuiz(MultipartFile quizFile, QuizSaveRequest quizSaveRequest) throws IOException {
+        String extractedText = TextExtract.extractTextFromPDF(quizFile.getInputStream());
+        extractedText = extractedText.replaceAll("\\s+", " ").trim();
+
+        String apiUrl = "https://api.openai.com/v1/chat/completions";
+        RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Authorization", "Bearer sk-PhcfX4pvMHq7Df4UPpkD9GQG3CSe3yxa1qF326zeDFT3BlbkFJL6DG3-_KT40fTafSyNrimD54q2qO8zQyZ2S_sWiH4A");
+
+        String prompt = "Using provided text, extract questions, options, and answers from the following text and format them as JSON objects: [{'questionText': '', 'options': ['', '', '', ''], 'answer': ''}]. " +
+                "Text:" + extractedText + ". Also make sure the json is valid. No special characters like ), (, ' or any such string which will make parsing json invalid.";
+
+        Map<String, Object> requestBody = new HashMap<>();
+        requestBody.put("model", "gpt-4");
+        requestBody.put("messages", Collections.singletonList(
+                Map.of("role", "user", "content", prompt)
+        ));
+        ObjectMapper objectMapper = new ObjectMapper();
+        String jsonRequest = objectMapper.writeValueAsString(requestBody);
+
+        HttpEntity<String> request = new HttpEntity<>(jsonRequest, headers);
+
+        String response = restTemplate.postForEntity(apiUrl, request, String.class).getBody();
+        response = response.replaceAll("\\s+", " ").trim();
+
+
+
+        //Extract JSON from response, generate Question array and assign it to quizSaveRequest.questions
+        objectMapper = new ObjectMapper();
+        OpenAIResponse formattedResponse = objectMapper.readValue(response, OpenAIResponse.class);
+        String formattedQuestions = formattedResponse.choices.get(0).message.content;
+        formattedQuestions = formattedQuestions.replaceAll("\\s+", " ").trim();
+        formattedQuestions = formattedQuestions.replaceAll("'", "\"");
+
+        objectMapper = new ObjectMapper();
+        List<com.academiverse.academiverse_api.dto.request.Question> questions = objectMapper.readValue(formattedQuestions, new TypeReference<>() {});
+
+        BaseResponse<List<com.academiverse.academiverse_api.dto.request.Question>> res = new BaseResponse<>();
+        res.isError=false;
+        res.data = questions;
+        res.message = "Questions extracted successfully.";
+        return res;
     }
 }

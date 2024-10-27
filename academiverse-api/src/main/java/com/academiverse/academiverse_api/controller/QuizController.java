@@ -9,6 +9,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/quiz")
@@ -16,6 +19,11 @@ import org.springframework.web.bind.annotation.*;
 @Validated
 public class QuizController {
     private final QuizService quizService;
+
+    @GetMapping("/professor/{instructId}")
+    public ResponseEntity<BaseResponse> getProfQuizzes(@PathVariable Long instructId){
+        return ResponseEntity.ok().body(quizService.getProfQuizzes(instructId));
+    }
 
     @GetMapping("/{instructId}")
     public ResponseEntity<BaseResponse> getQuizzes(@PathVariable Long instructId, @RequestParam Long userId){
@@ -55,5 +63,10 @@ public class QuizController {
     @PostMapping("/submit")
     public ResponseEntity<BaseResponse> submitQuiz(@RequestBody QuizSubmitRequest quizSubmitRequest){
         return ResponseEntity.ok().body(quizService.submitQuiz(quizSubmitRequest));
+    }
+
+    @PostMapping("/generate")
+    public ResponseEntity<BaseResponse> generateQuiz(@RequestPart("file") MultipartFile quizFile) throws IOException {
+        return ResponseEntity.ok().body(quizService.generateQuiz(quizFile, null));
     }
 }

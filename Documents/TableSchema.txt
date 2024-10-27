@@ -137,4 +137,15 @@ Grades
 	createdDate
 	updatedBy
 	updatedDate
-	
+
+ToDo
+	toDoId
+	instructId
+	toDoTitle
+	isCompleted
+	userId
+	toDoDueDate	
+	createdBy
+	createdDate
+	updatedBy
+	updatedDate

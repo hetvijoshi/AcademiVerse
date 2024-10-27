@@ -8,7 +8,7 @@ export const fetchInstructQuizzes = async (instructId, token) => {
 	};
 	try {
 		response = await Nextclient.get(
-			`quiz/${instructId}`,
+			`quiz/professor/${instructId}`,
 			config,
 		);
 	} catch (err) {
@@ -156,6 +156,25 @@ export const submitQuiz = async (data, token) => {
 	try {
 		response = await Nextclient.post(
 			`quiz/submit`,
+			data,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+}
+
+export const generateQuizQuestions = async (data, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.post(
+			`quiz/generate`,
 			data,
 			config,
 		);
