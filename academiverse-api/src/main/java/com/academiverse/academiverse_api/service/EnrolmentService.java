@@ -45,7 +45,7 @@ public class EnrolmentService {
 
             // Filter eligible students based on department and enrollment status
             List<EnrolEligibleResponse> eligibleResponses = allUsers.stream()
-                    .filter(user -> user.getDepartment().getDepartmentId().equals(departmentId) || enrolledStudents.contains(user.getUserId()))
+                    .filter(user -> user.getDepartment().getDepartmentId().equals(departmentId))
                     .map(user -> {
                         EnrolEligibleResponse enrolEligibleResponse = new EnrolEligibleResponse();
 
