@@ -13,12 +13,7 @@ public class EnrolmentSaveRequest {
 	  public Long instructId;
 	  public Long userId;
 	  public Boolean isActive;
-	  @JsonIgnore
-	  public LocalDateTime createdAt;
-	  @JsonIgnore
-	  public LocalDateTime updatedAt;
 	  public Long createdBy;
-	  public Long updatedBy;
 }
 
 

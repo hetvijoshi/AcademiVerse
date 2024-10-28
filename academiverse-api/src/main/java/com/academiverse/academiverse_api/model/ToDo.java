@@ -11,21 +11,22 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Data
 @Entity
-@Table(name = "enrolments")
-public class Enrolment {
+@Table(name = "todos")
+public class ToDo {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long enrolmentId;
-
-    @OneToOne
-    @JoinColumn(name = "userId", referencedColumnName = "userId", nullable = false)
-    private User user; // Student ID
+    private Long toDoId;
     @ManyToOne
     @JoinColumn(name = "instructId", referencedColumnName = "instructId", nullable = false)
-    private Instruct instruct; // Course ID
-    private boolean isActive; // Enrollment status
-    private Long createdBy;
-    private Long updatedBy;
+    private Instruct instruct;
+    private String toDoTitle;
+    private boolean isComplete;
+    @ManyToOne
+    @JoinColumn(name = "userId", referencedColumnName = "userId", nullable = false)
+    private User user;
+    private LocalDateTime toDoDueDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long createdBy;
+    private Long updatedBy;
 }

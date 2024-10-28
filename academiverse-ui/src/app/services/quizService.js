@@ -8,7 +8,7 @@ export const fetchInstructQuizzes = async (instructId, token) => {
 	};
 	try {
 		response = await Nextclient.get(
-			`quiz/${instructId}`,
+			`quiz/professor/${instructId}`,
 			config,
 		);
 	} catch (err) {
@@ -18,7 +18,7 @@ export const fetchInstructQuizzes = async (instructId, token) => {
 	return response.data;
 };
 
-export const fetchQuizById = async (quizId, token) => {
+export const fetchQuizByInstructId = async (instructId, userId, token) => {
 	let response;
 
 	const config = {
@@ -26,7 +26,43 @@ export const fetchQuizById = async (quizId, token) => {
 	};
 	try {
 		response = await Nextclient.get(
-			`quiz/${instructId}`,
+			`quiz/${instructId}?userId=${userId}`,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+};
+
+export const fetchQuizQuestions = async (quizId, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.get(
+			`quiz/questions/${quizId}`,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+};
+
+export const fetchStudentQuizQuestions = async (quizId, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.get(
+			`quiz/stuquestions/${quizId}`,
 			config,
 		);
 	} catch (err) {
@@ -91,3 +127,60 @@ export const deleteQuiz = async (quizId, token) => {
 
 	return response.data;
 };
+
+export const activeQuiz = async (quizId, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.post(
+			`quiz/active/${quizId}`,
+			null,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+}
+
+export const submitQuiz = async (data, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.post(
+			`quiz/submit`,
+			data,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+}
+
+export const generateQuizQuestions = async (data, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.post(
+			`quiz/generate`,
+			data,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+}
