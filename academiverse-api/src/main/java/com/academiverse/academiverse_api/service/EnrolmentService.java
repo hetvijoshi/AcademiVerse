@@ -33,7 +33,7 @@ public class EnrolmentService {
             Long departmentId = instruct.get().getCourse().getDepartment().getDepartmentId();
 
             // Get all users
-            List<User> allUsers = userRepository.findAll(); // Fetch all users
+            List<User> allUsers = userRepository.findByRole("student"); // Fetch all users
 
             // Get a list of enrolled students
             List<Long> enrolledStudents = enrolmentRepository.findByInstructInstructId(instruct.get().getInstructId())
