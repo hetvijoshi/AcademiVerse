@@ -120,11 +120,17 @@ const QuizCreationPage = () => {
           setQuestions(res.data);
         }
       } catch (error) {
+        setLoading(false);
+        setQuizTitle('');
+        setQuizDueDate(dayjs());
+        setQuizTotalMarks('');
+        setQuestions([]);
         setSnackbar({
           open: true,
           message: 'Failed to generate questions from PDF',
           severity: 'error',
         });
+
       }
     }
   };
