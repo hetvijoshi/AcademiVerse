@@ -12,10 +12,14 @@ import {
   Paper,
   CircularProgress,
   Snackbar,
+  Alert,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { enrolledStudent, getEnrolledStudents } from '../../../services/enrollService';
 
 const EnrollmentContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
@@ -67,29 +71,46 @@ const EnrollmentPage = () => {
   const [students, setStudents] = useState([]);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const { data: session } = useSession();
+  const searchParams = useSearchParams();
+  const instructId = searchParams.get('id');
+  const router = useRouter();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   useEffect(() => {
-    fetchEnrolledStudents();
+    if (instructId > 0) {
+      fetchEnrolledStudents();
+    } else {
+      router.push('/');
+    }
   }, []);
 
   const fetchEnrolledStudents = async () => {
     setLoading(true);
     try {
       // Simulating API call to fetch enrolled students
-      const response = await new Promise((resolve) =>
-        setTimeout(() => resolve([
-          { id: 1, firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com' },
-          { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane.smith@example.com' },
-        ]), 1000)
-      );
-      setEnrolledStudents(response);
-      setStudents(response);
+      const res = await getEnrolledStudents(instructId, session["id_token"]);
+      if (!res.isError) {
+        const enrolledStudents = res.data.filter(student => { return student.isEnrolled });
+        setEnrolledStudents(enrolledStudents);
+        setStudents(res.data);
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
+      }
     } catch (error) {
-      console.error('Error fetching enrolled students:', error);
-      setSnackbarMessage('Error fetching enrolled students. Please try again.');
-      setSnackbarOpen(true);
+      setSnackbar({
+        open: true,
+        message: 'Error fetching enrolled students. Please try again.',
+        severity: 'error',
+      });
     } finally {
       setLoading(false);
     }
@@ -108,23 +129,47 @@ const EnrollmentPage = () => {
       );
       setStudents(response);
     } catch (error) {
-      console.error('Error searching students:', error);
-      setSnackbarMessage('Error searching students. Please try again.');
-      setSnackbarOpen(true);
+      setSnackbar({
+        open: true,
+        message: 'Error searching students. Please try again.',
+        severity: 'error',
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEnroll = (student) => {
-    // Simulating enrollment process
-    setEnrolledStudents([...enrolledStudents, student]);
-    setSnackbarMessage(`Enrolled ${student.firstName} ${student.lastName} successfully!`);
-    setSnackbarOpen(true);
+  const handleEnroll = async (student) => {
+    if (student.isEnrolled) {
+      return;
+    }
+    const reqData = {
+      userId: student.userId,
+      instructId: instructId,
+      isActive: true,
+      createdBy: session.userDetails?.userId,
+    };
+    setLoading(true);
+    const res = await enrolledStudent(reqData, session["id_token"]);
+    if (!res.isError) {
+      setLoading(false);
+      fetchEnrolledStudents();
+    } else {
+      setLoading(false);
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
+    }
+
   };
 
-  const isEnrolled = (studentId) => {
-    return enrolledStudents.some(enrolledStudent => enrolledStudent.id === studentId);
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -156,30 +201,34 @@ const EnrollmentPage = () => {
       ) : (
         <StudentList>
           {students.map((student) => (
-            <StudentListItem key={student.id} divider>
+            <StudentListItem key={student.userId} divider>
               <ListItemText
-                primary={`${student.firstName} ${student.lastName}`}
-                secondary={student.email}
+                primary={`${student.user.name}`}
+                secondary={student.user.userEmail}
               />
               <EnrollButton
                 variant="contained"
-                color={isEnrolled(student.id) ? "default" : "secondary"}
+                color={student.isEnrolled ? "default" : "secondary"}
                 startIcon={<PersonAddIcon />}
                 onClick={() => handleEnroll(student)}
-                disabled={isEnrolled(student.id)}
+                disabled={student.isEnrolled}
               >
-                {isEnrolled(student.id) ? "Enrolled" : "Enroll"}
+                {student.isEnrolled ? "Enrolled" : "Enroll"}
               </EnrollButton>
             </StudentListItem>
           ))}
         </StudentList>
       )}
       <Snackbar
-        open={snackbarOpen}
+        open={snackbar.open}
         autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-        message={snackbarMessage}
-      />
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </EnrollmentContainer>
   );
 };
