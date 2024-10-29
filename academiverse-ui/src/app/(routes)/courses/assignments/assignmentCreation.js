@@ -30,7 +30,7 @@ import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import dayjs from "dayjs";
-import { postAssignmentsByInstructId } from "../../../services/assignmentService";
+import { activeAssignment, postAssignmentsByInstructId, updateAssignment } from "../../../services/assignmentService";
 import { useSearchParams } from "next/navigation";
 import { getAssignmentsByInstructId } from "../../../services/assignmentService";
 import { deleteAssignment } from "../../../services/assignmentService";
@@ -89,10 +89,10 @@ const AssignmentCreationPage = () => {
 			const mappedAssignments = response.data.map((assignment) => ({
 				id: assignment.assignmentId,
 				title: assignment.assignmentTitle,
-				dueDate: dayjs(assignment.assignmentDueDate).format("YYYY-MM-DD HH:mm"),
+				dueDate: dayjs(assignment.assignmentDueDate),
 				description: assignment.assignmentDescription,
 				totalMarks: assignment.totalMarks,
-				isActive: assignment.isActive,
+				isActive: assignment.active,
 			}));
 			setAssignments(mappedAssignments);
 		} else {
@@ -110,7 +110,7 @@ const AssignmentCreationPage = () => {
 		const formattedData = {
 			instructId: instructId,
 			assignmentTitle: data.title,
-			assignmentDescription: data.description,
+			assignmentDescription: data.description.replace(/\n/g, '\n'),
 			assignmentDueDate: data.dueDate.format('YYYY-MM-DDTHH:mm:ss'),
 			assignmentWeightage: 0.0,
 			totalMarks: Number.parseInt(data.totalMarks),
@@ -129,14 +129,16 @@ const AssignmentCreationPage = () => {
 		setSnackbarOpen(true);
 	};
 
-	const handleToggleAssignment = (id) => {
-		setAssignments(
-			assignments.map((assignment) =>
-				assignment.id === id
-					? { ...assignment, isActive: !assignment.isActive }
-					: assignment,
-			),
-		);
+	const handleToggleAssignment = async (id) => {
+		const res = await activeAssignment(id, session.id_token);
+		if (!res.isError) {
+			await fetchAssignment();
+			setSnackbarMessage(res.message);
+			setSnackbarOpen(true);
+		} else {
+			setSnackbarMessage(res.message);
+			setSnackbarOpen(true);
+		}
 	};
 
 	const handleEditAssignment = (id) => {
@@ -145,12 +147,32 @@ const AssignmentCreationPage = () => {
 		setEditDialogOpen(true);
 	};
 
-	const handleEditSaveAssignment = () => {
+	const handleEditSaveAssignment = async () => {
 		//API call for edit assignment
+
+		const formattedData = {
+			assignmentId: editAssignment.id,
+			instructId: instructId,
+			assignmentTitle: editAssignment.title,
+			assignmentDescription: editAssignment.description.replace(/\n/g, '\n'),
+			assignmentDueDate: editAssignment.dueDate.format('YYYY-MM-DDTHH:mm:ss'),
+			assignmentWeightage: 0.0,
+			totalMarks: Number.parseInt(editAssignment.totalMarks),
+			active: editAssignment.isActive,
+			updatedBy: session?.userDetails?.userId
+		};
+		const res = await updateAssignment(formattedData, session.id_token);
+		if (!res.isError) {
+			await fetchAssignment();
+			setSnackbarMessage(res.message);
+			setSnackbarOpen(true);
+		} else {
+			setSnackbarMessage(res.message);
+			setSnackbarOpen(true);
+		}
+
 		setEditDialogOpen(false);
 		setEditAssignment(null);
-		setSnackbarMessage("Assignment edited successfully!");
-		setSnackbarOpen(true);
 	};
 
 	const handleDeleteAssignment = (id) => {
@@ -159,14 +181,17 @@ const AssignmentCreationPage = () => {
 	};
 
 	const handleConfirmDelete = async () => {
-		// Implement delete functionality
-		console.log("id 2", assignmentToDelete);
-		await deleteAssignment(assignmentToDelete, session.id_token);
-		await fetchAssignment();
-		setDeleteDialogOpen(false);
-		setAssignmentToDelete(null);
-		setSnackbarMessage("Assignment deleted successfully!");
-		setSnackbarOpen(true);
+		const res = await deleteAssignment(assignmentToDelete, session.id_token);
+		if (!res.isError) {
+			await fetchAssignment();
+			setDeleteDialogOpen(false);
+			setAssignmentToDelete(null);
+			setSnackbarMessage(res.message);
+			setSnackbarOpen(true);
+		} else {
+			setSnackbarMessage(res.message);
+			setSnackbarOpen(true);
+		}
 	};
 
 	if (session?.userDetails?.role !== "professor") {
@@ -196,16 +221,16 @@ const AssignmentCreationPage = () => {
 					<AssignmentItem key={assignment.id}>
 						<ListItemText
 							primary={assignment.title}
-							secondary={`Due: ${dayjs(assignment.dueDate).format("YYYY-MM-DD HH:mm:ss")} | Marks: ${assignment.totalMarks}`}
+							secondary={`Due: ${dayjs(assignment.dueDate).format("YYYY-MM-DD HH:mm A")} | Marks: ${assignment.totalMarks}`}
 						/>
 						<Switch
 							checked={assignment.isActive}
 							onChange={() => handleToggleAssignment(assignment.id)}
 						/>
-						<IconButton onClick={() => handleEditAssignment(assignment.id)}>
+						<IconButton disabled={!assignment.isActive} onClick={() => handleEditAssignment(assignment.id)}>
 							<EditIcon />
 						</IconButton>
-						<IconButton onClick={() => handleDeleteAssignment(assignment.id)}>
+						<IconButton disabled={!assignment.isActive} onClick={() => handleDeleteAssignment(assignment.id)}>
 							<DeleteIcon />
 						</IconButton>
 					</AssignmentItem>
