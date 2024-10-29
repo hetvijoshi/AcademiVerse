@@ -45,4 +45,14 @@ public class AssignmentController {
     public ResponseEntity<BaseResponse> getActiveAssignmentsForInstruct(@PathVariable Long instructId) {
         return ResponseEntity.ok().body(assignmentService.getActiveAssignmentsForInstruct(instructId));
     }
+
+    @GetMapping("/instruct/{instructId}")
+    public ResponseEntity<BaseResponse> getAssignmentsForInstruct(@PathVariable Long instructId) {
+        return ResponseEntity.ok().body(assignmentService.getAssignmentsForInstruct(instructId));
+    }
+
+    @PostMapping("/active/{assignmentId}")
+    public ResponseEntity<BaseResponse> activateAssignment(@PathVariable Long assignmentId) {
+        return ResponseEntity.ok().body(assignmentService.activateAssignment(assignmentId));
+    }
 }

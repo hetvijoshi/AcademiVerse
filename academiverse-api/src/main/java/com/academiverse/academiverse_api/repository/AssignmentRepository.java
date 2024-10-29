@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     List<Assignment> findByInstructInstructIdAndActive(Long instructId, boolean active);
+    List<Assignment> findByInstructInstructId(Long instructId);
 }

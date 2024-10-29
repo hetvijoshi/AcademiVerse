@@ -131,4 +131,35 @@ public class AssignmentService {
         response.message = MessageFormat.format("Active assignments for instruct id {0}.", instructId);
         return response;
     }
+
+    public BaseResponse<List<Assignment>> getAssignmentsForInstruct(Long instructId) {
+        List<Assignment> assignments = assignmentRepository.findByInstructInstructId(instructId);
+        BaseResponse<List<Assignment>> response = new BaseResponse<>();
+        response.data = assignments;
+        response.isError = false;
+        response.message = MessageFormat.format("Active assignments for instruct id {0}.", instructId);
+        return response;
+    }
+
+    public BaseResponse<Assignment> activateAssignment(Long assignmentId){
+        Optional<Assignment> assignment = assignmentRepository.findById(assignmentId);
+        if(assignment.isPresent())
+        {
+            Assignment sa = assignment.get();
+            sa.setActive(!sa.isActive());
+            sa = assignmentRepository.save(sa);
+            BaseResponse<Assignment> response = new BaseResponse<>();
+            response.data = sa;
+            response.isError = false;
+            response.message = MessageFormat.format("Assignments with id {0} status changed.", assignmentId);
+            return response;
+        }else{
+            BaseResponse<Assignment> response = new BaseResponse<>();
+            response.data = null;
+            response.isError = true;
+            response.message = MessageFormat.format("Assignment with id {0} not found.", assignmentId);
+            return response;
+        }
+
+    }
 }
