@@ -33,7 +33,7 @@ public class EnrolmentService {
             Long departmentId = instruct.get().getCourse().getDepartment().getDepartmentId();
 
             // Get all users
-            List<User> allUsers = userRepository.findByRole("student"); // Fetch all users
+            List<User> allUsers = userRepository.findByRoleAndDepartmentDepartmentId("student", departmentId); // Fetch all users
 
             // Get a list of enrolled students
             List<Long> enrolledStudents = enrolmentRepository.findByInstructInstructId(instruct.get().getInstructId())
@@ -45,20 +45,14 @@ public class EnrolmentService {
 
             // Filter eligible students based on department and enrollment status
             List<EnrolEligibleResponse> eligibleResponses = allUsers.stream()
-                    .filter(user -> user.getDepartment().getDepartmentId().equals(departmentId))
                     .map(user -> {
                         EnrolEligibleResponse enrolEligibleResponse = new EnrolEligibleResponse();
+                        enrolEligibleResponse.user = user;
+                        enrolEligibleResponse.isEnrolled = false;
 
                         if (enrolledStudents.contains(user.getUserId())) {
-                            enrolEligibleResponse.user = user;
                             enrolEligibleResponse.isEnrolled = true;
                         }
-
-                        if (user.getDepartment().getDepartmentId().equals(departmentId)) {
-                            enrolEligibleResponse.user = user;
-                            enrolEligibleResponse.isEnrolled = false;
-                        }
-
                         return enrolEligibleResponse;
                     })
                     .toList();
