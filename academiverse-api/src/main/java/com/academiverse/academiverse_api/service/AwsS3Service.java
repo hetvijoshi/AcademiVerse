@@ -34,6 +34,7 @@ public class AwsS3Service {
                     .bucket(bucketName)
                     .key(key)
                     .acl("public-read")
+                    .contentType("application/pdf")
                     .build();
 
             s3Client.putObject(putObjectRequest, software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes()));

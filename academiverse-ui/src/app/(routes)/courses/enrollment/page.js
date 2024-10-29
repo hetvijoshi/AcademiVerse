@@ -13,6 +13,8 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
+  FormControlLabel,
+  Switch
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
@@ -66,11 +68,18 @@ const EnrollButton = styled(Button)(({ theme }) => ({
   marginLeft: theme.spacing(2),
 }));
 
+const FilterBox = styled(Box)(({ theme }) => ({
+  display: 'flex',
+  justifyContent: 'flex-end',
+  marginBottom: theme.spacing(2),
+}));
+
 const EnrollmentPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState([]);
   const [enrolledStudents, setEnrolledStudents] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showOnlyEnrolled, setShowOnlyEnrolled] = useState(false);
   const { data: session } = useSession();
   const searchParams = useSearchParams();
   const instructId = searchParams.get('id');
@@ -92,10 +101,9 @@ const EnrollmentPage = () => {
   const fetchEnrolledStudents = async () => {
     setLoading(true);
     try {
-      // Simulating API call to fetch enrolled students
       const res = await getEnrolledStudents(instructId, session["id_token"]);
       if (!res.isError) {
-        const enrolledStudents = res.data.filter(student => { return student.isEnrolled });
+        const enrolledStudents = res.data.filter(student => student.isEnrolled);
         setEnrolledStudents(enrolledStudents);
         setStudents(res.data);
       } else {
@@ -119,7 +127,6 @@ const EnrollmentPage = () => {
   const handleSearch = async () => {
     setLoading(true);
     try {
-      // Simulating API call to search students
       const response = await new Promise((resolve) =>
         setTimeout(() => resolve([
           { id: 1, firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com' },
@@ -144,7 +151,7 @@ const EnrollmentPage = () => {
       return;
     }
     const reqData = {
-      userId: student.userId,
+      userId: student.user.userId,
       instructId: instructId,
       isActive: true,
       createdBy: session.userDetails?.userId,
@@ -162,7 +169,6 @@ const EnrollmentPage = () => {
         severity: 'error',
       });
     }
-
   };
 
   const handleCloseSnackbar = (event, reason) => {
@@ -171,6 +177,10 @@ const EnrollmentPage = () => {
     }
     setSnackbar({ ...snackbar, open: false });
   };
+
+  const displayedStudents = showOnlyEnrolled ? 
+    students.filter(student => student.isEnrolled) : 
+    students;
 
   return (
     <EnrollmentContainer>
@@ -194,14 +204,29 @@ const EnrollmentPage = () => {
           Search
         </Button>
       </SearchBox>
+      <FilterBox>
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showOnlyEnrolled}
+              onChange={(e) => setShowOnlyEnrolled(e.target.checked)}
+              color="primary"
+            />
+          }
+          label="Show Only Enrolled Students"
+        />
+      </FilterBox>
       {loading ? (
         <Box display="flex" justifyContent="center">
           <CircularProgress />
         </Box>
       ) : (
         <StudentList>
-          {students.map((student) => (
-            <StudentListItem key={student.userId} divider>
+          {displayedStudents.map((student, index) => (
+            <StudentListItem key={student.user.userId} divider>
+              <Typography variant="body1" sx={{ minWidth: '50px', color: 'text.secondary' }}>
+                {index + 1}.
+              </Typography>
               <ListItemText
                 primary={`${student.user.name}`}
                 secondary={student.user.userEmail}
