@@ -19,6 +19,11 @@ import java.util.List;
 public class EnrolmentController {
     private final EnrolmentService enrolmentService;
 
+    @GetMapping("/{instructId}")
+    public ResponseEntity<BaseResponse> getInstructStudents(@PathVariable Long instructId) {
+        return ResponseEntity.ok().body(enrolmentService.getInstructStudents(instructId));
+    }
+
     @GetMapping("/eligible/{instructId}")
     public ResponseEntity<BaseResponse<List<EnrolEligibleResponse>>> getEligibleStudents(@PathVariable Long instructId) {
         return ResponseEntity.ok().body(enrolmentService.getEligibleStudents(instructId));

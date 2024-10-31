@@ -1,5 +1,23 @@
 import { Nextclient } from "../lib/client/http";
 
+export const getInstructStudents = async (instructId, token) => {
+    let response;
+
+    const config = {
+        headers: { Authorization: `Bearer ${token}` },
+    };
+    try {
+        response = await Nextclient.get(
+            `enrolments/${instructId}`,
+            config,
+        );
+    } catch (err) {
+        console.log("Error", err);
+    }
+
+    return response.data;
+};
+
 export const getEnrolledStudents = async (instructId, token) => {
     let response;
 
