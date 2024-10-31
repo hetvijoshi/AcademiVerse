@@ -1,16 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
-  IconButton, 
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  IconButton,
   CircularProgress
 } from '@mui/material';
 import { styled } from '@mui/system';
 import { CheckCircle as DoneIcon } from '@mui/icons-material';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { getUserTodos, markCompleted } from '../../../services/todoService';
+import dayjs from 'dayjs';
 
 const TodoCard = styled(Card)(({ theme }) => ({
   display: 'flex',
@@ -63,34 +67,40 @@ const ContentSection = styled(Box)(({ theme }) => ({
 const ToDoListScreen = () => {
   const [todos, setTodos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const instructId = useSearchParams().get('id');
+  const { data: session } = useSession();
 
-  useEffect(() => {
-    const fetchTodos = async () => {
-      try {
-        const response = await new Promise(resolve => 
-          setTimeout(() => resolve([
-            { id: 1, name: 'Complete Project Proposal', dueDate: '2023-06-30T23:59', course: 'Introduction to Computer Science' },
-            { id: 2, name: 'Submit Research Paper', dueDate: '2023-07-15T18:00', course: 'Data Structures and Algorithms' },
-            { id: 3, name: 'Prepare Presentation', dueDate: '2023-07-05T14:30', course: 'Web Development Fundamentals' },
-          ]), 1000)
-        );
-        setTodos(response.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)));
+  const fetchTodos = async () => {
+    try {
+      const res = await getUserTodos(instructId, session.userDetails?.userId, session.id_token);
+      if (!res.isError) {
+        setTodos(res.data.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate)));
         setLoading(false);
-      } catch (error) {
-        console.error('Error fetching todos:', error);
+      } else {
         setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching todos:', error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchTodos();
   }, []);
 
-  const handleDoneClick = (id) => {
-    setTodos(todos.filter(todo => todo.id !== id));
-  };
-
-  const formatDateTime = (dateTimeString) => {
-    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
-    return new Date(dateTimeString).toLocaleString('en-US', options);
+  const handleDoneClick = async (id) => {
+    setLoading(true);
+    if (id > 0) {
+      const res = await markCompleted(id, session.id_token);
+      if (!res.isError) {
+        fetchTodos();
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
+    }
   };
 
   return (
@@ -106,19 +116,19 @@ const ToDoListScreen = () => {
         ) : (
           <TodoContainer>
             {todos.map((todo) => (
-              <TodoItem key={todo.id}>
+              <TodoItem key={todo.toDoId}>
                 <TodoCard elevation={2}>
                   <TodoContent>
                     <Box sx={{ flexGrow: 1 }}>
                       <Typography variant="subtitle1" component="div">
-                        {todo.name}
+                        {todo.toDoTitle}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
-                        {todo.course} | Due: {formatDateTime(todo.dueDate)}
+                        {todo.instruct.course.courseName} | Due: {dayjs(todo.toDoDueDate).format('YYYY-MM-DD hh:mm A')}
                       </Typography>
                     </Box>
                     <Box sx={{ display: 'flex', gap: 1 }}>
-                      <IconButton onClick={() => handleDoneClick(todo.id)} size="small">
+                      <IconButton onClick={() => handleDoneClick(todo.toDoId)} size="small">
                         <DoneIcon color="primary" />
                       </IconButton>
                     </Box>

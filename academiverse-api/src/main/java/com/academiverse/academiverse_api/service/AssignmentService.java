@@ -20,6 +20,7 @@ import java.util.Optional;
 public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final InstructRepository instructRepository;
+    private final ToDoService toDoService;
 
     public BaseResponse<List<Assignment>> getAllAssignments() {
         List<Assignment> assignmentList = assignmentRepository.findAll();
@@ -63,6 +64,8 @@ public class AssignmentService {
             assignment.setUpdatedDate(LocalDateTime.now());
 
             Assignment savedAssignment = assignmentRepository.save(assignment);
+
+            toDoService.generateToDoForInstruct(assignmentRequest.instructId, "Complete " + savedAssignment.getAssignmentTitle(), savedAssignment.getAssignmentDueDate());
 
             BaseResponse<Assignment> response = new BaseResponse<>();
             response.data = savedAssignment;

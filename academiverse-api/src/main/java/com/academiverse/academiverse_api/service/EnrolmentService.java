@@ -94,4 +94,25 @@ public class EnrolmentService {
         }
         return response;
     }
+
+    public BaseResponse<List<Enrolment>> getInstructStudents(Long instructId) {
+        Optional<Instruct> instruct = instructRepository.findById(instructId);
+        BaseResponse<List<Enrolment>> response = new BaseResponse<>();
+
+
+        if (instruct.isPresent()) {
+
+            // Get a list of enrolled students
+            List<Enrolment> enrolledStudents = enrolmentRepository.findByInstructInstructId(instruct.get().getInstructId());
+
+            response.data = enrolledStudents;
+            response.isError = false;
+            response.message = "Eligible students retrieved successfully.";
+        } else {
+            response.data = null;
+            response.isError = true;
+            response.message = "Instruct not found.";
+        }
+        return response;
+    }
 }

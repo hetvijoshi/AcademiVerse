@@ -77,7 +77,7 @@ const FilterBox = styled(Box)(({ theme }) => ({
 const EnrollmentPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState([]);
-  const [enrolledStudents, setEnrolledStudents] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showOnlyEnrolled, setShowOnlyEnrolled] = useState(false);
   const { data: session } = useSession();
@@ -103,8 +103,7 @@ const EnrollmentPage = () => {
     try {
       const res = await getEnrolledStudents(instructId, session["id_token"]);
       if (!res.isError) {
-        const enrolledStudents = res.data.filter(student => student.isEnrolled);
-        setEnrolledStudents(enrolledStudents);
+        setAllStudents(res.data);
         setStudents(res.data);
       } else {
         setSnackbar({
@@ -125,25 +124,7 @@ const EnrollmentPage = () => {
   };
 
   const handleSearch = async () => {
-    setLoading(true);
-    try {
-      const response = await new Promise((resolve) =>
-        setTimeout(() => resolve([
-          { id: 1, firstName: 'John', lastName: 'Doe', email: 'john.doe@example.com' },
-          { id: 2, firstName: 'Jane', lastName: 'Smith', email: 'jane.smith@example.com' },
-          { id: 3, firstName: 'Alice', lastName: 'Johnson', email: 'alice.johnson@example.com' },
-        ]), 1000)
-      );
-      setStudents(response);
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: 'Error searching students. Please try again.',
-        severity: 'error',
-      });
-    } finally {
-      setLoading(false);
-    }
+
   };
 
   const handleEnroll = async (student) => {
@@ -178,8 +159,26 @@ const EnrollmentPage = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
-  const displayedStudents = showOnlyEnrolled ? 
-    students.filter(student => student.isEnrolled) : 
+  const searchStudents = (searchValue) => {
+    setSearchTerm(searchValue);
+    setLoading(true);
+    try {
+      const filteredStudents = allStudents.filter(s => { return s.user.name.search(searchValue) >= 0 || s.user.userEmail.search(searchValue) >= 0 })
+      console.log(searchValue, filteredStudents)
+      setStudents(filteredStudents);
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error.message,
+        severity: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const displayedStudents = showOnlyEnrolled ?
+    students.filter(student => student.isEnrolled) :
     students;
 
   return (
@@ -192,7 +191,7 @@ const EnrollmentPage = () => {
           variant="outlined"
           placeholder="Search by name or email"
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => searchStudents(e.target.value)}
         />
         <Button
           variant="contained"
