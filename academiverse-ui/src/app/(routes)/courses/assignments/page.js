@@ -72,7 +72,7 @@ const AssignmentPage = () => {
 
   return (
     <AssignmentContainer>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+      <Typography variant="h4" fontWeight="bold" color="primary">
         <AssignmentIcon sx={{ marginRight: 1, verticalAlign: 'middle' }} />
         Assignments
       </Typography>
@@ -87,7 +87,7 @@ const AssignmentPage = () => {
               {assignment.title}
             </Typography>
             <Box sx={{ mt: 1 }}>
-              <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY HH:mm A')}`} color="primary" variant="outlined" size="small" />
+              <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY hh:mm A')}`} color="primary" variant="outlined" size="small" />
               <StyledChip label={`Total marks: ${assignment.totalMarks}`} color="secondary" variant="outlined" size="small" />
             </Box>
             <Button

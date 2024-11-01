@@ -35,10 +35,10 @@ import { useSearchParams } from "next/navigation";
 import { getAssignmentsByInstructId } from "../../../services/assignmentService";
 import { deleteAssignment } from "../../../services/assignmentService";
 const PageContainer = styled(Box)(({ theme }) => ({
+	width: '100%',
 	padding: theme.spacing(3),
-	width: "100%",
-	backgroundColor: "#f5f5f5",
-	minHeight: "100vh",
+	marginLeft: theme.spacing(2),
+	backgroundColor: theme.palette.background.paper,
 }));
 
 const TitleSection = styled(Box)(({ theme }) => ({
@@ -51,6 +51,7 @@ const TitleSection = styled(Box)(({ theme }) => ({
 const AssignmentItem = styled(ListItem)(({ theme }) => ({
 	marginBottom: theme.spacing(2),
 	backgroundColor: theme.palette.background.paper,
+	border: `1px solid ${theme.palette.divider}`,
 	borderRadius: theme.shape.borderRadius,
 }));
 
@@ -205,7 +206,7 @@ const AssignmentCreationPage = () => {
 	return (
 		<PageContainer>
 			<TitleSection>
-				<Typography variant="h4">Assignments</Typography>
+				<Typography variant="h4" fontWeight="bold" color="primary">Assignments</Typography>
 				<Button
 					variant="contained"
 					color="primary"
@@ -221,7 +222,7 @@ const AssignmentCreationPage = () => {
 					<AssignmentItem key={assignment.id}>
 						<ListItemText
 							primary={assignment.title}
-							secondary={`Due: ${dayjs(assignment.dueDate).format("YYYY-MM-DD HH:mm A")} | Marks: ${assignment.totalMarks}`}
+							secondary={`Due: ${dayjs(assignment.dueDate).format("YYYY-MM-DD hh:mm A")} | Marks: ${assignment.totalMarks}`}
 						/>
 						<Switch
 							checked={assignment.isActive}

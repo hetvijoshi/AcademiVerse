@@ -36,83 +36,102 @@ import {
 	HowToReg as EnrollmentIcon,
 	Add as AddIcon,
 	Edit as EditIcon,
+	School,
 } from "@mui/icons-material";
 import { editInstruct, fetchInstructCourses, fetchStudentCourses } from "./services/instructService";
 import { getCourseByDeptId } from "./services/courseService";
 import { getAllDepartment } from "./services/departmentService";
 import { saveInstruct } from "./services/instructService";
 
-const StyledCard = styled(Card)(({ theme, bgcolor }) => ({
-	height: "100%",
-	display: "flex",
-	flexDirection: "column",
-	transition: "all 0.3s ease-in-out",
-	backgroundColor: bgcolor,
-	boxShadow: "0 4px 20px rgba(0,0,0,0.1)",
-	borderRadius: "12px",
-	overflow: "hidden",
-	"&:hover": {
-		transform: "translateY(-5px)",
-		boxShadow: "0 12px 30px rgba(0,0,0,0.15)",
-		cursor: "pointer",
+const StyledCard = styled(Card)(({ theme }) => ({
+	height: '100%',
+	minHeight: '220px',
+	display: 'flex',
+	flexDirection: 'column',
+	transition: 'all 0.3s ease-in-out',
+	backgroundColor: theme.palette.background.paper,
+	boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+	borderRadius: '16px',
+	overflow: 'hidden',
+	border: '1px solid rgba(37, 99, 235, 0.1)',
+	'&:hover': {
+		transform: 'translateY(-4px)',
+		boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+		borderColor: theme.palette.primary.main,
+		backgroundColor: theme.palette.background.paper,
 	},
 }));
 
 const CardHeader = styled(Box)(({ theme }) => ({
-	padding: theme.spacing(2),
-	background:
-		"linear-gradient(45deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)",
-	borderBottom: "1px solid rgba(0,0,0,0.1)",
+	padding: theme.spacing(3),
+	borderBottom: '1px solid rgba(37, 99, 235, 0.1)',
+	backgroundColor: theme.palette.background.paper,
+	'& .MuiTypography-root': {
+		fontSize: '1.1rem',
+		fontWeight: 600,
+		color: theme.palette.primary.main,
+	},
 }));
 
 const CardBody = styled(CardContent)(({ theme }) => ({
 	flexGrow: 1,
-	display: "flex",
-	flexDirection: "column",
-	justifyContent: "space-between",
-	background:
-		"linear-gradient(45deg, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.4) 100%)",
-	color: "black",
+	display: 'flex',
+	flexDirection: 'column',
+	justifyContent: 'space-between',
+	padding: theme.spacing(3),
+	backgroundColor: theme.palette.background.paper,
+	'& .MuiTypography-body2': {
+		fontSize: '0.95rem',
+		color: theme.palette.text.secondary,
+		marginBottom: theme.spacing(1),
+	},
 }));
 
 const IconContainer = styled(Box)(({ theme }) => ({
-	display: "flex",
-	justifyContent: "center",
-	flexWrap: "wrap",
+	display: 'flex',
+	justifyContent: 'center',
+	flexWrap: 'wrap',
+	gap: theme.spacing(1),
 	marginTop: theme.spacing(2),
+	'& .MuiIconButton-root': {
+		color: theme.palette.text.secondary,
+		'&:hover': {
+			backgroundColor: 'rgba(37, 99, 235, 0.1)',
+			color: theme.palette.primary.main,
+		},
+	},
 }));
 
 const CourseContainer = styled(Box)(({ theme }) => ({
-	display: "flex",
-	flexWrap: "wrap",
-	gap: theme.spacing(3),
+	display: 'grid',
+	gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+	gap: theme.spacing(4),
+	padding: theme.spacing(0),
 }));
 
 const CourseItem = styled(Box)(({ theme }) => ({
-	flexBasis: "calc(33.333% - ${theme.spacing(2)})",
-	[theme.breakpoints.down("md")]: {
-		flexBasis: "calc(50% - ${theme.spacing(2)})",
+	flexBasis: 'calc(33.333% - ${theme.spacing(2)})',
+	[theme.breakpoints.down('md')]: {
+		flexBasis: 'calc(50% - ${theme.spacing(2)})',
 	},
-	[theme.breakpoints.down("sm")]: {
-		flexBasis: "100%",
+	[theme.breakpoints.down('sm')]: {
+		flexBasis: '100%',
 	},
+	cursor: 'pointer'
 }));
 
 const TitleSection = styled(Box)(({ theme }) => ({
-	height: "15vh",
-	width: "100%",
-	background: "linear-gradient(45deg, #1976D2 30%, #21CBF3 90%)",
-	display: "flex",
-	justifyContent: "space-between",
-	alignItems: "center",
-	padding: theme.spacing(0, 4),
+	padding: theme.spacing(3),
+	marginBottom: theme.spacing(3),
+	display: 'flex',
+	flexDirection: 'column',
+	gap: '8px',
 }));
 
 const ContentSection = styled(Box)(({ theme }) => ({
-	height: "85vh",
-	width: "100%",
-	padding: theme.spacing(3),
-	overflowY: "auto",
+	width: '100%',
+	padding: theme.spacing(0),
+	overflowY: 'auto',
 }));
 
 const CourseScreen = () => {
@@ -389,42 +408,56 @@ const CourseScreen = () => {
 				<Typography
 					variant="h4"
 					sx={{
-						color: "white",
-						fontWeight: "bold",
-						textShadow: "2px 2px 4px rgba(0,0,0,0.3)",
+						color: "primary.dark",
+						fontWeight: 700,
+						fontSize: "1.75rem",
+						lineHeight: 1.2,
 					}}
 				>
-					My Academic Journey
+					Welcome Back!
+				</Typography>
+				<Typography
+					variant="subtitle1"
+					sx={{
+						color: "text.secondary",
+						fontSize: "1rem",
+						display: "flex",
+						alignItems: "center",
+						gap: 1,
+					}}
+				>
+					<School sx={{ color: "primary.main", fontSize: "1.25rem" }} />
+					Your Academic Dashboard
 				</Typography>
 			</TitleSection>
-			<ContentSection>
-				{isProfessor && (
-					<Box
+
+			{isProfessor && (
+				<Box
+					sx={{
+						display: "flex",
+						justifyContent: "flex-end",
+						marginBottom: 2,
+					}}
+				>
+					<Button
+						variant="contained"
+						color="primary"
+						startIcon={<AddIcon />}
+						onClick={handleAddCourse}
 						sx={{
-							display: "flex",
-							justifyContent: "flex-end",
-							marginBottom: 2,
-							paddingRight: 2,
+							backgroundColor: "primary.main",
+							"&:hover": { backgroundColor: "primary.dark" },
+							borderRadius: "8px",
+							textTransform: "none",
+							fontWeight: 600,
 						}}
 					>
-						<Button
-							variant="contained"
-							color="primary"
-							startIcon={<AddIcon />}
-							onClick={handleAddCourse}
-							sx={{
-								backgroundColor: "#4CAF50",
-								"&:hover": { backgroundColor: "#45a049" },
-								maxWidth: "calc(100% - 16px)",
-								overflow: "hidden",
-								textOverflow: "ellipsis",
-								whiteSpace: "nowrap",
-							}}
-						>
-							Add Course
-						</Button>
-					</Box>
-				)}
+						Add Course
+					</Button>
+				</Box>
+			)}
+
+			<ContentSection>
 				<CourseContainer>
 					{loading ? (
 						<CircularProgress />
