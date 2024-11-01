@@ -1,6 +1,63 @@
 import { createTheme } from '@mui/material/styles';
 
 export const theme = createTheme({
+  typography: {
+    fontFamily: [
+      'Inter',
+      '-apple-system',
+      'BlinkMacSystemFont',
+      '"Segoe UI"',
+      'Roboto',
+      '"Helvetica Neue"',
+      'Arial',
+      'sans-serif',
+    ].join(','),
+    h1: {
+      fontFamily: 'Poppins, sans-serif',
+      fontWeight: 700,
+    },
+    h2: {
+      fontFamily: 'Poppins, sans-serif',
+      fontWeight: 700,
+    },
+    h3: {
+      fontFamily: 'Poppins, sans-serif',
+      fontWeight: 600,
+    },
+    h4: {
+      fontFamily: 'Poppins, sans-serif',
+      fontWeight: 600,
+    },
+    h5: {
+      fontFamily: 'Poppins, sans-serif',
+      fontWeight: 600,
+    },
+    h6: {
+      fontFamily: 'Poppins, sans-serif',
+      fontWeight: 600,
+    },
+    subtitle1: {
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 500,
+    },
+    subtitle2: {
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 500,
+    },
+    body1: {
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 400,
+    },
+    body2: {
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 400,
+    },
+    button: {
+      fontFamily: 'Inter, sans-serif',
+      fontWeight: 500,
+      textTransform: 'none',
+    },
+  },
   palette: {
     primary: {
       main: '#2563eb',
@@ -40,6 +97,16 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundColor: '#ffffff',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'Inter, sans-serif',
+          fontWeight: 500,
+          textTransform: 'none',
+          borderRadius: '8px',
         },
       },
     },
