@@ -405,57 +405,60 @@ const CourseScreen = () => {
 			}}
 		>
 			<TitleSection>
-				<Typography
-					variant="h4"
-					sx={{
-						color: "primary.dark",
-						fontWeight: 700,
-						fontSize: "1.75rem",
-						lineHeight: 1.2,
-					}}
-				>
-					Welcome Back!
-				</Typography>
-				<Typography
-					variant="subtitle1"
-					sx={{
-						color: "text.secondary",
-						fontSize: "1rem",
-						display: "flex",
-						alignItems: "center",
-						gap: 1,
-					}}
-				>
-					<School sx={{ color: "primary.main", fontSize: "1.25rem" }} />
-					Your Academic Dashboard
-				</Typography>
-			</TitleSection>
-
-			{isProfessor && (
-				<Box
-					sx={{
-						display: "flex",
-						justifyContent: "flex-end",
-						marginBottom: 2,
-					}}
-				>
-					<Button
-						variant="contained"
-						color="primary"
-						startIcon={<AddIcon />}
-						onClick={handleAddCourse}
-						sx={{
-							backgroundColor: "primary.main",
-							"&:hover": { backgroundColor: "primary.dark" },
-							borderRadius: "8px",
-							textTransform: "none",
-							fontWeight: 600,
-						}}
-					>
-						Add Course
-					</Button>
+				<Box sx={{ 
+					display: 'flex', 
+					justifyContent: 'space-between',
+					alignItems: 'center',
+					width: '100%'
+				}}>
+					<Box>
+						<Typography
+							variant="h4"
+							sx={{
+								color: "primary.dark",
+								fontWeight: 700,
+								fontSize: "1.75rem",
+								lineHeight: 1.2,
+							}}
+						>
+							Welcome Back!
+						</Typography>
+						<Typography
+							variant="subtitle1"
+							sx={{
+								color: "text.secondary",
+								fontSize: "1rem",
+								display: "flex",
+								alignItems: "center",
+								gap: 1,
+								mt: 1,
+							}}
+						>
+							<School sx={{ color: "primary.main", fontSize: "1.25rem" }} />
+							Your Academic Dashboard
+						</Typography>
+					</Box>
+					
+					{isProfessor && (
+						<Button
+							variant="contained"
+							color="primary"
+							startIcon={<AddIcon />}
+							onClick={handleAddCourse}
+							sx={{
+								backgroundColor: "primary.main",
+								"&:hover": { backgroundColor: "primary.dark" },
+								borderRadius: "8px",
+								textTransform: "none",
+								fontWeight: 600,
+								height: '40px',
+							}}
+						>
+							Add Course
+						</Button>
+					)}
 				</Box>
-			)}
+			</TitleSection>
 
 			<ContentSection>
 				<CourseContainer>
