@@ -1,13 +1,7 @@
 import React from "react";
-import { Poppins } from "next/font/google";
 import { Box } from "@mui/material";
 import MainNavBar from "./MainNavBar";
 import { signIn, useSession } from "next-auth/react";
-
-const poppins = Poppins({
-    subsets: ["latin"],
-    weight: ["400", "500", "600", "700"]
-});
 
 const LayoutWrapper = ({ children }) => {
     const { status } = useSession();
@@ -18,7 +12,7 @@ const LayoutWrapper = ({ children }) => {
         signIn("azure-ad");
     } else {
         return (
-            <Box className={poppins.className} sx={{ 
+            <Box sx={{ 
                 display: 'flex',
                 backgroundColor: 'background.default',
                 minHeight: '100vh'
