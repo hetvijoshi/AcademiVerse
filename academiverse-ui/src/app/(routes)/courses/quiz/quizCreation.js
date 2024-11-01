@@ -36,12 +36,11 @@ import { saveQuiz, fetchInstructQuizzes, fetchQuizQuestions, deleteQuiz, editQui
 const QuizCreationContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  margin: theme.spacing(2),
+  marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
 }));
 
 const QuizHeader = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(3),
   color: theme.palette.primary.main,
   fontWeight: 'bold',
 }));
@@ -64,6 +63,13 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
 const UploadButton = styled(Button)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   marginLeft: theme.spacing(2),
+}));
+
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }));
 
 const QuizCreationPage = () => {
@@ -304,22 +310,24 @@ const QuizCreationPage = () => {
 
   return (
     <QuizCreationContainer>
-      <QuizHeader variant="h4">Quiz Creation</QuizHeader>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
-        onClick={() => handleOpenDialog()}
-        style={{ marginBottom: '20px' }}
-      >
-        Create New Quiz
-      </Button>
+      <TitleSection>
+        <QuizHeader variant="h4">Quiz Creation</QuizHeader>
+        <Button
+          variant="contained"
+          color="primary"
+          startIcon={<AddIcon />}
+          onClick={() => handleOpenDialog()}
+        >
+          Create New Quiz
+        </Button>
+      </TitleSection>
+
       <QuizList>
         {quizzes.map((quiz) => (
           <QuizListItem key={quiz.quizId}>
             <ListItemText
               primary={quiz.quizName}
-              secondary={`Due: ${dayjs(quiz.quizDueDate).format('DD-MM-YYYY HH:mm A')} | Total Marks: ${quiz.totalMarks}`}
+              secondary={`Due: ${dayjs(quiz.quizDueDate).format('DD-MM-YYYY hh:mm A')} | Total Marks: ${quiz.totalMarks}`}
             />
             <IconButton disabled={!quiz.active} onClick={() => handleOpenDialog(quiz)}>
               <EditIcon />

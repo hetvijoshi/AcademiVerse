@@ -17,9 +17,10 @@ import { create } from 'domain';
 import dayjs from 'dayjs';
 
 const PageContainer = styled(Box)(({ theme }) => ({
+  width: '100%',
   padding: theme.spacing(3),
-  maxWidth: '1200px',
-  margin: '0 auto',
+  marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const AnnouncementCard = styled(Card)(({ theme }) => ({
@@ -32,6 +33,8 @@ const AnnouncementCard = styled(Card)(({ theme }) => ({
   width: '100%',
   display: 'flex',
   flexDirection: 'column',
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
 }));
 
 const AnnouncementContent = styled(CardContent)({

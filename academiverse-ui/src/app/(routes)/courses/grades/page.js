@@ -19,9 +19,10 @@ import GradeCreationPage from './gradeCreation';
 import { useSession } from 'next-auth/react';
 
 const GradeContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(4),
-  maxWidth: '100%',
-  margin: '0',
+  width: '100%',
+  padding: theme.spacing(3),
+  marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({

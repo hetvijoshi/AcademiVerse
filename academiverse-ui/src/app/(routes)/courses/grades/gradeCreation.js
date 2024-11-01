@@ -20,9 +20,10 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
 const GradeCreationContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(4),
-  maxWidth: '100%',
-  margin: '0 auto',
+  width: '100%',
+  padding: theme.spacing(3),
+  marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -85,10 +86,10 @@ const GradeCreationPage = ({ courseId }) => {
 
   return (
     <GradeCreationContainer>
-      <Typography variant="h4" gutterBottom align="left" style={{ marginBottom: '24px' }}>
+      <Typography variant="h4" fontWeight="bold" color="primary">
         Grade Management
       </Typography>
-      <TableContainer component={Paper} style={{ marginBottom: '24px' }}>
+      <TableContainer component={Paper} style={{ margin: '24px 0 0 0' }}>
         <Table>
           <TableHead>
             <TableRow>

@@ -110,7 +110,7 @@ const AssignmentDetail = () => {
         </Typography>
 
         <Box sx={{ mb: 2 }}>
-          <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY HH:mm A')}`} color="primary" variant="outlined" />
+          <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY hh:mm A')}`} color="primary" variant="outlined" />
           <StyledChip label={`Total Marks: ${assignment.totalMarks}`} color="secondary" variant="outlined" />
         </Box>
 

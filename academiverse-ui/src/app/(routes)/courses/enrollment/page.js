@@ -26,10 +26,8 @@ import { enrolledStudent, getEnrolledStudents } from '../../../services/enrollSe
 const EnrollmentContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  margin: theme.spacing(2),
+  marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-  borderRadius: '12px',
 }));
 
 const EnrollmentHeader = styled(Typography)(({ theme }) => ({
@@ -72,6 +70,13 @@ const FilterBox = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'flex-end',
   marginBottom: theme.spacing(2),
+}));
+
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }));
 
 const EnrollmentPage = () => {
@@ -183,9 +188,11 @@ const EnrollmentPage = () => {
 
   return (
     <EnrollmentContainer>
-      <EnrollmentHeader variant="h4" component="h1">
-        Course Enrollment
-      </EnrollmentHeader>
+      <TitleSection>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          Course Enrollment
+        </Typography>
+      </TitleSection>
       <SearchBox>
         <SearchField
           variant="outlined"

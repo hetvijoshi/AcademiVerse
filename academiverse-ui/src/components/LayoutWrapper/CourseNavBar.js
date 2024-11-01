@@ -12,33 +12,64 @@ import {
 import { useSession } from 'next-auth/react';
 
 const NavContainer = styled(Box)(({ theme, open }) => ({
-  width: open ? '240px' : '64px',
+  width: open ? '240px' : '72px',
   flexShrink: 0,
   whiteSpace: 'nowrap',
   boxSizing: 'border-box',
   transition: 'width 225ms cubic-bezier(0.4, 0, 0.6, 1) 0ms',
   overflowX: 'hidden',
-  background: 'linear-gradient(180deg, #1565C0, #1976D2)',
-  color: 'white',
+  backgroundColor: theme.palette.background.paper,
+  borderRight: '1px solid rgba(0, 0, 0, 0.12)',
   height: '100vh',
   display: 'flex',
   flexDirection: 'column',
+  '& .MuiList-root': {
+    padding: theme.spacing(1),
+  }
 }));
 
-const NavItem = styled(ListItem)(({ theme, isActive }) => `
-  transition: all 0.3s ease;
-  cursor: pointer;
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-    transform: translateX(5px);
-  }
-  ${isActive && `
-    background-color: rgba(255, 255, 255, 0.3);
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.4);
-    }
-  `}
-`);
+const NavItem = styled(ListItem)(({ theme, isActive }) => ({
+  padding: theme.spacing(1.5),
+  marginBottom: theme.spacing(0.25),
+  borderRadius: '8px',
+  transition: 'all 0.3s ease',
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: 'rgba(25, 118, 210, 0.04)',
+    transform: 'translateX(5px)',
+  },
+  ...(isActive && {
+    backgroundColor: 'rgba(25, 118, 210, 0.08)',
+    '&:hover': {
+      backgroundColor: 'rgba(25, 118, 210, 0.12)',
+    },
+    '& .MuiListItemIcon-root': {
+      color: theme.palette.primary.main,
+    },
+    '& .MuiListItemText-primary': {
+      color: theme.palette.primary.main,
+      fontWeight: 600,
+    },
+  }),
+  '& .MuiListItemIcon-root': {
+    color: theme.palette.text.secondary,
+    minWidth: 40,
+    justifyContent: 'center',
+  },
+  '& .MuiListItemText-primary': {
+    fontSize: '0.875rem',
+    fontWeight: 500,
+  },
+  justifyContent: 'center',
+}));
+
+const HeaderBox = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(1.5),
+  borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+}));
 
 const CourseNavBar = ({ course = {} }) => {
   const [open, setOpen] = useState(true);
@@ -80,38 +111,74 @@ const CourseNavBar = ({ course = {} }) => {
 
   return (
     <NavContainer open={open}>
-      <Box sx={{ height:'62px',display: 'flex', alignItems: 'center', justifyContent: 'space-between', p: 1 }}>
+      <HeaderBox>
         <Typography 
-          variant="h5" 
+          variant="h6" 
           component="div" 
-          sx={{ cursor: 'pointer', flexGrow: 1 }} 
+          sx={{ 
+            cursor: 'pointer',
+            fontWeight: 600,
+            color: 'primary.main',
+            display: open ? 'block' : 'none'
+          }} 
           onClick={() => router.push('/')}
         >
           Academiverse
         </Typography>
-        <IconButton onClick={handleDrawerToggle} sx={{ color: 'white' }}>
-          {open ? <ChevronRight /> : <ChevronLeft />}
+        <IconButton 
+          onClick={handleDrawerToggle}
+          sx={{ 
+            color: 'primary.main',
+            '&:hover': { backgroundColor: 'rgba(25, 118, 210, 0.04)' }
+          }}
+        >
+          {open ? <ChevronLeft /> : <ChevronRight />}
         </IconButton>
-      </Box>
-      <Box sx={{ p: 2, height: '56px', display: 'flex', alignItems: 'center' }}>
+      </HeaderBox>
+      <Box sx={{ 
+        px: 2, 
+        py: 1,
+        display: 'flex', 
+        alignItems: 'center',
+        minHeight: '48px',
+        overflow: 'hidden'
+      }}>
         {open ? (
-          <Typography variant="h6" component="div" noWrap>
+          <Typography 
+            variant="subtitle1" 
+            component="div" 
+            sx={{ 
+              fontWeight: 600,
+              color: 'text.primary',
+              whiteSpace: 'normal',
+              lineHeight: 1.2,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: '-webkit-box',
+              WebkitLineClamp: 2,
+              WebkitBoxOrient: 'vertical'
+            }}
+          >
             {course?.course?.courseName || 'Course Name'}
           </Typography>
         ) : (
-          <Tooltip title={course?.name || 'Course Name'} placement="right">
-            <SchoolIcon />
+          <Tooltip title={course?.course?.courseName || 'Course Name'} placement="right">
+            <SchoolIcon sx={{ color: 'primary.main' }} />
           </Tooltip>
         )}
       </Box>
-      <List>
+      <List sx={{ px: 2 }}>
         {navItems.map((item, index) => (
-          <Tooltip title={open ? '' : item.label} placement="right" key={index}>
+          <Tooltip 
+            key={index}
+            title={open ? '' : item.label} 
+            placement="right"
+          >
             <NavItem
               onClick={() => handleNavItemClick(item.path, item.section)}
               isActive={currentSection === item.section}
             >
-              <ListItemIcon sx={{ color: 'white', minWidth: open ? '56px' : '24px' }}>{item.icon}</ListItemIcon>
+              <ListItemIcon>{item.icon}</ListItemIcon>
               {open && <ListItemText primary={item.label} />}
             </NavItem>
           </Tooltip>

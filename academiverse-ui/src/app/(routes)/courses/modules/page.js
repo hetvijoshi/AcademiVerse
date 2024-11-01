@@ -24,11 +24,10 @@ import { getModules, saveModules, uploadDocument } from '../../../services/modul
 import { deleteDocument, saveDocument } from '../../../services/documentService';
 
 const PageContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
   width: '100%',
-  margin: '0',
-  backgroundColor: '#f5f5f5',
-  minHeight: '100vh',
+  padding: theme.spacing(3),
+  marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
   display: 'flex',
   flexDirection: 'column',
 }));
@@ -56,6 +55,8 @@ const ModuleAccordion = styled(Accordion)(({ theme }) => ({
   '&.Mui-expanded': {
     backgroundColor: theme.palette.background.paper,
   },
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
 }));
 
 const ModuleTitle = styled(Typography)(({ theme }) => ({
@@ -253,7 +254,7 @@ const ModulePage = () => {
   return (
     <PageContainer>
       <ContentWrapper>
-        <Paper elevation={0} sx={{ padding: 3, backgroundColor: 'white', flexGrow: 1 }}>
+        <Paper elevation={0} sx={{ backgroundColor: 'white', flexGrow: 1 }}>
           <TitleSection>
             <Typography variant="h4" fontWeight="bold" color="primary">Course Modules</Typography>
             {isProfessor && (
