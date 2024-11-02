@@ -18,7 +18,6 @@ public class GradeService {
     private final GradeRepository gradeRepository;
     private final AssignmentRepository assignmentRepository;
 
-    @Autowired
     public GradeService(GradeRepository gradeRepository, AssignmentRepository assignmentRepository) {
         this.gradeRepository = gradeRepository;
         this.assignmentRepository = assignmentRepository;

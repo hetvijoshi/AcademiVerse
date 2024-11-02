@@ -5,17 +5,21 @@ import com.academiverse.academiverse_api.dto.request.GradeUpdateRequest;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
 import com.academiverse.academiverse_api.model.Grade;
 import com.academiverse.academiverse_api.service.GradeService;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/grades")
+@RequiredArgsConstructor
+@Validated
 public class GradeController {
-    @Autowired
-    private GradeService gradeService;
+    private final GradeService gradeService;
 
     @PostMapping("/save")
     public ResponseEntity<BaseResponse<Grade>> saveGrade(@RequestBody GradeSaveRequest request) {
