@@ -33,14 +33,8 @@ import dayjs from 'dayjs';
 const QuizContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  margin: theme.spacing(2),
-  backgroundColor: '#f5f5f5',
-}));
-
-const QuizHeader = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-  color: theme.palette.primary.main,
-  fontWeight: 'bold',
+  marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const QuizInfo = styled(Box)(({ theme }) => ({
@@ -95,6 +89,17 @@ const QuizProgress = styled(LinearProgress)(({ theme }) => ({
   marginBottom: theme.spacing(2),
   '& .MuiLinearProgress-bar': {
     backgroundColor: theme.palette.primary.main,
+  },
+}));
+
+const QuizItem = styled(Paper)(({ theme }) => ({
+  marginBottom: theme.spacing(2),
+  padding: theme.spacing(2),
+  borderRadius: theme.shape.borderRadius,
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    transform: 'translateY(-3px)',
+    boxShadow: "10",
   },
 }));
 
@@ -234,15 +239,14 @@ const QuizPage = () => {
   }
 
   return (
-    <QuizContainer elevation={3}>
-      <QuizHeader variant="h4" component="h1">
+    <QuizContainer>
+      <Typography variant="h4" fontWeight="bold" color="primary">
         Available Quizzes
-      </QuizHeader>
+      </Typography>
       <List>
         {quizzes.map((quiz, index) => (
           <React.Fragment key={quiz.quiz.quizId}>
-            {index > 0 && <Divider variant="inset" component="li" />}
-            <ListItem alignItems="flex-start">
+            <QuizItem>
               <ListItemText
                 primary={<QuizTitle>{quiz.quiz.quizName}</QuizTitle>}
                 secondary={
@@ -264,7 +268,7 @@ const QuizPage = () => {
               >
                 {isQuizAvailable(quiz) ? 'Take Quiz' : (quiz.submitted ? 'Submitted' : 'Expired')}
               </TakeQuizButton>
-            </ListItem>
+            </QuizItem>
           </React.Fragment>
         ))}
       </List>

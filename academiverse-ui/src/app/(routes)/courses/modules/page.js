@@ -61,7 +61,6 @@ const ModuleAccordion = styled(Accordion)(({ theme }) => ({
 
 const ModuleTitle = styled(Typography)(({ theme }) => ({
   fontWeight: 'bold',
-  color: theme.palette.primary.main,
 }));
 
 const MaterialItem = styled(ListItem)(({ theme }) => ({

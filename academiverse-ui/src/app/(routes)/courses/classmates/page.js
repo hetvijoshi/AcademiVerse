@@ -21,18 +21,8 @@ import { useSession } from 'next-auth/react';
 const ClassmateContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  margin: theme.spacing(2),
+  marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-  borderRadius: '12px',
-}));
-
-const ClassmateHeader = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(3),
-  color: theme.palette.primary.main,
-  fontWeight: 'bold',
-  fontSize: '2rem',
-  textAlign: 'center',
 }));
 
 const StyledListItem = styled(ListItem)(({ theme }) => ({
@@ -56,6 +46,14 @@ const StyledListItemText = styled(ListItemText)(({ theme }) => ({
     fontSize: '1.1rem',
     color: theme.palette.text.primary,
   },
+}));
+
+
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }));
 
 const ClassmatePage = () => {
@@ -97,10 +95,12 @@ const ClassmatePage = () => {
   }
 
   return (
-    <ClassmateContainer elevation={3}>
-      <ClassmateHeader variant="h4" component="h1">
-        Your Classmates
-      </ClassmateHeader>
+    <ClassmateContainer>
+      <TitleSection>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          Your Classmates
+        </Typography>
+      </TitleSection>
       <List>
         {classmates.map((classmate, index) => (
           <React.Fragment key={classmate.user.userId}>

@@ -7,9 +7,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChevronRight, ChevronLeft, Announcement as AnnouncementIcon, School as SchoolIcon,
   ViewModule as ModuleIcon, Assignment as AssignmentIcon, Grade as GradeIcon, Quiz as QuizIcon,
-  List as ListIcon, People as PeopleIcon, HowToReg as EnrollmentIcon
+  List as ListIcon, People as PeopleIcon, HowToReg as EnrollmentIcon,
+  School
 } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
+import Logo from '../Logo/Logo';
 
 const NavContainer = styled(Box)(({ theme, open }) => ({
   width: open ? '240px' : '72px',
@@ -64,11 +66,12 @@ const NavItem = styled(ListItem)(({ theme, isActive }) => ({
 }));
 
 const HeaderBox = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(1.5),
+  padding: theme.spacing(2),
   borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
+  height: '64px',
 }));
 
 const CourseNavBar = ({ course = {} }) => {
@@ -112,19 +115,26 @@ const CourseNavBar = ({ course = {} }) => {
   return (
     <NavContainer open={open}>
       <HeaderBox>
-        <Typography 
-          variant="h6" 
-          component="div" 
-          sx={{ 
-            cursor: 'pointer',
-            fontWeight: 600,
-            color: 'primary.main',
-            display: open ? 'block' : 'none'
-          }} 
-          onClick={() => router.push('/')}
-        >
-          Academiverse
-        </Typography>
+        {open ? (
+          <Logo onClick={() => router.push('/')} />
+        ) : (
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <Tooltip title="Academiverse" placement="right">
+              <School
+                sx={{ 
+                  color: 'primary.main',
+                  fontSize: '28px',
+                  cursor: 'pointer',
+                  transition: 'transform 0.3s ease',
+                  '&:hover': {
+                    transform: 'rotate(-10deg)',
+                  },
+                }} 
+                onClick={() => router.push('/')}
+              />
+            </Tooltip>
+          </Box>
+        )}
         <IconButton 
           onClick={handleDrawerToggle}
           sx={{ 

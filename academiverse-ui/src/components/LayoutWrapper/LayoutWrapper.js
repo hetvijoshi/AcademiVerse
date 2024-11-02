@@ -20,8 +20,6 @@ const LayoutWrapper = ({ children }) => {
                 <MainNavBar />
                 <Box sx={{ 
                     flexGrow: 1, 
-                    marginLeft: '8px',
-                    padding: '24px',
                     backgroundColor: 'background.default'
                 }}>
                     {children}

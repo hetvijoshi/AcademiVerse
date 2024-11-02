@@ -42,6 +42,7 @@ import { editInstruct, fetchInstructCourses, fetchStudentCourses } from "./servi
 import { getCourseByDeptId } from "./services/courseService";
 import { getAllDepartment } from "./services/departmentService";
 import { saveInstruct } from "./services/instructService";
+import NewsWidget from '../components/NewsWidget/NewsWidget';
 
 const StyledCard = styled(Card)(({ theme }) => ({
 	height: '100%',
@@ -399,401 +400,187 @@ const CourseScreen = () => {
 		<Box
 			sx={{
 				display: "flex",
-				flexDirection: "column",
 				height: "100vh",
 				width: "100%",
+				padding: '24px',
 			}}
 		>
-			<TitleSection>
-				<Box sx={{ 
-					display: 'flex', 
-					justifyContent: 'space-between',
-					alignItems: 'center',
-					width: '100%'
-				}}>
-					<Box>
-						<Typography
-							variant="h4"
-							sx={{
-								color: "primary.dark",
-								fontWeight: 700,
-								fontSize: "1.75rem",
-								lineHeight: 1.2,
-							}}
-						>
-							Welcome Back!
-						</Typography>
-						<Typography
-							variant="subtitle1"
-							sx={{
-								color: "text.secondary",
-								fontSize: "1rem",
-								display: "flex",
-								alignItems: "center",
-								gap: 1,
-								mt: 1,
-							}}
-						>
-							<School sx={{ color: "primary.main", fontSize: "1.25rem" }} />
-							Your Academic Dashboard
-						</Typography>
-					</Box>
-					
-					{isProfessor && (
-						<Button
-							variant="contained"
-							color="primary"
-							startIcon={<AddIcon />}
-							onClick={handleAddCourse}
-							sx={{
-								backgroundColor: "primary.main",
-								"&:hover": { backgroundColor: "primary.dark" },
-								borderRadius: "8px",
-								textTransform: "none",
-								fontWeight: 600,
-								height: '40px',
-							}}
-						>
-							Add Course
-						</Button>
-					)}
-				</Box>
-			</TitleSection>
+			<Box sx={{ flex: 1 }}>
+				<TitleSection>
+					<Box sx={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						alignItems: 'center',
+						width: '100%'
+					}}>
+						<Box>
+							<Typography
+								variant="h4"
+								sx={{
+									color: "primary.dark",
+									fontWeight: 700,
+									fontSize: "1.75rem",
+									lineHeight: 1.2,
+								}}
+							>
+								Welcome back, {session.userDetails?.name}🎓!
+							</Typography>
+							<Typography
+								variant="subtitle1"
+								sx={{
+									color: "text.secondary",
+									fontSize: "1rem",
+									display: "flex",
+									alignItems: "center",
+									gap: 1,
+									mt: 1,
+								}}
+							>
+								<School sx={{ color: "primary.main", fontSize: "1.25rem" }} />
+								Your Academic Dashboard
+							</Typography>
+						</Box>
 
-			<ContentSection>
-				<CourseContainer>
-					{loading ? (
-						<CircularProgress />
-					) : (
-						<>
-							{courses.map((course) => (
-								<CourseItem key={course.id}>
-									<StyledCard
-										bgcolor={course.color}
-										onClick={() => handleCourseClick(course.id)}
-										sx={{
-											border:
-												selectedCourseId === course.id
-													? "2px solid #1976D2"
-													: "none",
-											boxShadow:
-												selectedCourseId === course.id
-													? "0 0 20px rgba(25, 118, 210, 0.5)"
-													: "none",
-										}}
-									>
-										<CardHeader>
-											<Typography
-												variant="h6"
-												component="div"
-												sx={{ fontWeight: "bold", color: "rgba(0,0,0,0.8)" }}
-											>
-												{course.code}: {course.name}
-											</Typography>
-										</CardHeader>
-										<CardBody>
-											<Box>
+						{isProfessor && (
+							<Button
+								variant="contained"
+								color="primary"
+								startIcon={<AddIcon />}
+								onClick={handleAddCourse}
+								sx={{
+									backgroundColor: "primary.main",
+									"&:hover": { backgroundColor: "primary.dark" },
+									borderRadius: "8px",
+									textTransform: "none",
+									fontWeight: 600,
+									height: '40px',
+								}}
+							>
+								Add Course
+							</Button>
+						)}
+					</Box>
+				</TitleSection>
+
+				<ContentSection>
+					<CourseContainer>
+						{loading ? (
+							<CircularProgress />
+						) : (
+							<>
+								{courses.map((course) => (
+									<CourseItem key={course.id}>
+										<StyledCard
+											bgcolor={course.color}
+											onClick={() => handleCourseClick(course.id)}
+											sx={{
+												border:
+													selectedCourseId === course.id
+														? "2px solid #1976D2"
+														: "none",
+												boxShadow:
+													selectedCourseId === course.id
+														? "0 0 20px rgba(25, 118, 210, 0.5)"
+														: "none",
+											}}
+										>
+											<CardHeader>
 												<Typography
-													variant="body2"
-													color="text.secondary"
-													sx={{ mb: 1 }}
+													variant="h6"
+													component="div"
+													sx={{ fontWeight: "bold", color: "rgba(0,0,0,0.8)" }}
 												>
-													Days:{" "}
-													{Array.isArray(course.days)
-														? course.days.join(", ")
-														: "N/A"}
+													{course.code}: {course.name}
 												</Typography>
-												<Typography variant="body2" color="text.secondary">
-													Time: {course.startTime} - {course.endTime}
-												</Typography>
-											</Box>
-											<IconContainer>
-												{icons.map((item, index) => (
-													<IconButton
-														key={index}
-														title={item.label}
-														onClick={(e) => {
-															e.stopPropagation();
-															handleIconClick(
-																course.id,
-																item.section.toLowerCase(),
-															);
-														}}
-														sx={{
-															color: "rgba(0,0,0,0.6)",
-															"&:hover": { color: "rgba(0,0,0,0.8)" },
-														}}
+											</CardHeader>
+											<CardBody>
+												<Box>
+													<Typography
+														variant="body2"
+														color="text.secondary"
+														sx={{ mb: 1 }}
 													>
-														{item.icon}
-													</IconButton>
-												))}
-												{isProfessor && (
-													<>
+														Days:{" "}
+														{Array.isArray(course.days)
+															? course.days.join(", ")
+															: "N/A"}
+													</Typography>
+													<Typography variant="body2" color="text.secondary">
+														Time: {course.startTime} - {course.endTime}
+													</Typography>
+												</Box>
+												<IconContainer>
+													{icons.map((item, index) => (
 														<IconButton
-															title="Enrollments"
+															key={index}
+															title={item.label}
 															onClick={(e) => {
 																e.stopPropagation();
-																handleIconClick(course.id, "enrollments");
+																handleIconClick(
+																	course.id,
+																	item.section.toLowerCase(),
+																);
 															}}
 															sx={{
 																color: "rgba(0,0,0,0.6)",
 																"&:hover": { color: "rgba(0,0,0,0.8)" },
 															}}
 														>
-															<EnrollmentIcon />
+															{item.icon}
 														</IconButton>
-														<IconButton
-															title="Edit Course"
-															onClick={(e) => {
-																e.stopPropagation();
-																handleEditCourse(course);
-															}}
-															sx={{
-																color: "rgba(0,0,0,0.6)",
-																"&:hover": { color: "rgba(0,0,0,0.8)" },
-															}}
-														>
-															<EditIcon />
-														</IconButton>
-													</>
-												)}
-											</IconContainer>
-										</CardBody>
-									</StyledCard>
-								</CourseItem>
-							))}
-						</>
-					)}
-					<Snackbar
-						open={snackbar.open}
-						autoHideDuration={6000}
-						onClose={handleCloseSnackbar}
-						anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-					>
-						<Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-							{snackbar.message}
-						</Alert>
-					</Snackbar>
-				</CourseContainer>
-			</ContentSection>
-
-			<Dialog open={openAddCourseDialog} onClose={handleCloseAddCourseDialog}>
-				<DialogTitle>Add New Course</DialogTitle>
-				<DialogContent>
-					<Autocomplete
-						options={departments}
-						getOptionLabel={(option) => option.departmentName}
-						value={newCourse.department}
-						onChange={(_, newValue) =>
-							handleNewCourseChange("department", newValue)
-						}
-						renderInput={(params) => (
-							<TextField
-								{...params}
-								label="Select Department"
-								fullWidth
-								sx={{ mt: 2 }}
-							/>
-						)}
-					/>
-
-					<Autocomplete
-						options={courseList}
-						getOptionLabel={(option) => `${option.courseCode}: ${option.courseName}`}
-						value={newCourse.course}
-						onChange={(_, newValue) =>
-							handleNewCourseChange("course", newValue)
-						}
-						renderInput={(params) => (
-							<TextField
-								{...params}
-								label="Select Course"
-								fullWidth
-								sx={{ mt: 2 }}
-							/>
-						)}
-					/>
-
-					<TextField
-						fullWidth
-						label="Course Capacity"
-						type="number"
-						value={newCourse.capacity}
-						onChange={(e) => handleNewCourseChange("capacity", e.target.value)}
-						sx={{ mt: 2 }}
-					/>
-
-					<Box sx={{ mt: 2 }}>
-						{days.map((day) => (
-							<FormControlLabel
-								key={day}
-								control={
-									<Checkbox
-										checked={newCourse.days.includes(day)}
-										onChange={(e) => {
-											let newDays;
-											if (e.target.checked) {
-												newDays = [...newCourse.days, day];
-											} else {
-												newDays = newCourse.days.filter((d) => d !== day);
-											}
-											// Sort the days according to their order in the 'days' array
-											newDays.sort((a, b) => days.indexOf(a) - days.indexOf(b));
-											handleNewCourseChange("days", newDays);
-										}}
-									/>
-								}
-								label={day}
-							/>
-						))}
-					</Box>
-
-					<TextField
-						fullWidth
-						label="Start Time"
-						type="time"
-						value={newCourse.startTime}
-						onChange={(e) => handleNewCourseChange("startTime", e.target.value)}
-						InputLabelProps={{ shrink: true }}
-						inputProps={{ step: 300 }}
-						sx={{ mt: 2 }}
-					/>
-
-					<TextField
-						fullWidth
-						label="End Time"
-						type="time"
-						value={newCourse.endTime}
-						onChange={(e) => handleNewCourseChange("endTime", e.target.value)}
-						InputLabelProps={{ shrink: true }}
-						inputProps={{ step: 300 }}
-						sx={{ mt: 2 }}
-					/>
-
-					<Select
-						fullWidth
-						value={newCourse.semester}
-						onChange={(e) => handleNewCourseChange("semester", e.target.value)}
-						displayEmpty
-						sx={{ mt: 2 }}
-					>
-						<MenuItem value="" disabled>
-							Select Semester
-						</MenuItem>
-						{semesters.map((sem) => (
-							<MenuItem key={sem} value={sem}>
-								{sem}
-							</MenuItem>
-						))}
-					</Select>
-
-					<TextField
-						fullWidth
-						label="Year"
-						type="number"
-						value={newCourse.year}
-						onChange={(e) => handleNewCourseChange("year", e.target.value)}
-						sx={{ mt: 2 }}
-					/>
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={handleCloseAddCourseDialog}>Cancel</Button>
-					<Button
-						onClick={handleSaveNewCourse}
-						variant="contained"
-						color="primary"
-					>
-						Save
-					</Button>
-				</DialogActions>
-			</Dialog>
-
-			<Dialog open={openEditCourseDialog} onClose={handleCloseEditCourseDialog}>
-				<DialogTitle>Edit Course</DialogTitle>
-				<DialogContent>
-					{editingCourse && (
-						<>
-							<TextField
-								fullWidth
-								label="Course Name"
-								value={editingCourse.name}
-								onChange={(e) => handleEditCourseChange("name", e.target.value)}
-								sx={{ mt: 2 }}
-								disabled
-							/>
-							<TextField
-								fullWidth
-								label="Course Capacity"
-								type="number"
-								value={editingCourse.capacity}
-								onChange={(e) => handleEditCourseChange("capacity", e.target.value)}
-								sx={{ mt: 2 }}
-							/>
-							<Box sx={{ mt: 2 }}>
-								{days.map((day) => (
-									<FormControlLabel
-										key={day}
-										control={
-											<Checkbox
-												checked={editingCourse.days.includes(day)}
-												onChange={(e) => {
-													let newDays;
-													if (e.target.checked) {
-														newDays = [...editingCourse.days, day];
-														newDays.sort(
-															(a, b) => days.indexOf(a) - days.indexOf(b),
-														);
-													} else {
-														newDays = editingCourse.days.filter(
-															(d) => d !== day,
-														);
-													}
-													handleEditCourseChange("days", newDays);
-												}}
-											/>
-										}
-										label={day}
-									/>
+													))}
+													{isProfessor && (
+														<>
+															<IconButton
+																title="Enrollments"
+																onClick={(e) => {
+																	e.stopPropagation();
+																	handleIconClick(course.id, "enrollments");
+																}}
+																sx={{
+																	color: "rgba(0,0,0,0.6)",
+																	"&:hover": { color: "rgba(0,0,0,0.8)" },
+																}}
+															>
+																<EnrollmentIcon />
+															</IconButton>
+															<IconButton
+																title="Edit Course"
+																onClick={(e) => {
+																	e.stopPropagation();
+																	handleEditCourse(course);
+																}}
+																sx={{
+																	color: "rgba(0,0,0,0.6)",
+																	"&:hover": { color: "rgba(0,0,0,0.8)" },
+																}}
+															>
+																<EditIcon />
+															</IconButton>
+														</>
+													)}
+												</IconContainer>
+											</CardBody>
+										</StyledCard>
+									</CourseItem>
 								))}
-							</Box>
-							<TextField
-								fullWidth
-								label="Start Time"
-								type="time"
-								value={editingCourse.startTime}
-								onChange={(e) =>
-									handleEditCourseChange("startTime", e.target.value)
-								}
-								InputLabelProps={{ shrink: true }}
-								inputProps={{ step: 300 }}
-								sx={{ mt: 2 }}
-							/>
-							<TextField
-								fullWidth
-								label="End Time"
-								type="time"
-								value={editingCourse.endTime}
-								onChange={(e) =>
-									handleEditCourseChange("endTime", e.target.value)
-								}
-								InputLabelProps={{ shrink: true }}
-								inputProps={{ step: 300 }}
-								sx={{ mt: 2 }}
-							/>
-						</>
-					)}
-				</DialogContent>
-				<DialogActions>
-					<Button onClick={handleCloseEditCourseDialog}>Cancel</Button>
-					<Button
-						onClick={handleSaveEditedCourse}
-						variant="contained"
-						color="primary"
-					>
-						Save
-					</Button>
-				</DialogActions>
-			</Dialog>
+							</>
+						)}
+						<Snackbar
+							open={snackbar.open}
+							autoHideDuration={6000}
+							onClose={handleCloseSnackbar}
+							anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+						>
+							<Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+								{snackbar.message}
+							</Alert>
+						</Snackbar>
+					</CourseContainer>
+				</ContentSection>
+			</Box>
+
+			<NewsWidget />
 		</Box>
 	);
 };

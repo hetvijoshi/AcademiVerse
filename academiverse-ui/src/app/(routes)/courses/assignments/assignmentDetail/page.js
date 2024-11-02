@@ -10,9 +10,10 @@ import { useSession } from 'next-auth/react';
 import dayjs from 'dayjs';
 
 const DetailContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
   width: '100%',
-  backgroundColor: '#f5f5f5',
+  padding: theme.spacing(3),
+  marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const DetailPaper = styled(Paper)(({ theme }) => ({
@@ -59,8 +60,6 @@ const AssignmentDetail = () => {
   };
 
   useEffect(() => {
-
-
     fetchAssignment(assignmentId);
   }, [assignmentId]);
 
@@ -96,13 +95,13 @@ const AssignmentDetail = () => {
       >
         Back to Assignments
       </Button>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
         <AssignmentIcon sx={{ marginRight: 1, verticalAlign: 'middle' }} />
         {assignment.title}
       </Typography>
 
       <DetailPaper elevation={3}>
-        <Typography variant="h6" color="primary" gutterBottom>
+        <Typography variant="h6" gutterBottom>
           Description
         </Typography>
         <Typography variant="body1" gutterBottom sx={{ whiteSpace: 'pre-wrap' }}>

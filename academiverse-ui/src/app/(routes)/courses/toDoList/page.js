@@ -7,7 +7,8 @@ import {
   CardContent,
   Typography,
   IconButton,
-  CircularProgress
+  CircularProgress,
+  Paper
 } from '@mui/material';
 import { styled } from '@mui/system';
 import { CheckCircle as DoneIcon } from '@mui/icons-material';
@@ -37,7 +38,14 @@ const TodoContent = styled(CardContent)({
   padding: '8px',  // Decreased padding
 });
 
-const TodoContainer = styled(Box)(({ theme }) => ({
+const TodoContainer = styled(Paper)(({ theme }) => ({
+  width: '100%',
+  padding: theme.spacing(3),
+  marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
+}));
+
+const TodoContainer2 = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   gap: theme.spacing(1),  // Decreased gap
@@ -48,13 +56,10 @@ const TodoItem = styled(Box)(({ theme }) => ({
 }));
 
 const TitleSection = styled(Box)(({ theme }) => ({
-  height: '10vh',  // Decreased height
-  width: '100%',
-  background: 'linear-gradient(45deg, #1976D2 30%, #21CBF3 90%)',  // Changed gradient colors
-  display: 'flex',
-  justifyContent: 'flex-start',
-  alignItems: 'center',
-  padding: theme.spacing(0, 4),
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }));
 
 const ContentSection = styled(Box)(({ theme }) => ({
@@ -104,9 +109,9 @@ const ToDoListScreen = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
+    <TodoContainer sx={{ display: 'flex', flexDirection: 'column', height: '100vh', width: '100%' }}>
       <TitleSection>
-        <Typography variant="h5" sx={{ color: 'white', fontWeight: 'bold', textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+        <Typography variant="h4" fontWeight="bold" color="primary">
           Task Tracker
         </Typography>
       </TitleSection>
@@ -114,8 +119,10 @@ const ToDoListScreen = () => {
         {loading ? (
           <CircularProgress />
         ) : (
-          <TodoContainer>
-            {todos.map((todo) => (
+          <TodoContainer2>
+            {todos != null && todos.length <= 0 ? (<Typography variant="h6" color="text.secondary">
+              No todos
+            </Typography>) : todos.map((todo) => (
               <TodoItem key={todo.toDoId}>
                 <TodoCard elevation={2}>
                   <TodoContent>
@@ -136,10 +143,10 @@ const ToDoListScreen = () => {
                 </TodoCard>
               </TodoItem>
             ))}
-          </TodoContainer>
+          </TodoContainer2>
         )}
       </ContentSection>
-    </Box>
+    </TodoContainer>
   );
 };
 

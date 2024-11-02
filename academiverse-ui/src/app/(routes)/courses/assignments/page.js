@@ -11,9 +11,10 @@ import { getActiveAssignmentsByInstructId, getAssignmentsByInstructId } from '..
 import dayjs from 'dayjs';
 
 const AssignmentContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
   width: '100%',
-  backgroundColor: '#f5f5f5',
+  padding: theme.spacing(3),
+  marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const AssignmentItem = styled(Paper)(({ theme }) => ({
@@ -26,6 +27,13 @@ const AssignmentItem = styled(Paper)(({ theme }) => ({
     transform: 'translateY(-3px)',
     boxShadow: "10",
   },
+}));
+
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }));
 
 const StyledChip = styled(Chip)(({ theme }) => ({
@@ -72,10 +80,12 @@ const AssignmentPage = () => {
 
   return (
     <AssignmentContainer>
-      <Typography variant="h4" fontWeight="bold" color="primary">
-        <AssignmentIcon sx={{ marginRight: 1, verticalAlign: 'middle' }} />
-        Assignments
-      </Typography>
+      <TitleSection>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          <AssignmentIcon sx={{ marginRight: 1, verticalAlign: 'middle' }} />
+          Assignments
+        </Typography>
+      </TitleSection>
       <List>
         {assignments.map((assignment) => (
           <AssignmentItem
@@ -83,7 +93,7 @@ const AssignmentPage = () => {
             onClick={() => handleAssignmentClick(assignment.id)}
             elevation={2}
           >
-            <Typography variant="h6" color="primary">
+            <Typography variant="h6" >
               {assignment.title}
             </Typography>
             <Box sx={{ mt: 1 }}>
