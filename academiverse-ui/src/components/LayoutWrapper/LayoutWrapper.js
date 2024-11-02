@@ -1,21 +1,10 @@
-import React, { useState, useEffect } from "react";
-import { Poppins } from "next/font/google";
+import React from "react";
 import { Box } from "@mui/material";
 import MainNavBar from "./MainNavBar";
 import { signIn, useSession } from "next-auth/react";
 
-const poppins = Poppins({
-    subsets: ["latin"],
-    weight: ["400", "700", "500"]
-})
-
 const LayoutWrapper = ({ children }) => {
     const { status } = useSession();
-    const [selectedItem, setSelectedItem] = useState('courses');
-    const [selectedCourseId, setSelectedCourseId] = useState(null);
-
-    useEffect(() => {
-    }, [selectedCourseId]);
 
     if (status === "loading") {
         return (<div>Loading...</div>)
@@ -23,9 +12,16 @@ const LayoutWrapper = ({ children }) => {
         signIn("azure-ad");
     } else {
         return (
-            <Box className={poppins.className}>
-                <MainNavBar setSelectedItem={setSelectedItem} />
-                <Box sx={{ flexGrow: 1, marginLeft: '56px', marginTop: '-10px' }}>
+            <Box sx={{ 
+                display: 'flex',
+                backgroundColor: 'background.default',
+                minHeight: '100vh'
+            }}>
+                <MainNavBar />
+                <Box sx={{ 
+                    flexGrow: 1, 
+                    backgroundColor: 'background.default'
+                }}>
                     {children}
                 </Box>
             </Box>
@@ -33,4 +29,4 @@ const LayoutWrapper = ({ children }) => {
     }
 }
 
-export default LayoutWrapper
+export default LayoutWrapper;

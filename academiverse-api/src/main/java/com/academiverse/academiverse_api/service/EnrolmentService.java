@@ -33,7 +33,7 @@ public class EnrolmentService {
             Long departmentId = instruct.get().getCourse().getDepartment().getDepartmentId();
 
             // Get all users
-            List<User> allUsers = userRepository.findAll(); // Fetch all users
+            List<User> allUsers = userRepository.findByRoleAndDepartmentDepartmentId("student", departmentId); // Fetch all users
 
             // Get a list of enrolled students
             List<Long> enrolledStudents = enrolmentRepository.findByInstructInstructId(instruct.get().getInstructId())
@@ -45,20 +45,14 @@ public class EnrolmentService {
 
             // Filter eligible students based on department and enrollment status
             List<EnrolEligibleResponse> eligibleResponses = allUsers.stream()
-                    .filter(user -> user.getDepartment().getDepartmentId().equals(departmentId) || enrolledStudents.contains(user.getUserId()))
                     .map(user -> {
                         EnrolEligibleResponse enrolEligibleResponse = new EnrolEligibleResponse();
+                        enrolEligibleResponse.user = user;
+                        enrolEligibleResponse.isEnrolled = false;
 
                         if (enrolledStudents.contains(user.getUserId())) {
-                            enrolEligibleResponse.user = user;
                             enrolEligibleResponse.isEnrolled = true;
                         }
-
-                        if (user.getDepartment().getDepartmentId().equals(departmentId)) {
-                            enrolEligibleResponse.user = user;
-                            enrolEligibleResponse.isEnrolled = false;
-                        }
-
                         return enrolEligibleResponse;
                     })
                     .toList();
@@ -97,6 +91,27 @@ public class EnrolmentService {
             response.data = null;
             response.isError = true;
             response.message = "User or Instruct not found.";
+        }
+        return response;
+    }
+
+    public BaseResponse<List<Enrolment>> getInstructStudents(Long instructId) {
+        Optional<Instruct> instruct = instructRepository.findById(instructId);
+        BaseResponse<List<Enrolment>> response = new BaseResponse<>();
+
+
+        if (instruct.isPresent()) {
+
+            // Get a list of enrolled students
+            List<Enrolment> enrolledStudents = enrolmentRepository.findByInstructInstructId(instruct.get().getInstructId());
+
+            response.data = enrolledStudents;
+            response.isError = false;
+            response.message = "Eligible students retrieved successfully.";
+        } else {
+            response.data = null;
+            response.isError = true;
+            response.message = "Instruct not found.";
         }
         return response;
     }

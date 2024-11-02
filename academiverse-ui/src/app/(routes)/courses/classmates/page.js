@@ -14,22 +14,15 @@ import {
   Divider
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import { getInstructStudents } from '../../../services/enrollService';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 
 const ClassmateContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  margin: theme.spacing(2),
+  //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
-  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-  borderRadius: '12px',
-}));
-
-const ClassmateHeader = styled(Typography)(({ theme }) => ({
-  marginBottom: theme.spacing(3),
-  color: theme.palette.primary.main,
-  fontWeight: 'bold',
-  fontSize: '2rem',
-  textAlign: 'center',
 }));
 
 const StyledListItem = styled(ListItem)(({ theme }) => ({
@@ -55,31 +48,42 @@ const StyledListItemText = styled(ListItemText)(({ theme }) => ({
   },
 }));
 
+
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+}));
+
 const ClassmatePage = () => {
   const [classmates, setClassmates] = useState([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const instructId = useSearchParams().get('id');
+  const { data: session } = useSession();
+
+  const fetchClassmates = async () => {
+    try {
+      const res = await getInstructStudents(instructId, session.id_token);
+      if (!res.isError) {
+        setClassmates(res.data);
+      } else {
+
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching classmate data:', error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchClassmates = async () => {
-      try {
-        // Simulating API call
-        const response = await new Promise(resolve =>
-          setTimeout(() => resolve([
-            { id: 1, name: 'John Doe', photoUrl: null },
-            { id: 2, name: 'Jane Smith', photoUrl: 'https://example.com/jane.jpg' },
-            { id: 3, name: 'Bob Johnson', photoUrl: null },
-            { id: 4, name: 'Alice Brown', photoUrl: 'https://example.com/alice.jpg' },
-          ]), 1000)
-        );
-        setClassmates(response);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching classmate data:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchClassmates();
+    if (instructId > 0) {
+      fetchClassmates();
+    } else {
+      router.push('/');
+    }
   }, []);
 
   if (loading) {
@@ -91,18 +95,20 @@ const ClassmatePage = () => {
   }
 
   return (
-    <ClassmateContainer elevation={3}>
-      <ClassmateHeader variant="h4" component="h1">
-        Your Classmates
-      </ClassmateHeader>
+    <ClassmateContainer>
+      <TitleSection>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          Your Classmates
+        </Typography>
+      </TitleSection>
       <List>
         {classmates.map((classmate, index) => (
-          <React.Fragment key={classmate.id}>
+          <React.Fragment key={classmate.user.userId}>
             <StyledListItem>
               <ListItemAvatar>
-                <StyledAvatar src={classmate.photoUrl || '/path/to/dummy-avatar.png'} alt={classmate.name} />
+                <StyledAvatar alt={classmate.user.name} />
               </ListItemAvatar>
-              <StyledListItemText primary={classmate.name} />
+              <StyledListItemText primary={classmate.user.name} />
             </StyledListItem>
             {index < classmates.length - 1 && <Divider variant="inset" component="li" />}
           </React.Fragment>

@@ -2,15 +2,15 @@
 
 import { useRouter } from 'next/navigation';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Box, List, ListItem, ListItemIcon, Tooltip, Drawer } from '@mui/material';
 import { styled } from '@mui/system';
 import { School, AccountCircle, ExitToApp, ListAlt } from '@mui/icons-material';
 import { signOut } from "next-auth/react";
 
-const drawerWidth = '64px';
+const drawerWidth = '72px';
 
-const StyledDrawer = styled(Drawer)(() => ({
+const StyledDrawer = styled(Drawer)(({ theme }) => ({
   width: drawerWidth,
   flexShrink: 0,
   whiteSpace: 'nowrap',
@@ -21,17 +21,35 @@ const StyledDrawer = styled(Drawer)(() => ({
     position: 'fixed',
     left: 0,
     height: '100%',
-    background: 'linear-gradient(180deg, #1565C0, #1976D2)',
-    color: 'white',
+    backgroundColor: '#ffffff',
+    borderRight: '1px solid rgba(0, 0, 0, 0.12)',
   },
 }));
 
-const NavItem = styled(ListItem)`
-  transition: all 0.3s ease;
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-`;
+const NavItem = styled(ListItem)(({ theme }) => ({
+  padding: theme.spacing(2),
+  transition: 'all 0.3s ease',
+  '&:hover': {
+    backgroundColor: 'rgba(25, 118, 210, 0.04)',
+  },
+  '& .MuiListItemIcon-root': {
+    color: theme.palette.text.secondary,
+    minWidth: 'auto',
+    transition: 'color 0.3s ease',
+  },
+  '&:hover .MuiListItemIcon-root': {
+    color: theme.palette.primary.main,
+  },
+  '&.Mui-selected': {
+    backgroundColor: 'rgba(25, 118, 210, 0.08)',
+    '& .MuiListItemIcon-root': {
+      color: theme.palette.primary.main,
+    },
+    '&:hover': {
+      backgroundColor: 'rgba(25, 118, 210, 0.12)',
+    },
+  },
+}));
 
 const MainNavBar = ({ selectedItem }) => {
   const router = useRouter();
@@ -56,11 +74,6 @@ const MainNavBar = ({ selectedItem }) => {
           <Tooltip title="Courses" placement="right">
             <NavItem button onClick={() => handleItemClick('courses')} selected={selectedItem === 'courses'}>
               <ListItemIcon sx={{ color: 'white' }}><School /></ListItemIcon>
-            </NavItem>
-          </Tooltip>
-          <Tooltip title="To Do List" placement="right">
-            <NavItem button onClick={() => handleItemClick('toDoList')} selected={selectedItem === 'toDoList'}>
-              <ListItemIcon sx={{ color: 'white' }}><ListAlt /></ListItemIcon>
             </NavItem>
           </Tooltip>
           <Tooltip title="Account" placement="right">

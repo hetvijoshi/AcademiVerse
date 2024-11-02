@@ -22,6 +22,7 @@ public class Assignment {
     private Instruct instruct;
 
     private String assignmentTitle;
+    @Column(columnDefinition="TEXT")
     private String assignmentDescription;
     private LocalDateTime assignmentDueDate;
     private float assignmentWeightage;

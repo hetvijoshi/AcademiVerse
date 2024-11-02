@@ -5,11 +5,15 @@ import { Box, Typography, Paper, Chip, Button, TextField, CircularProgress } fro
 import { styled } from '@mui/system';
 import { Assignment as AssignmentIcon, CloudUpload as CloudUploadIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { getAssignmentById } from '../../../../services/assignmentService';
+import { useSession } from 'next-auth/react';
+import dayjs from 'dayjs';
 
 const DetailContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
   width: '100%',
-  backgroundColor: '#f5f5f5',
+  padding: theme.spacing(3),
+  //marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const DetailPaper = styled(Paper)(({ theme }) => ({
@@ -35,19 +39,27 @@ const AssignmentDetail = () => {
   const assignmentId = searchParams.get('assignmentId');
   const courseId = searchParams.get('id');
   const router = useRouter();
+  const { data: session } = useSession();
+
+  const fetchAssignment = async (assignmentId) => {
+    // Replace with actual API call
+    const res = await getAssignmentById(assignmentId, session.id_token);
+    if (!res.isError) {
+      const formattedData = {
+        id: res.data?.assignmentId,
+        title: res.data?.assignmentTitle,
+        description: res.data?.assignmentDescription,
+        dueDate: res.data?.assignmentDueDate,
+        totalMarks: res.data?.totalMarks
+      }
+      setAssignment(formattedData);
+    } else {
+      setSnackbarMessage(res.message);
+      setSnackbarOpen(true);
+    }
+  };
 
   useEffect(() => {
-    // Fetch assignments from API
-    const fetchAssignment = async (assignmentId) => {
-      // Replace with actual API call
-      const mockAssignments = [
-        { id: 1, title: 'Assignment 1', dueDate: '2023-06-30', description: `Dear all, Each team is required to upload a single project proposal for their group.  This proposal should outline your project's goals, methodology, timeline, and expected outcomes, resource allocation, cost estimation,.... You can get help from provided template to guide your proposal, and ensure that you include comprehensive documentation for the planning phase. Be thorough in detailing your plan, as this will serve as a foundation for the successful completion of your project. Remember, clear and complete documentation is key to a well-organized project.`, totalMarks: 10, marksObtained: 8 },
-        { id: 2, title: 'Assignment 2', dueDate: '2023-07-15', description: 'Write a report on data structures.', totalMarks: 15, marksObtained: 12 },
-        { id: 3, title: 'Assignment 3', dueDate: '2023-07-31', description: 'Develop a small web application.', totalMarks: 20, marksObtained: 18 },
-      ];
-      setAssignment(mockAssignments.find(a => a.id === parseInt(assignmentId)));
-    };
-
     fetchAssignment(assignmentId);
   }, [assignmentId]);
 
@@ -83,25 +95,24 @@ const AssignmentDetail = () => {
       >
         Back to Assignments
       </Button>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#1976d2' }}>
+      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold' }}>
         <AssignmentIcon sx={{ marginRight: 1, verticalAlign: 'middle' }} />
         {assignment.title}
       </Typography>
-      
+
       <DetailPaper elevation={3}>
-        <Typography variant="h6" color="primary" gutterBottom>
+        <Typography variant="h6" gutterBottom>
           Description
         </Typography>
-        <Typography variant="body1" gutterBottom>
+        <Typography variant="body1" gutterBottom sx={{ whiteSpace: 'pre-wrap' }}>
           {assignment.description}
         </Typography>
-        
+
         <Box sx={{ mb: 2 }}>
-          <StyledChip label={`Due: ${assignment.dueDate}`} color="primary" variant="outlined" />
+          <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY hh:mm A')}`} color="primary" variant="outlined" />
           <StyledChip label={`Total Marks: ${assignment.totalMarks}`} color="secondary" variant="outlined" />
-          <StyledChip label={`Marks Obtained: ${assignment.marksObtained}`} color="success" variant="outlined" />
         </Box>
-        
+
         <Typography variant="h6" color="primary" gutterBottom>
           Submit Assignment
         </Typography>

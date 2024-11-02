@@ -5,7 +5,9 @@ import {
   Box, Typography, List, ListItem, ListItemIcon, ListItemText,
   Accordion, AccordionSummary, AccordionDetails, CircularProgress,
   Paper, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, IconButton
+  TextField, IconButton,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import { styled } from '@mui/material';
 import {
@@ -18,15 +20,14 @@ import {
 } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getModules, saveModules } from '../../../services/moduleService';
+import { getModules, saveModules, uploadDocument } from '../../../services/moduleService';
 import { deleteDocument, saveDocument } from '../../../services/documentService';
 
 const PageContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
   width: '100%',
-  margin: '0',
-  backgroundColor: '#f5f5f5',
-  minHeight: '100vh',
+  padding: theme.spacing(3),
+  //marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
   display: 'flex',
   flexDirection: 'column',
 }));
@@ -54,11 +55,12 @@ const ModuleAccordion = styled(Accordion)(({ theme }) => ({
   '&.Mui-expanded': {
     backgroundColor: theme.palette.background.paper,
   },
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: theme.shape.borderRadius,
 }));
 
 const ModuleTitle = styled(Typography)(({ theme }) => ({
   fontWeight: 'bold',
-  color: theme.palette.primary.main,
 }));
 
 const MaterialItem = styled(ListItem)(({ theme }) => ({
@@ -161,24 +163,41 @@ const ModulePage = () => {
   const handleAddDocument = async () => {
     // Add logic to upload a document to the selected module
     if (selectedFile && selectedModuleId) {
+      const formData = new FormData();
+      formData.append('file', selectedFile);
 
-      const reqData = {
-        instructId: instructId,
-        moduleId: selectedModuleId,
-        moduleName: selectedFile.name,
-        //moduleLink: URL.createObjectURL(selectedFile),
-        moduleLink: "https://www.rd.usda.gov/sites/default/files/pdf-sample_0.pdf",
-        createdBy: session?.userDetails?.userId,
-        updatedBy: session?.userDetails?.userId
-      };
+      const res1 = await uploadDocument(formData, session.id_token);
+      if (!res1.isError) {
+        setSelectedFile(null);
 
-      const res = await saveDocument(reqData, session.id_token);
-      if (!res.isError) {
-        setSnackbar({
-          open: true,
-          message: res.message,
-          severity: 'success',
-        });
+        const reqData = {
+          instructId: instructId,
+          moduleId: selectedModuleId,
+          moduleName: selectedFile.name,
+          //moduleLink: URL.createObjectURL(selectedFile),
+          moduleLink: res1.data,
+          createdBy: session?.userDetails?.userId,
+          updatedBy: session?.userDetails?.userId
+        };
+
+        const res = await saveDocument(reqData, session.id_token);
+        if (!res.isError) {
+          setSnackbar({
+            open: true,
+            message: res.message,
+            severity: 'success',
+          });
+        } else {
+          setSnackbar({
+            open: true,
+            message: res.message,
+            severity: 'error',
+          });
+        }
+        fetchModules();
+        setOpenAddDocument(false);
+        setSelectedFile(null);
+        setSelectedModuleId(null);
       } else {
         setSnackbar({
           open: true,
@@ -186,10 +205,8 @@ const ModulePage = () => {
           severity: 'error',
         });
       }
-      fetchModules();
-      setOpenAddDocument(false);
-      setSelectedFile(null);
-      setSelectedModuleId(null);
+
+
     }
   };
 
@@ -226,10 +243,17 @@ const ModulePage = () => {
     }
   };
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
     <PageContainer>
       <ContentWrapper>
-        <Paper elevation={0} sx={{ padding: 3, backgroundColor: 'white', flexGrow: 1 }}>
+        <Paper elevation={0} sx={{ backgroundColor: 'white', flexGrow: 1 }}>
           <TitleSection>
             <Typography variant="h4" fontWeight="bold" color="primary">Course Modules</Typography>
             {isProfessor && (
@@ -302,6 +326,16 @@ const ModulePage = () => {
             ))
           )}
         </Paper>
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </ContentWrapper>
 
       {/* Add Module Dialog */}

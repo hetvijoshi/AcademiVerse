@@ -7,11 +7,14 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Assignment as AssignmentIcon } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 import AssignmentCreationPage from './assignmentCreation';
+import { getActiveAssignmentsByInstructId, getAssignmentsByInstructId } from '../../../services/assignmentService';
+import dayjs from 'dayjs';
 
 const AssignmentContainer = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
   width: '100%',
-  backgroundColor: '#f5f5f5',
+  padding: theme.spacing(3),
+  //marginLeft: theme.spacing(2),
+  backgroundColor: theme.palette.background.paper,
 }));
 
 const AssignmentItem = styled(Paper)(({ theme }) => ({
@@ -26,6 +29,13 @@ const AssignmentItem = styled(Paper)(({ theme }) => ({
   },
 }));
 
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+}));
+
 const StyledChip = styled(Chip)(({ theme }) => ({
   marginRight: theme.spacing(1),
 }));
@@ -33,26 +43,35 @@ const StyledChip = styled(Chip)(({ theme }) => ({
 const AssignmentPage = () => {
   const [assignments, setAssignments] = useState([]);
   const router = useRouter();
-  const courseId = useSearchParams().get('id');
+  const instructId = useSearchParams().get('id');
   const { data: session } = useSession();
+
+  const fetchAssignments = async () => {
+    const res = await getActiveAssignmentsByInstructId(instructId, session.id_token);
+    if (!res.isError) {
+      const formattedData = res.data.map((assignment) => ({
+        id: assignment.assignmentId,
+        title: assignment.assignmentTitle,
+        description: assignment.assignmentDescription,
+        dueDate: assignment.assignmentDueDate,
+        totalMarks: assignment.totalMarks
+      }));
+      setAssignments(formattedData);
+    } else {
+      setSnackbarMessage(res.message);
+      setSnackbarOpen(true);
+    }
+  };
 
   useEffect(() => {
     // Fetch assignments from API
-    const fetchAssignments = async () => {
-      // Replace with actual API call
-      const mockAssignments = [
-        { id: 1, title: 'Assignment 1', dueDate: '2023-06-30', description: `Dear all, Each team is required to upload a single project proposal for their group.  This proposal should outline your project's goals, methodology, timeline, and expected outcomes, resource allocation, cost estimation,.... You can get help from provided template to guide your proposal, and ensure that you include comprehensive documentation for the planning phase. Be thorough in detailing your plan, as this will serve as a foundation for the successful completion of your project. Remember, clear and complete documentation is key to a well-organized project.`, totalMarks: 10, marksObtained: 8 },
-        { id: 2, title: 'Assignment 2', dueDate: '2023-07-15', description: 'Write a report on data structures.', totalMarks: 15, marksObtained: 12 },
-        { id: 3, title: 'Assignment 3', dueDate: '2023-07-31', description: 'Develop a small web application.', totalMarks: 20, marksObtained: 18 },
-      ];
-      setAssignments(mockAssignments);
-    };
+
 
     fetchAssignments();
   }, []);
 
   const handleAssignmentClick = (assignmentId) => {
-    router.push(`/courses?id=${courseId}&section=assignmentDetail&assignmentId=${assignmentId}`);
+    router.push(`/courses?id=${instructId}&section=assignmentDetail&assignmentId=${assignmentId}`);
   };
 
   if (session?.userDetails?.role === 'professor') {
@@ -61,10 +80,12 @@ const AssignmentPage = () => {
 
   return (
     <AssignmentContainer>
-      <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', color: '#1976d2' }}>
-        <AssignmentIcon sx={{ marginRight: 1, verticalAlign: 'middle' }} />
-        Assignments
-      </Typography>
+      <TitleSection>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          <AssignmentIcon sx={{ marginRight: 1, verticalAlign: 'middle' }} />
+          Assignments
+        </Typography>
+      </TitleSection>
       <List>
         {assignments.map((assignment) => (
           <AssignmentItem
@@ -72,12 +93,12 @@ const AssignmentPage = () => {
             onClick={() => handleAssignmentClick(assignment.id)}
             elevation={2}
           >
-            <Typography variant="h6" color="primary">
+            <Typography variant="h6" >
               {assignment.title}
             </Typography>
             <Box sx={{ mt: 1 }}>
-              <StyledChip label={`Due: ${assignment.dueDate}`} color="primary" variant="outlined" size="small" />
-              <StyledChip label={`Grade: ${assignment.marksObtained}/${assignment.totalMarks}`} color="secondary" variant="outlined" size="small" />
+              <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY hh:mm A')}`} color="primary" variant="outlined" size="small" />
+              <StyledChip label={`Total marks: ${assignment.totalMarks}`} color="secondary" variant="outlined" size="small" />
             </Box>
             <Button
               variant="outlined"

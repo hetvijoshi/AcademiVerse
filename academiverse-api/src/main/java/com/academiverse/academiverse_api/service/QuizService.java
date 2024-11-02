@@ -371,16 +371,20 @@ public class QuizService {
     public BaseResponse<List<com.academiverse.academiverse_api.dto.request.Question>> generateQuiz(MultipartFile quizFile, QuizSaveRequest quizSaveRequest) throws IOException {
         String extractedText = TextExtract.extractTextFromPDF(quizFile.getInputStream());
         extractedText = extractedText.replaceAll("\\s+", " ").trim();
+        extractedText = extractedText.replaceAll("\"", "");
 
         String apiUrl = "https://api.openai.com/v1/chat/completions";
         RestTemplate restTemplate = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer sk-PhcfX4pvMHq7Df4UPpkD9GQG3CSe3yxa1qF326zeDFT3BlbkFJL6DG3-_KT40fTafSyNrimD54q2qO8zQyZ2S_sWiH4A");
+        headers.set("Authorization", "Bearer sk-dWnQ6dyQrKvqv0AgtZxlGTB7KQaSJ2XKTdED7RyW3XT3BlbkFJWkP-5ZyQ96USabgrgfauPzEwnnBjQbH1pg-LK7LxkA");
 
-        String prompt = "Using provided text, extract questions, options, and answers from the following text and format them as JSON objects: [{'questionText': '', 'options': ['', '', '', ''], 'answer': ''}]. " +
-                "Text:" + extractedText + ". Also make sure the json is valid. No special characters like ), (, ' or any such string which will make parsing json invalid.";
+        String prompt = "Using provided file text, extract questions, options, and answers from the following text and format them as JSON objects: [{'questionText': '<question text here without special characters>', 'options': ['', '', '', ''], 'answer': ''}]. Make sure:\n" +
+                "1. The JSON array contains only valid JSON characters.\n" +
+                "2. Do not include any special characters or control symbols such as newline (\\n), tabs, or escape sequences.\n" +
+                "3. Output only the JSON array without additional text. I only want json output in my response. No other text should be present in response. FileText:"
+                + extractedText;
 
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("model", "gpt-4");
