@@ -44,6 +44,13 @@ const OverallGrade = styled(Typography)(({ theme }) => ({
   fontSize: '1.3rem',
 }));
 
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+}));
+
 const GradePage = () => {
   const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -105,9 +112,11 @@ const GradePage = () => {
   } else {
     return (
       <GradeContainer>
-        <Typography variant="h4" gutterBottom align="left" style={{ marginBottom: '24px' }}>
-          Course Grades
-        </Typography>
+        <TitleSection>
+          <Typography variant="h4" fontWeight="bold" color="primary">
+            Course Grades
+          </Typography>
+        </TitleSection>
         <TableContainer component={Paper} style={{ marginBottom: '24px' }}>
           <Table>
             <TableHead>
