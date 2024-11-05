@@ -13,7 +13,9 @@ import {
   Paper,
   Button,
   CircularProgress,
-  Link
+  Link,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
@@ -47,15 +49,32 @@ const GradeCreationPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const courseId = searchParams.get('id');
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchInstructGrades = async () => {
     try {
       // Simulated API call
       const response = await getInstructGrades(courseId, session.id_token);
-      setGrades(response.data);
+      if (!response.isError) {
+        setGrades(response.data);
+      } else {
+        setSnackbar({
+          open: true,
+          message: response.message,
+          severity: 'error',
+        });
+      }
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching assignments:', error);
+      setSnackbar({
+        open: true,
+        message: "Error while fetching grades.",
+        severity: 'error',
+      });
       setLoading(false);
     }
   };
@@ -74,10 +93,17 @@ const GradeCreationPage = () => {
   const handleViewStudents = (grade) => {
     if (grade.assignmentId != null) {
       router.push(`/courses?id=${courseId}&section=gradesDetail&assignmentId=${grade.assignmentId}`);
-    }else{
+    } else {
       router.push(`/courses?id=${courseId}&section=gradesDetail&quizId=${grade.quizId}`);
     }
 
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   if (loading) {
@@ -133,6 +159,16 @@ const GradeCreationPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+      <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
     </GradeCreationContainer>
   );
 };

@@ -11,7 +11,9 @@ import {
   ListItemText,
   Paper,
   CircularProgress,
-  Divider
+  Divider,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { getInstructStudents } from '../../../services/enrollService';
@@ -62,6 +64,11 @@ const ClassmatePage = () => {
   const router = useRouter();
   const instructId = useSearchParams().get('id');
   const { data: session } = useSession();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchClassmates = async () => {
     try {
@@ -69,7 +76,11 @@ const ClassmatePage = () => {
       if (!res.isError) {
         setClassmates(res.data);
       } else {
-
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
       }
       setLoading(false);
     } catch (error) {
@@ -94,6 +105,13 @@ const ClassmatePage = () => {
     );
   }
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
     <ClassmateContainer>
       <TitleSection>
@@ -114,6 +132,16 @@ const ClassmatePage = () => {
           </React.Fragment>
         ))}
       </List>
+      <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
     </ClassmateContainer>
   );
 };

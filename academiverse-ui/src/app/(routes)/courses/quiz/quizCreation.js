@@ -124,6 +124,12 @@ const QuizCreationPage = () => {
         if (!res.isError) {
           setLoading(false);
           setQuestions(res.data);
+        }else{
+          setSnackbar({
+            open: true,
+            message: res.message,
+            severity: 'error',
+          });
         }
       } catch (error) {
         setLoading(false);

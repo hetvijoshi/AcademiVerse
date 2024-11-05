@@ -135,7 +135,11 @@ const QuizPage = () => {
           });
         }
       } catch (error) {
-        console.error('Error fetching quiz data:', error);
+        setSnackbar({
+          open: true,
+          message: "Error while fetching quizzes.",
+          severity: 'error',
+        });
       }
     }
     setLoading(false);

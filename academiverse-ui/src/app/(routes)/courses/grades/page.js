@@ -14,6 +14,8 @@ import {
   CircularProgress,
   Card,
   LinearProgress,
+  Snackbar,
+  Alert,
 } from '@mui/material';
 import { styled } from '@mui/material';
 import { useSearchParams } from 'next/navigation';
@@ -125,6 +127,11 @@ const GradePage = () => {
   const searchParams = useSearchParams();
   const courseId = searchParams.get('id');
   const { data: session } = useSession();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchGrades = async () => {
     try {
@@ -137,10 +144,18 @@ const GradePage = () => {
         calculateOverallGrade(sortedGrades);
         setLoading(false);
       } else {
-
+        setSnackbar({
+          open: true,
+          message: response.message,
+          severity: 'error',
+        });
       }
     } catch (error) {
-      console.error('Error fetching grades:', error);
+      setSnackbar({
+        open: true,
+        message: "Error while fetching grades.",
+        severity: 'error',
+      });
       setLoading(false);
     }
   };
@@ -177,6 +192,13 @@ const GradePage = () => {
       </Box>
     );
   }
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   if (session?.userDetails?.role === 'professor') {
     return <GradeCreationPage courseId={courseId} />;
@@ -261,6 +283,16 @@ const GradePage = () => {
             })}
           </TableBody>
         </Table>
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </StyledTableContainer>
     </GradeContainer>
   );

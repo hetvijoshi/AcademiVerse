@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Chip, Button, TextField, CircularProgress } from '@mui/material';
+import { Box, Typography, Paper, Chip, Button, TextField, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { styled } from '@mui/system';
 import { Assignment as AssignmentIcon, CloudUpload as CloudUploadIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -40,6 +40,11 @@ const AssignmentDetail = () => {
   const courseId = searchParams.get('id');
   const router = useRouter();
   const { data: session } = useSession();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchAssignment = async (assignmentId) => {
     // Replace with actual API call
@@ -54,8 +59,11 @@ const AssignmentDetail = () => {
       }
       setAssignment(formattedData);
     } else {
-      setSnackbarMessage(res.message);
-      setSnackbarOpen(true);
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
     }
   };
 
@@ -85,6 +93,13 @@ const AssignmentDetail = () => {
   if (!assignment) {
     return <Typography>Assignment not found</Typography>;
   }
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   return (
     <DetailContainer>
@@ -137,6 +152,16 @@ const AssignmentDetail = () => {
           {uploading ? 'Uploading...' : 'Upload Assignment'}
         </UploadButton>
       </DetailPaper>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </DetailContainer>
   );
 };

@@ -8,7 +8,9 @@ import {
   Typography,
   IconButton,
   CircularProgress,
-  Paper
+  Paper,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { styled } from '@mui/system';
 import { CheckCircle as DoneIcon } from '@mui/icons-material';
@@ -75,6 +77,11 @@ const ToDoListScreen = () => {
   const router = useRouter();
   const instructId = useSearchParams().get('id');
   const { data: session } = useSession();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchTodos = async () => {
     try {
@@ -84,9 +91,18 @@ const ToDoListScreen = () => {
         setLoading(false);
       } else {
         setLoading(false);
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
       }
     } catch (error) {
-      console.error('Error fetching todos:', error);
+      setSnackbar({
+        open: true,
+        message: "Error while fetching todos.",
+        severity: 'error',
+      });
       setLoading(false);
     }
   };
@@ -104,8 +120,20 @@ const ToDoListScreen = () => {
         setLoading(false);
       } else {
         setLoading(false);
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
       }
     }
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -146,6 +174,16 @@ const ToDoListScreen = () => {
           </TodoContainer2>
         )}
       </ContentSection>
+      <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
     </TodoContainer>
   );
 };

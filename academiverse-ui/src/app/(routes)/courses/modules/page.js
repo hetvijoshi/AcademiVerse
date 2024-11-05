@@ -122,7 +122,11 @@ const ModulePage = () => {
       setExpandedModules(initialExpandedState);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching modules:', error);
+      setSnackbar({
+        open: true,
+        message: "Error while fetching modules.",
+        severity: 'error',
+      });
       setLoading(false);
     }
   };

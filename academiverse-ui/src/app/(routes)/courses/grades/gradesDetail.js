@@ -14,7 +14,9 @@ import {
   TextField,
   Button,
   CircularProgress,
-  InputAdornment
+  InputAdornment,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
@@ -54,6 +56,11 @@ const GradesDetail = () => {
   const courseId = searchParams.get('id');
   const quizId = searchParams.get('quizId');
   const assignmentId = searchParams.get('assignmentId');
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchStudentGrades = async () => {
     try {
@@ -74,10 +81,19 @@ const GradesDetail = () => {
         setStudents([]);
         setFilteredStudents([]);
         setLoading(false);
+        setSnackbar({
+          open: true,
+          message: response.message,
+          severity: 'error',
+        });
       }
 
     } catch (error) {
-      console.error('Error fetching student grades:', error);
+      setSnackbar({
+        open: true,
+        message: response.message,
+        severity: 'error',
+      });
       setLoading(false);
     }
   };
@@ -115,7 +131,11 @@ const GradesDetail = () => {
     if (!res.isError) {
       fetchStudentGrades();
     } else {
-      console.error('Error fetching student grades:', error);
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
       setLoading(false);
     }
   };
@@ -126,6 +146,13 @@ const GradesDetail = () => {
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   if (loading) {
@@ -203,6 +230,16 @@ const GradesDetail = () => {
           Save Grades
         </Button>
       </Box>
+      <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
     </StudentGradesContainer>
   );
 };

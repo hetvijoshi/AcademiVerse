@@ -75,12 +75,16 @@ const AssignmentCreationPage = () => {
 		totalMarks: 0,
 	});
 	const [editAssignment, setEditAssignment] = useState(null);
-	const [snackbarOpen, setSnackbarOpen] = useState(false);
-	const [snackbarMessage, setSnackbarMessage] = useState("");
 	const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 	const [assignmentToDelete, setAssignmentToDelete] = useState(null);
 	const searchParams = useSearchParams();
 	const instructId = searchParams.get("id");
+	const [snackbar, setSnackbar] = useState({
+		open: false,
+		message: '',
+		severity: 'success',
+	});
+
 	const fetchAssignment = async () => {
 		const response = await getAssignmentsByInstructId(
 			instructId,
@@ -97,7 +101,11 @@ const AssignmentCreationPage = () => {
 			}));
 			setAssignments(mappedAssignments);
 		} else {
-			console.error("No assignments data received from API");
+			setSnackbar({
+				open: true,
+				message: response.message,
+				severity: 'error',
+			});
 			setAssignments([]);
 		}
 	};
@@ -120,25 +128,36 @@ const AssignmentCreationPage = () => {
 			updatedBy: session?.userDetails?.userId
 		};
 		// Send the formatted data to the API
-		await postAssignmentsByInstructId(
+		const res = await postAssignmentsByInstructId(
 			formattedData,
 			session.id_token,
 		);
+		if (!res.isError) {
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: 'success',
+			});
+		}
 		await fetchAssignment();
 		setOpenDialog(false);
-		setSnackbarMessage("Assignment created successfully!");
-		setSnackbarOpen(true);
 	};
 
 	const handleToggleAssignment = async (id) => {
 		const res = await activeAssignment(id, session.id_token);
 		if (!res.isError) {
 			await fetchAssignment();
-			setSnackbarMessage(res.message);
-			setSnackbarOpen(true);
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: 'success',
+			});
 		} else {
-			setSnackbarMessage(res.message);
-			setSnackbarOpen(true);
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: 'error',
+			});
 		}
 	};
 
@@ -165,11 +184,17 @@ const AssignmentCreationPage = () => {
 		const res = await updateAssignment(formattedData, session.id_token);
 		if (!res.isError) {
 			await fetchAssignment();
-			setSnackbarMessage(res.message);
-			setSnackbarOpen(true);
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: 'success',
+			});
 		} else {
-			setSnackbarMessage(res.message);
-			setSnackbarOpen(true);
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: 'error',
+			});
 		}
 
 		setEditDialogOpen(false);
@@ -187,11 +212,17 @@ const AssignmentCreationPage = () => {
 			await fetchAssignment();
 			setDeleteDialogOpen(false);
 			setAssignmentToDelete(null);
-			setSnackbarMessage(res.message);
-			setSnackbarOpen(true);
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: 'success',
+			});
 		} else {
-			setSnackbarMessage(res.message);
-			setSnackbarOpen(true);
+			setSnackbar({
+				open: true,
+				message: res.message,
+				severity: 'error',
+			});
 		}
 	};
 
@@ -202,6 +233,13 @@ const AssignmentCreationPage = () => {
 			</Typography>
 		);
 	}
+
+	const handleCloseSnackbar = (event, reason) => {
+		if (reason === 'clickaway') {
+			return;
+		}
+		setSnackbar({ ...snackbar, open: false });
+	};
 
 	return (
 		<PageContainer>
@@ -237,6 +275,17 @@ const AssignmentCreationPage = () => {
 					</AssignmentItem>
 				))}
 			</List>
+
+			<Snackbar
+				open={snackbar.open}
+				autoHideDuration={6000}
+				onClose={handleCloseSnackbar}
+				anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+			>
+				<Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+					{snackbar.message}
+				</Alert>
+			</Snackbar>
 
 			<Dialog
 				open={openDialog}
@@ -418,16 +467,6 @@ const AssignmentCreationPage = () => {
 					</Button>
 				</DialogActions>
 			</Dialog>
-
-			<Snackbar
-				open={snackbarOpen}
-				autoHideDuration={6000}
-				onClose={() => setSnackbarOpen(false)}
-			>
-				<Alert severity="success" sx={{ width: "100%" }}>
-					{snackbarMessage}
-				</Alert>
-			</Snackbar>
 		</PageContainer>
 	);
 };

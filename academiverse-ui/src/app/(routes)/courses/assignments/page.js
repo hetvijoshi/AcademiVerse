@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, List, Paper, Chip, Button } from '@mui/material';
+import { Box, Typography, List, Paper, Chip, Button, Snackbar, Alert } from '@mui/material';
 import { styled } from '@mui/system';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Assignment as AssignmentIcon } from '@mui/icons-material';
@@ -45,6 +45,11 @@ const AssignmentPage = () => {
   const router = useRouter();
   const instructId = useSearchParams().get('id');
   const { data: session } = useSession();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchAssignments = async () => {
     const res = await getActiveAssignmentsByInstructId(instructId, session.id_token);
@@ -58,8 +63,11 @@ const AssignmentPage = () => {
       }));
       setAssignments(formattedData);
     } else {
-      setSnackbarMessage(res.message);
-      setSnackbarOpen(true);
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
     }
   };
 
@@ -77,6 +85,13 @@ const AssignmentPage = () => {
   if (session?.userDetails?.role === 'professor') {
     return <AssignmentCreationPage />;
   }
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   return (
     <AssignmentContainer>
@@ -115,6 +130,16 @@ const AssignmentPage = () => {
           </AssignmentItem>
         ))}
       </List>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </AssignmentContainer>
   );
 };
