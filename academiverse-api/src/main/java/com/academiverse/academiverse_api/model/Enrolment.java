@@ -16,8 +16,7 @@ public class Enrolment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long enrolmentId;
-
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "userId", referencedColumnName = "userId", nullable = false)
     private User user; // Student ID
     @ManyToOne

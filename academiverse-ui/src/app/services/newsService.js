@@ -1,5 +1,3 @@
-const GUARDIAN_API_KEY = '33e14e04-671d-4910-91c2-27e08020b37d';
-
 const getDepartmentSpecificQuery = (department) => {
     // Map department names to relevant search queries
     const queryMap = {
@@ -19,7 +17,7 @@ export const fetchEducationNews = async (department) => {
     try {
         const searchQuery = getDepartmentSpecificQuery(department);
         const response = await fetch(
-            `https://content.guardianapis.com/search?q=${searchQuery}&show-fields=thumbnail,headline,trailText&api-key=${GUARDIAN_API_KEY}&page-size=5`
+            `https://content.guardianapis.com/search?q=${searchQuery}&show-fields=thumbnail,headline,trailText&api-key=${process.env.GUARDIAN_API_KEY || '33e14e04-671d-4910-91c2-27e08020b37d'}&page-size=5`
         );
         const data = await response.json();
         return data.response.results;

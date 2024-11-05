@@ -38,6 +38,7 @@ public class QuizService {
     private final InstructRepository instructRepository;
     private final GradeRepository gradeRepository;
     private final EnrolmentRepository enrolmentRepository;
+    private final ToDoService toDoService;
 
     public BaseResponse<List<Quiz>> getProfQuizzes(long instructId){
         BaseResponse<List<Quiz>> res = new BaseResponse<>();
@@ -172,6 +173,8 @@ public class QuizService {
                 questionList.add(que);
             });
             List<Question> savedQuestionList = questionRepository.saveAll(questionList);
+
+            toDoService.generateToDoForInstruct(savedQuiz.getInstruct().getInstructId(), "Complete " + savedQuiz.getQuizName(), savedQuiz.getQuizDueDate());
 
             BaseResponse<Quiz> response = new BaseResponse<>();
             response.data = q;

@@ -579,7 +579,223 @@ const CourseScreen = () => {
 					</CourseContainer>
 				</ContentSection>
 			</Box>
+			<Dialog open={openAddCourseDialog} onClose={handleCloseAddCourseDialog}>
+				<DialogTitle>Add New Course</DialogTitle>
+				<DialogContent>
+					<Autocomplete
+						options={departments}
+						getOptionLabel={(option) => option.departmentName}
+						value={newCourse.department}
+						onChange={(_, newValue) =>
+							handleNewCourseChange("department", newValue)
+						}
+						renderInput={(params) => (
+							<TextField
+								{...params}
+								label="Select Department"
+								fullWidth
+								sx={{ mt: 2 }}
+							/>
+						)}
+					/>
 
+					<Autocomplete
+						options={courseList}
+						getOptionLabel={(option) => `${option.courseCode}: ${option.courseName}`}
+						value={newCourse.course}
+						onChange={(_, newValue) =>
+							handleNewCourseChange("course", newValue)
+						}
+						renderInput={(params) => (
+							<TextField
+								{...params}
+								label="Select Course"
+								fullWidth
+								sx={{ mt: 2 }}
+							/>
+						)}
+					/>
+
+					<TextField
+						fullWidth
+						label="Course Capacity"
+						type="number"
+						value={newCourse.capacity}
+						onChange={(e) => handleNewCourseChange("capacity", e.target.value)}
+						sx={{ mt: 2 }}
+					/>
+
+					<Box sx={{ mt: 2 }}>
+						{days.map((day) => (
+							<FormControlLabel
+								key={day}
+								control={
+									<Checkbox
+										checked={newCourse.days.includes(day)}
+										onChange={(e) => {
+											let newDays;
+											if (e.target.checked) {
+												newDays = [...newCourse.days, day];
+											} else {
+												newDays = newCourse.days.filter((d) => d !== day);
+											}
+											// Sort the days according to their order in the 'days' array
+											newDays.sort((a, b) => days.indexOf(a) - days.indexOf(b));
+											handleNewCourseChange("days", newDays);
+										}}
+									/>
+								}
+								label={day}
+							/>
+						))}
+					</Box>
+
+					<TextField
+						fullWidth
+						label="Start Time"
+						type="time"
+						value={newCourse.startTime}
+						onChange={(e) => handleNewCourseChange("startTime", e.target.value)}
+						InputLabelProps={{ shrink: true }}
+						inputProps={{ step: 300 }}
+						sx={{ mt: 2 }}
+					/>
+
+					<TextField
+						fullWidth
+						label="End Time"
+						type="time"
+						value={newCourse.endTime}
+						onChange={(e) => handleNewCourseChange("endTime", e.target.value)}
+						InputLabelProps={{ shrink: true }}
+						inputProps={{ step: 300 }}
+						sx={{ mt: 2 }}
+					/>
+
+					<Select
+						fullWidth
+						value={newCourse.semester}
+						onChange={(e) => handleNewCourseChange("semester", e.target.value)}
+						displayEmpty
+						sx={{ mt: 2 }}
+					>
+						<MenuItem value="" disabled>
+							Select Semester
+						</MenuItem>
+						{semesters.map((sem) => (
+							<MenuItem key={sem} value={sem}>
+								{sem}
+							</MenuItem>
+						))}
+					</Select>
+
+					<TextField
+						fullWidth
+						label="Year"
+						type="number"
+						value={newCourse.year}
+						onChange={(e) => handleNewCourseChange("year", e.target.value)}
+						sx={{ mt: 2 }}
+					/>
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleCloseAddCourseDialog}>Cancel</Button>
+					<Button
+						onClick={handleSaveNewCourse}
+						variant="contained"
+						color="primary"
+					>
+						Save
+					</Button>
+				</DialogActions>
+			</Dialog>
+
+			<Dialog open={openEditCourseDialog} onClose={handleCloseEditCourseDialog}>
+				<DialogTitle>Edit Course</DialogTitle>
+				<DialogContent>
+					{editingCourse && (
+						<>
+							<TextField
+								fullWidth
+								label="Course Name"
+								value={editingCourse.name}
+								onChange={(e) => handleEditCourseChange("name", e.target.value)}
+								sx={{ mt: 2 }}
+								disabled
+							/>
+							<TextField
+								fullWidth
+								label="Course Capacity"
+								type="number"
+								value={editingCourse.capacity}
+								onChange={(e) => handleEditCourseChange("capacity", e.target.value)}
+								sx={{ mt: 2 }}
+							/>
+							<Box sx={{ mt: 2 }}>
+								{days.map((day) => (
+									<FormControlLabel
+										key={day}
+										control={
+											<Checkbox
+												checked={editingCourse.days.includes(day)}
+												onChange={(e) => {
+													let newDays;
+													if (e.target.checked) {
+														newDays = [...editingCourse.days, day];
+														newDays.sort(
+															(a, b) => days.indexOf(a) - days.indexOf(b),
+														);
+													} else {
+														newDays = editingCourse.days.filter(
+															(d) => d !== day,
+														);
+													}
+													handleEditCourseChange("days", newDays);
+												}}
+											/>
+										}
+										label={day}
+									/>
+								))}
+							</Box>
+							<TextField
+								fullWidth
+								label="Start Time"
+								type="time"
+								value={editingCourse.startTime}
+								onChange={(e) =>
+									handleEditCourseChange("startTime", e.target.value)
+								}
+								InputLabelProps={{ shrink: true }}
+								inputProps={{ step: 300 }}
+								sx={{ mt: 2 }}
+							/>
+							<TextField
+								fullWidth
+								label="End Time"
+								type="time"
+								value={editingCourse.endTime}
+								onChange={(e) =>
+									handleEditCourseChange("endTime", e.target.value)
+								}
+								InputLabelProps={{ shrink: true }}
+								inputProps={{ step: 300 }}
+								sx={{ mt: 2 }}
+							/>
+						</>
+					)}
+				</DialogContent>
+				<DialogActions>
+					<Button onClick={handleCloseEditCourseDialog}>Cancel</Button>
+					<Button
+						onClick={handleSaveEditedCourse}
+						variant="contained"
+						color="primary"
+					>
+						Save
+					</Button>
+				</DialogActions>
+			</Dialog>
 			<NewsWidget />
 		</Box>
 	);
