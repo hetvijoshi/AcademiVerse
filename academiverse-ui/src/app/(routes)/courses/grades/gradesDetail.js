@@ -21,6 +21,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SearchIcon from '@mui/icons-material/Search';
+import { getAssignmentGrades, getQuizGrades, saveGrades } from '../../../services/gradeService';
 
 const StudentGradesContainer = styled(Box)(({ theme }) => ({
   padding: theme.spacing(4),
@@ -41,7 +42,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const GradesDetail = ({ assignmentId }) => {
+const GradesDetail = () => {
   const [students, setStudents] = useState([]);
   const [filteredStudents, setFilteredStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,35 @@ const GradesDetail = ({ assignmentId }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const courseId = searchParams.get('id');
+  const quizId = searchParams.get('quizId');
+  const assignmentId = searchParams.get('assignmentId');
+
+  const fetchStudentGrades = async () => {
+    try {
+      let response = []
+      if (quizId != null) {
+        response = await getQuizGrades(quizId, session.id_token);
+      } else {
+        response = await getAssignmentGrades(assignmentId, session.id_token);
+      }
+      if (!response.isError) {
+        response = response.data;
+        setAssignmentName(response.quiz != null ? response.quiz.quizName : response.assignment.assignmentTitle);
+        setStudents(response.grades);
+        setFilteredStudents(response.grades);
+        setLoading(false);
+      } else {
+        setAssignmentName('');
+        setStudents([]);
+        setFilteredStudents([]);
+        setLoading(false);
+      }
+
+    } catch (error) {
+      console.error('Error fetching student grades:', error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (session?.userDetails?.role !== 'professor') {
@@ -58,36 +88,12 @@ const GradesDetail = ({ assignmentId }) => {
       return;
     }
 
-    const fetchStudentGrades = async () => {
-      try {
-        // Simulated API call
-        const response = await new Promise(resolve =>
-          setTimeout(() => resolve({
-            assignmentName: 'Assignment 1',
-            students: [
-              { id: 1, name: 'John Doe', obtainedMarks: 85, totalMarks: 100 },
-              { id: 2, name: 'Jane Smith', obtainedMarks: 92, totalMarks: 100 },
-              { id: 3, name: 'Alice Johnson', obtainedMarks: 78, totalMarks: 100 },
-              // Add more student data as needed
-            ]
-          }), 1000)
-        );
-        setAssignmentName(response.assignmentName);
-        setStudents(response.students);
-        setFilteredStudents(response.students);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching student grades:', error);
-        setLoading(false);
-      }
-    };
-
     fetchStudentGrades();
   }, [session, router, assignmentId]);
 
   useEffect(() => {
     const filtered = students.filter(student =>
-      student.name.toLowerCase().includes(searchTerm.toLowerCase())
+      student.user.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredStudents(filtered);
   }, [searchTerm, students]);
@@ -95,15 +101,23 @@ const GradesDetail = ({ assignmentId }) => {
   const handleMarksChange = (studentId, field, value) => {
     setStudents(prevStudents =>
       prevStudents.map(student =>
-        student.id === studentId ? { ...student, [field]: Number(value) } : student
+        student.user.userId === studentId ? { ...student, [field]: Number(value) } : student
       )
     );
   };
 
   const handleSaveGrades = async () => {
-    // Implement the logic to save the updated grades
-    console.log('Saving grades:', students);
-    // You would typically make an API call here to update the grades in the backend
+    setLoading(true);
+    const reqData = {
+      grades: students
+    };
+    const res = await saveGrades(reqData, session.id_token);
+    if (!res.isError) {
+      fetchStudentGrades();
+    } else {
+      console.error('Error fetching student grades:', error);
+      setLoading(false);
+    }
   };
 
   const handleBack = () => {
@@ -158,15 +172,16 @@ const GradesDetail = ({ assignmentId }) => {
           </TableHead>
           <TableBody>
             {filteredStudents.map((student) => (
-              <StyledTableRow key={student.id}>
+              <StyledTableRow key={student.user.userId}>
                 <TableCell component="th" scope="row" style={{ padding: '16px' }}>
-                  {student.name}
+                  {student.user.name}
                 </TableCell>
                 <TableCell align="center" style={{ padding: '16px' }}>
                   <TextField
                     type="number"
+                    disabled={quizId != null}
                     value={student.obtainedMarks}
-                    onChange={(e) => handleMarksChange(student.id, 'obtainedMarks', e.target.value)}
+                    onChange={(e) => handleMarksChange(student.user.userId, 'obtainedMarks', e.target.value)}
                     inputProps={{ min: 0, max: student.totalMarks }}
                   />
                 </TableCell>
@@ -184,7 +199,7 @@ const GradesDetail = ({ assignmentId }) => {
         </Table>
       </TableContainer>
       <Box display="flex" justifyContent="flex-end">
-        <Button variant="contained" color="primary" onClick={handleSaveGrades}>
+        <Button variant="contained" color="primary" onClick={handleSaveGrades} disabled={quizId != null}>
           Save Grades
         </Button>
       </Box>

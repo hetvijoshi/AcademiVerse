@@ -20,6 +20,8 @@ import { useSearchParams } from 'next/navigation';
 import GradeCreationPage from './gradeCreation';
 import { useSession } from 'next-auth/react';
 import { Grade as GradeIcon } from '@mui/icons-material';
+import { getStudentGrades } from '../../../services/gradeService'
+import dayjs from 'dayjs';
 
 const GradeContainer = styled(Box)(({ theme }) => ({
   width: '100%',
@@ -124,34 +126,32 @@ const GradePage = () => {
   const courseId = searchParams.get('id');
   const { data: session } = useSession();
 
-  useEffect(() => {
-    const fetchGrades = async () => {
-      try {
-        // Simulated API call
-        const response = await new Promise(resolve =>
-          setTimeout(() => resolve([
-            { id: 1, name: 'Assignment 1', marksObtained: 85, totalMarks: 100, dueDate: '2023-06-30', submittedDate: '2023-06-29' },
-            { id: 2, name: 'Quiz 1', marksObtained: 18, totalMarks: 20, dueDate: '2023-07-15', submittedDate: '2023-07-15' },
-            { id: 3, name: 'Assignment 2', marksObtained: 92, totalMarks: 100, dueDate: '2023-07-31', submittedDate: '2023-07-30' },
-          ]), 1000)
-        );
-        // Sort the grades by due date in ascending order
-        const sortedGrades = response.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+  const fetchGrades = async () => {
+    try {
+      // Simulated API call
+      const response = await getStudentGrades(courseId, session.userDetails?.userId, session.id_token);
+      if (!response.isError) {
+        const data = response.data;
+        const sortedGrades = data.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
         setGrades(sortedGrades);
         calculateOverallGrade(sortedGrades);
         setLoading(false);
-      } catch (error) {
-        console.error('Error fetching grades:', error);
-        setLoading(false);
-      }
-    };
+      } else {
 
+      }
+    } catch (error) {
+      console.error('Error fetching grades:', error);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchGrades();
   }, [courseId]);
 
   const calculateOverallGrade = (grades) => {
     const totalMarks = grades.reduce((sum, grade) => sum + grade.totalMarks, 0);
-    const obtainedMarks = grades.reduce((sum, grade) => sum + grade.marksObtained, 0);
+    const obtainedMarks = grades.reduce((sum, grade) => sum + grade.obtainedMarks, 0);
     const percentage = (obtainedMarks / totalMarks) * 100;
 
     let grade;
@@ -166,7 +166,7 @@ const GradePage = () => {
 
   const calculatePercentage = (grades) => {
     const totalMarks = grades.reduce((sum, grade) => sum + grade.totalMarks, 0);
-    const obtainedMarks = grades.reduce((sum, grade) => sum + grade.marksObtained, 0);
+    const obtainedMarks = grades.reduce((sum, grade) => sum + grade.obtainedMarks, 0);
     return (obtainedMarks / totalMarks) * 100;
   };
 
@@ -211,7 +211,7 @@ const GradePage = () => {
             sx={{ mb: 1 }}
           />
           <Typography variant="body2" color="text.secondary">
-            Total Points: {grades.reduce((sum, grade) => sum + grade.marksObtained, 0)} / {grades.reduce((sum, grade) => sum + grade.totalMarks, 0)}
+            Total Points: {grades.reduce((sum, grade) => sum + grade.obtainedMarks, 0)} / {grades.reduce((sum, grade) => sum + grade.totalMarks, 0)}
           </Typography>
         </Box>
       </GradeCard>
@@ -224,19 +224,19 @@ const GradePage = () => {
               <TableCell align="center">Score</TableCell>
               <TableCell align="center">Out of</TableCell>
               <TableCell align="center">Percentage</TableCell>
-              <TableCell align="right">Due Date</TableCell>
-              <TableCell align="right">Submitted</TableCell>
+              <TableCell align="center">Due Date</TableCell>
+              <TableCell align="center">Submitted</TableCell>
             </TableRow>
           </StyledTableHead>
           <TableBody>
             {grades.map((grade) => {
-              const percentage = (grade.marksObtained / grade.totalMarks) * 100;
+              const percentage = (grade.obtainedMarks / grade.totalMarks) * 100;
               return (
-                <StyledTableRow key={grade.id}>
+                <StyledTableRow key={grade.gradeId}>
                   <TableCell component="th" scope="row" sx={{ fontWeight: 500 }}>
-                    {grade.name}
+                    {grade.gradeTitle}
                   </TableCell>
-                  <TableCell align="center">{grade.marksObtained}</TableCell>
+                  <TableCell align="center">{grade.obtainedMarks}</TableCell>
                   <TableCell align="center">{grade.totalMarks}</TableCell>
                   <TableCell align="center">
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -250,11 +250,11 @@ const GradePage = () => {
                       </Typography>
                     </Box>
                   </TableCell>
-                  <TableCell align="right">
-                    {new Date(grade.dueDate).toLocaleDateString()}
+                  <TableCell align="center">
+                    {dayjs(grade.quiz !== null ? grade.quiz.quizDueDate : grade.assignment.assignmentDueDate).format('YYYY-MM-DD hh:mm A')}
                   </TableCell>
-                  <TableCell align="right">
-                    {new Date(grade.submittedDate).toLocaleDateString()}
+                  <TableCell align="center">
+                    {dayjs(grade.createdAt).format('YYYY-MM-DD hh:mm A')}
                   </TableCell>
                 </StyledTableRow>
               );

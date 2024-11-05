@@ -1,80 +1,244 @@
 package com.academiverse.academiverse_api.service;
 
 import com.academiverse.academiverse_api.dto.request.GradeSaveRequest;
-import com.academiverse.academiverse_api.dto.request.GradeUpdateRequest; // Importing GradeUpdateRequest
+import com.academiverse.academiverse_api.dto.response.AssignmentGradeResponse;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
+import com.academiverse.academiverse_api.dto.response.InstructGradeResponse;
+import com.academiverse.academiverse_api.dto.response.QuizGradeResponse;
+import com.academiverse.academiverse_api.model.Enrolment;
 import com.academiverse.academiverse_api.model.Grade;
 import com.academiverse.academiverse_api.model.Assignment;
+import com.academiverse.academiverse_api.model.Quiz;
 import com.academiverse.academiverse_api.repository.AssignmentRepository;
+import com.academiverse.academiverse_api.repository.EnrolmentRepository;
 import com.academiverse.academiverse_api.repository.GradeRepository;
+import com.academiverse.academiverse_api.repository.QuizRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class GradeService {
     private final GradeRepository gradeRepository;
     private final AssignmentRepository assignmentRepository;
+    private final QuizRepository quizRepository;
+    private final EnrolmentRepository enrolmentRepository;
 
-    public GradeService(GradeRepository gradeRepository, AssignmentRepository assignmentRepository) {
-        this.gradeRepository = gradeRepository;
-        this.assignmentRepository = assignmentRepository;
+    public BaseResponse<List<Grade>> getStudentGrades(Long instructId, Long studentId) {
+        List<Quiz> quizzes= quizRepository.findByInstructInstructIdAndIsActive(instructId, true);
+        List<Assignment> assignmentList= assignmentRepository.findByInstructInstructIdAndActive(instructId, true);
+
+        List<Grade> resList = new ArrayList<>();
+        if(quizzes.size() >= 0 || assignmentList.size() >= 0){
+            resList.addAll(gradeRepository.findByAssignmentAssignmentIdInAndUserUserId(assignmentList.stream().map(a->a.getAssignmentId()).toList(), studentId));
+            resList.addAll(gradeRepository.findByQuizQuizIdInAndUserUserId(quizzes.stream().map(a->a.getQuizId()).toList(), studentId));
+        }
+
+        BaseResponse<List<Grade>> res = new BaseResponse<>();
+        res.data = resList;
+        res.isError = false;
+        res.message = "Grades fetched successfully.";
+        return res;
     }
 
-    public BaseResponse<Grade> addAssignmentGrade(GradeSaveRequest request) {
-        BaseResponse<Grade> response = new BaseResponse<>();
+    public BaseResponse<List<InstructGradeResponse>> getInstructGrades(Long instructId) {
+        List<Quiz> quizzes= quizRepository.findByInstructInstructIdAndIsActive(instructId, true);
+        List<Assignment> assignmentList= assignmentRepository.findByInstructInstructIdAndActive(instructId, true);
+        List<Enrolment> el = enrolmentRepository.findByInstructInstructId(instructId);
 
-        // Find the associated assignment
-        Assignment assignment = assignmentRepository.findById(request.assignmentId)
-                .orElseThrow(() -> new RuntimeException("Assignment not found."));
+        List<Grade> resList = new ArrayList<>();
+        if(quizzes.size() >= 0 || assignmentList.size() >= 0){
+            resList.addAll(gradeRepository.findByAssignmentAssignmentIdIn(assignmentList.stream().map(a->a.getAssignmentId()).toList()));
+            resList.addAll(gradeRepository.findByQuizQuizIdIn(quizzes.stream().map(a->a.getQuizId()).toList()));
+        }
 
-        // Create a new Grade object
-        Grade grade = new Grade();
-        grade.setAssignment(assignment);
-        grade.setUserId(request.studentId);
-        grade.setObtainedMarks(request.marks);
-        grade.setCreatedAt(LocalDateTime.now());
-        grade.setUpdatedAt(LocalDateTime.now());
-        grade.setCreatedBy(request.createdBy);
-        grade.setUpdatedBy(request.updatedBy);
+        List<InstructGradeResponse> aggRes = new ArrayList<>();
+        aggRes.addAll(quizzes.stream().map(
+                (q) ->{
+                    List<Integer> marks = resList.stream().filter(g-> g.getQuiz() != null && g.getQuiz().getQuizId() == q.getQuizId()).map(g->g.getObtainedMarks()).toList();
+                    InstructGradeResponse instructGradeResponse = new InstructGradeResponse();
+                    instructGradeResponse.quizId = q.getQuizId();
+                    instructGradeResponse.gradeTitle = q.getQuizName();
+                    instructGradeResponse.totalMarks = q.getTotalMarks();
+                    instructGradeResponse.minMarks = marks.stream().min(Integer::compare).isPresent() ? marks.stream().min(Integer::compare).get():0;
+                    instructGradeResponse.maxMarks = marks.stream().max(Integer::compare).isPresent() ? marks.stream().max(Integer::compare).get():0;
+                    instructGradeResponse.avgMarks = marks.size() > 0 ? marks.stream().reduce(0,(sub,element)-> sub + element)/marks.size() : 0;
+                    instructGradeResponse.submittedCount = marks.size();
+                    instructGradeResponse.totalStudents = el.size();
+                    return  instructGradeResponse;
+                }
+        ).toList());
 
-        // Save the grade to the repository
-        Grade savedGrade = gradeRepository.save(grade);
-        response.data = savedGrade; // Assign the saved grade to response data
-        response.isError = false;
-        response.message = "Grade added successfully.";
-        return response;
+        aggRes.addAll(assignmentList.stream().map(
+                (a) ->{
+                    List<Integer> marks = resList.stream().filter(g-> g.getAssignment() != null && g.getAssignment().getAssignmentId() == a.getAssignmentId()).map(g->g.getObtainedMarks()).toList();
+                    InstructGradeResponse instructGradeResponse = new InstructGradeResponse();
+                    instructGradeResponse.assignmentId = a.getAssignmentId();
+                    instructGradeResponse.gradeTitle = a.getAssignmentTitle();
+                    instructGradeResponse.totalMarks = a.getTotalMarks();
+                    instructGradeResponse.minMarks = marks.stream().min(Integer::compare).isPresent() ? marks.stream().min(Integer::compare).get() : 0;
+                    instructGradeResponse.maxMarks = marks.stream().max(Integer::compare).isPresent() ? marks.stream().max(Integer::compare).get() : 0;
+                    instructGradeResponse.avgMarks = marks.size() > 0 ? marks.stream().reduce(0,(sub,element)-> sub + element)/marks.size() : 0;
+                    instructGradeResponse.submittedCount = marks.size();
+                    instructGradeResponse.totalStudents = el.size();
+                    return  instructGradeResponse;
+                }
+        ).toList());
+
+        BaseResponse<List<InstructGradeResponse>> res = new BaseResponse<>();
+        res.data = aggRes;
+        res.isError = false;
+        res.message = "Grades fetched successfully.";
+        return res;
     }
 
-    public BaseResponse<List<Grade>> getStudentGrades(Long studentId) {
-        BaseResponse<List<Grade>> response = new BaseResponse<>();
-        List<Grade> grades = gradeRepository.findByStudentId(studentId); // Ensure this method exists
-        response.data = grades; // Assign the list of grades to response data
-        response.isError = false; // No error, so set to false
-        response.message = "List of grades retrieved successfully.";
-        return response;
+    public BaseResponse<AssignmentGradeResponse> getAssignmentGrades(Long assignmentId){
+        AssignmentGradeResponse res = new AssignmentGradeResponse();
+        Optional<Assignment> assignment = assignmentRepository.findById(assignmentId);
+        if(assignment.isPresent()){
+            res.assignment = assignment.get();
+            res.grades = new ArrayList<>();
+            List<Enrolment> enrolments = enrolmentRepository.findByInstructInstructId(assignment.get().getInstruct().getInstructId());
+            List<Grade> grades = gradeRepository.findByAssignmentAssignmentId(assignmentId);
+            res.grades.addAll(enrolments.stream().map(e->{
+                Optional<Grade> sg = grades.stream().filter(g-> g.getUser().getUserId() == e.getUser().getUserId()).findFirst();
+                if(sg.isPresent()){
+                    return sg.get();
+                }else{
+                    Grade g = new Grade();
+                    g.setGradeTitle(res.assignment.getAssignmentTitle());
+                    g.setObtainedMarks(0);
+                    g.setTotalMarks(res.assignment.getTotalMarks());
+                    g.setUser(e.getUser());
+                    g.setAssignment(res.assignment);
+                    g.setCreatedBy(e.getUser().getUserId());
+                    g.setUpdatedBy(e.getUser().getUserId());
+                    g.setCreatedAt(LocalDateTime.now());
+                    g.setUpdatedAt(LocalDateTime.now());
+                    return g;
+                }
+            }).toList());
+
+            BaseResponse<AssignmentGradeResponse> agr = new BaseResponse<>();
+            agr.data = res;
+            agr.message = "Student grades fetched.";
+            agr.isError = false;
+            return agr;
+        }else{
+            BaseResponse<AssignmentGradeResponse> agr = new BaseResponse<>();
+            agr.data = null;
+            agr.message = "Assignment not found";
+            agr.isError = true;
+            return agr;
+        }
     }
 
-    public BaseResponse<Grade> updateGrade(GradeUpdateRequest request) {
-        BaseResponse<Grade> response = new BaseResponse<>();
+    public BaseResponse<QuizGradeResponse> getQuizGrades(Long quizId){
+        QuizGradeResponse res = new QuizGradeResponse();
+        Optional<Quiz> quiz = quizRepository.findById(quizId);
+        if(quiz.isPresent()){
+            res.quiz = quiz.get();
+            res.grades = new ArrayList<>();
+            List<Enrolment> enrolments = enrolmentRepository.findByInstructInstructId(quiz.get().getInstruct().getInstructId());
+            List<Grade> grades = gradeRepository.findByQuizQuizId(quizId).get();
+            res.grades.addAll(enrolments.stream().map(e->{
+                Optional<Grade> sg = grades.stream().filter(g-> g.getUser().getUserId() == e.getUser().getUserId()).findFirst();
+                if(sg.isPresent()){
+                    return sg.get();
+                }else{
+                    Grade g = new Grade();
+                    g.setGradeTitle(res.quiz.getQuizName());
+                    g.setObtainedMarks(0);
+                    g.setTotalMarks(res.quiz.getTotalMarks());
+                    g.setUser(e.getUser());
+                    g.setQuiz(res.quiz);
+                    g.setCreatedBy(e.getUser().getUserId());
+                    g.setUpdatedBy(e.getUser().getUserId());
+                    g.setCreatedAt(LocalDateTime.now());
+                    g.setUpdatedAt(LocalDateTime.now());
+                    return g;
+                }
+            }).toList());
 
-        // Find the existing grade by ID
-        Grade existingGrade = gradeRepository.findById(request.gradeId)
-                .orElseThrow(() -> new RuntimeException("Grade not found."));
+            BaseResponse<QuizGradeResponse> agr = new BaseResponse<>();
+            agr.data = res;
+            agr.message = "Student grades fetched.";
+            agr.isError = false;
+            return agr;
+        }else{
+            BaseResponse<QuizGradeResponse> agr = new BaseResponse<>();
+            agr.data = null;
+            agr.message = "Quiz not found";
+            agr.isError = true;
+            return agr;
+        }
+    }
 
+    public BaseResponse<List<Grade>> saveGrades(GradeSaveRequest gradeSaveRequest){
+        if(gradeSaveRequest.grades.size() > 0){
+            Long assignmentId = gradeSaveRequest.grades.stream().findFirst().get().getAssignment().getAssignmentId();
+            Optional<Assignment> assignment = assignmentRepository.findById(assignmentId);
+            if(assignment.isPresent()){
+                List<Enrolment> enrolments = enrolmentRepository.findByInstructInstructId(assignment.get().getInstruct().getInstructId());
+                List<Grade> grades = gradeRepository.findByAssignmentAssignmentId(assignmentId);
 
-        // Update fields
-        existingGrade.setObtainedMarks(request.marks);
-        existingGrade.setUpdatedAt(LocalDateTime.now());
-        existingGrade.setUpdatedBy(request.updatedBy);
+                List<Grade> newGrades = enrolments.stream().map(e->{
+                    Optional<Grade> sg = grades.stream().filter(g-> g.getUser().getUserId() == e.getUser().getUserId()).findFirst();
+                    if(sg.isPresent()){
+                        Optional<Grade> reqGrade = gradeSaveRequest.grades.stream().filter(g->g.getUser().getUserId() == e.getUser().getUserId()).findFirst();
+                        Grade g = sg.get();
+                        if(reqGrade.isPresent())
+                        {
+                            g.setObtainedMarks(reqGrade.get().getObtainedMarks());
+                            g.setUpdatedBy(reqGrade.get().getUpdatedBy());
+                            g.setUpdatedAt(LocalDateTime.now());
+                        }
+                        return g;
+                    }else{
+                        Optional<Grade> reqGrade = gradeSaveRequest.grades.stream().filter(g->g.getUser().getUserId() == e.getUser().getUserId()).findFirst();
+                        Grade g = new Grade();
+                        g.setGradeTitle(assignment.get().getAssignmentTitle());
+                        g.setObtainedMarks(reqGrade.get().getObtainedMarks());
+                        g.setTotalMarks(assignment.get().getTotalMarks());
+                        g.setUser(e.getUser());
+                        g.setAssignment(assignment.get());
+                        g.setCreatedBy(e.getUser().getUserId());
+                        g.setUpdatedBy(e.getUser().getUserId());
+                        g.setCreatedAt(LocalDateTime.now());
+                        g.setUpdatedAt(LocalDateTime.now());
+                        return g;
+                    }
+                }).toList();
 
-        // Save the updated grade
-        Grade updatedGrade = gradeRepository.save(existingGrade);
-        response.data = updatedGrade;
-        response.isError = false;
-        response.message = "Grade updated successfully.";
-        return response;
+                List<Grade> newSavedGrades = gradeRepository.saveAll(newGrades);
+
+                BaseResponse<List<Grade>> agr = new BaseResponse<>();
+                agr.data = newSavedGrades;
+                agr.message = "Student grades saved successfully.";
+                agr.isError = false;
+                return agr;
+            }else{
+                BaseResponse<List<Grade>> agr = new BaseResponse<>();
+                agr.data = null;
+                agr.message = "Assignment not found";
+                agr.isError = true;
+                return agr;
+            }
+        }
+        else{
+            BaseResponse<List<Grade>> agr = new BaseResponse<>();
+            agr.data = null;
+            agr.message = "Request data not valid.";
+            agr.isError = true;
+            return agr;
+        }
     }
 }

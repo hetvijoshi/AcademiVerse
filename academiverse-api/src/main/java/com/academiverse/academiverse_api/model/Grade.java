@@ -22,8 +22,9 @@ public class Grade {
     private int obtainedMarks;   // Changed from 'marks' to 'obtainedMarks' for clarity
     private int totalMarks;      // Keep this for grading purposes
 
-    private Long userId;         // Assuming this corresponds to the user (professor or admin)
-    private Long studentId;      // Corresponds to the student
+    @ManyToOne
+    @JoinColumn(name = "userId", referencedColumnName = "userId", nullable = false)
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "assignmentId", referencedColumnName = "assignmentId", nullable = true)
