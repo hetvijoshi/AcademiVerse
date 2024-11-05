@@ -53,7 +53,7 @@ public class QuizService {
     public BaseResponse<List<QuizResponse>> getQuizzes(long instructId, long userId){
         BaseResponse<List<QuizResponse>> res = new BaseResponse<>();
         List<Quiz> quizList = quizRepository.findByInstructInstructId(instructId);
-        List<Long> submittedQuizzes = gradeRepository.findByUserIdAndQuizIn(userId, quizList)
+        List<Long> submittedQuizzes = gradeRepository.findByUserUserIdAndQuizIn(userId, quizList)
                 .stream()
                 .map((g)-> g.getQuiz().getQuizId())
                 .toList();
@@ -316,7 +316,7 @@ public class QuizService {
                 return response;
             }
 
-            Optional<Grade> eg = gradeRepository.findByQuizQuizIdAndUserId(quizSubmitRequest.quizId, quizSubmitRequest.userId);
+            Optional<Grade> eg = gradeRepository.findByQuizQuizIdAndUserUserId(quizSubmitRequest.quizId, quizSubmitRequest.userId);
             if(!eg.isPresent()){
                 List<Question> questions = questionRepository.findByQuizQuizId(quizSubmitRequest.quizId);
                 QuizSubmitResponse quizSubmitResponse = new QuizSubmitResponse();
@@ -342,7 +342,7 @@ public class QuizService {
                 g.setGradeTitle(q.get().getQuizName());
                 g.setObtainedMarks(quizSubmitResponse.obtainedMarks);
                 g.setTotalMarks(quizSubmitResponse.totalMarks);
-                g.setUserId(quizSubmitRequest.userId);
+                g.setUser(el.get().getUser());
                 g.setQuiz(q.get());
                 g.setCreatedBy(quizSubmitRequest.userId);
                 g.setUpdatedBy(quizSubmitRequest.userId);

@@ -16,14 +16,24 @@ public class Grade {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long gradeId;
-    private String gradeTitle;
-    private int obtainedMarks;
-    private int totalMarks;
-    private Long userId;
+
+    private String gradeTitle;  // Optionally, keep this field for distinguishing grades.
+
+    private int obtainedMarks;   // Changed from 'marks' to 'obtainedMarks' for clarity
+    private int totalMarks;      // Keep this for grading purposes
+
     @ManyToOne
-    @JoinColumn(name = "quizId", referencedColumnName = "quizId", nullable = true)
+    @JoinColumn(name = "userId", referencedColumnName = "userId", nullable = false)
+    private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "assignmentId", referencedColumnName = "assignmentId", nullable = true)
+    private Assignment assignment;
+
+    @ManyToOne
+    @JoinColumn(name = "quizId", referencedColumnName = "quizId", nullable = true) // Fixed the join column name
     private Quiz quiz;
-    //private Assignment assignment;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long createdBy;

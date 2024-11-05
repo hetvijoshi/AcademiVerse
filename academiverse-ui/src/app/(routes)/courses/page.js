@@ -60,7 +60,7 @@ const CoursePage = () => {
           {searchParams.get('section') === 'assignments' && <AssignmentPage />}
           {searchParams.get('section') === 'assignmentDetail' && searchParams.get('assignmentId') && <AssignmentDetail assignment={parseInt(searchParams.get('assignmentId'))} />}
           {searchParams.get('section') === 'grades' && <GradePage />}
-          {searchParams.get('section') === 'gradesDetail' && searchParams.get('assignmentId') && <GradesDetail assignmentId={parseInt(searchParams.get('assignmentId'))} />}
+          {searchParams.get('section') === 'gradesDetail' && (searchParams.get('assignmentId') || searchParams.get('quizId')) && <GradesDetail />}
           {searchParams.get('section') === 'quiz' && <QuizPage />}
           {searchParams.get('section') === 'todo' && <ToDoListScreen />}
           {searchParams.get('section') === 'classmates' && <ClassmatePage />}

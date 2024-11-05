@@ -17,7 +17,8 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getInstructGrades } from '../../../services/gradeService';
 
 const GradeCreationContainer = styled(Box)(({ theme }) => ({
   width: '100%',
@@ -39,11 +40,25 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const GradeCreationPage = ({ courseId }) => {
-  const [assignments, setAssignments] = useState([]);
+const GradeCreationPage = () => {
+  const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get('id');
+
+  const fetchInstructGrades = async () => {
+    try {
+      // Simulated API call
+      const response = await getInstructGrades(courseId, session.id_token);
+      setGrades(response.data);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (session?.userDetails?.role !== 'professor') {
@@ -51,29 +66,18 @@ const GradeCreationPage = ({ courseId }) => {
       return;
     }
 
-    const fetchAssignments = async () => {
-      try {
-        // Simulated API call
-        const response = await new Promise(resolve =>
-          setTimeout(() => resolve([
-            { id: 1, name: 'Assignment 1', totalMarks: 100, minMarks: 60, avgMarks: 75, maxMarks: 95, submittedCount: 28, totalStudents: 30 },
-            { id: 2, name: 'Quiz 1', totalMarks: 100, minMarks: 12, avgMarks: 16, maxMarks: 20, submittedCount: 30, totalStudents: 30 },
-            { id: 3, name: 'Assignment 2', totalMarks: 100, minMarks: 70, avgMarks: 82, maxMarks: 98, submittedCount: 29, totalStudents: 30 },
-          ]), 1000)
-        );
-        setAssignments(response);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching assignments:', error);
-        setLoading(false);
-      }
-    };
 
-    fetchAssignments();
+
+    fetchInstructGrades();
   }, [session, router]);
 
-  const handleViewStudents = (assignmentId) => {
-    router.push(`/courses?id=${courseId}&section=gradesDetail&assignmentId=${assignmentId}`);
+  const handleViewStudents = (grade) => {
+    if (grade.assignmentId != null) {
+      router.push(`/courses?id=${courseId}&section=gradesDetail&assignmentId=${grade.assignmentId}`);
+    }else{
+      router.push(`/courses?id=${courseId}&section=gradesDetail&quizId=${grade.quizId}`);
+    }
+
   };
 
   if (loading) {
@@ -104,22 +108,22 @@ const GradeCreationPage = ({ courseId }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {assignments.map((assignment) => (
-              <StyledTableRow key={assignment.id}>
+            {grades.map((grade) => (
+              <StyledTableRow key={grade.quizId != null ? grade.quizId : grade.assignmentId}>
                 <TableCell component="th" scope="row" style={{ padding: '16px' }}>
-                  {assignment.name}
+                  {grade.gradeTitle}
                 </TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.totalMarks}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.minMarks}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.avgMarks}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.maxMarks}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.submittedCount}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.totalStudents}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.totalMarks}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.minMarks}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.avgMarks}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.maxMarks}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.submittedCount}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.totalStudents}</TableCell>
                 <TableCell align="center" style={{ padding: '16px' }}>
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => handleViewStudents(assignment.id)}
+                    onClick={() => handleViewStudents(grade)}
                   >
                     View Students
                   </Button>
