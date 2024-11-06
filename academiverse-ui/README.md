@@ -34,3 +34,44 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## Unit Tests
+The component has been thoroughly tested using Jest and React Testing Library.
+
+### Announcement Component
+The test suite includes the following implemented test cases:
+
+1. Basic Rendering
+   - Verifies that the announcement page renders with the correct title
+   - Confirms the presence of "Course Announcements" text
+
+2. Role-Based Access Control
+   - Validates that professors can see the "New Announcement" button
+   - Confirms that students cannot see the "New Announcement" button
+
+3. Data Display
+   - Verifies announcements are properly displayed when data is available
+   - Tests handling of empty announcement data
+   - Validates course information display (course code, name)
+
+4. Component Integration
+   - Properly integrates with Material UI ThemeProvider
+   - Correctly uses mock data for announcements service
+   - Handles navigation and routing through mocked hooks
+   - Integrates with next-auth for session management
+
+5. Mock Implementation
+   - Uses mock announcement data with full course and user details
+   - Implements mock services for announcement fetching and saving
+   - Mocks next-auth useSession hook for authentication testing
+   - Mocks next/navigation hooks for routing functionality
+
+To run the tests:
+
+```bash
+npm run test
+# or
+yarn test
+```
+
+
