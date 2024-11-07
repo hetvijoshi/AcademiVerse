@@ -9,6 +9,7 @@ import { useSession } from 'next-auth/react';
 import AssignmentCreationPage from './assignmentCreation';
 import { getActiveAssignmentsByInstructId, getAssignmentsByInstructId } from '../../../services/assignmentService';
 import dayjs from 'dayjs';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const AssignmentContainer = styled(Box)(({ theme }) => ({
   width: '100%',
@@ -97,12 +98,11 @@ const AssignmentPage = () => {
     <AssignmentContainer>
       <TitleSection>
         <Typography variant="h4" fontWeight="bold" color="primary">
-          <AssignmentIcon sx={{ marginRight: 1, verticalAlign: 'middle' }} />
           Assignments
         </Typography>
       </TitleSection>
       <List>
-        {assignments.map((assignment) => (
+        {assignments.length > 0 ? assignments.map((assignment) => (
           <AssignmentItem
             key={assignment.id}
             onClick={() => handleAssignmentClick(assignment.id)}
@@ -128,7 +128,15 @@ const AssignmentPage = () => {
               View Details
             </Button>
           </AssignmentItem>
-        ))}
+        )) : <EmptyStateContainer>
+          <AssignmentIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Assignments Yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            There are no announcements for this course yet. Check back later for updates from your professor.
+          </Typography>
+        </EmptyStateContainer>}
       </List>
       <Snackbar
         open={snackbar.open}

@@ -24,6 +24,7 @@ import {
 	Add as AddIcon,
 	Edit as EditIcon,
 	Delete as DeleteIcon,
+	Assignment as AssignmentIcon
 } from "@mui/icons-material";
 import { useSession } from "next-auth/react";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
@@ -34,6 +35,7 @@ import { activeAssignment, postAssignmentsByInstructId, updateAssignment } from 
 import { useSearchParams } from "next/navigation";
 import { getAssignmentsByInstructId } from "../../../services/assignmentService";
 import { deleteAssignment } from "../../../services/assignmentService";
+import { EmptyStateContainer } from "../../../../components/EmptyState/EmptyState";
 const PageContainer = styled(Box)(({ theme }) => ({
 	width: '100%',
 	padding: theme.spacing(3),
@@ -256,7 +258,7 @@ const AssignmentCreationPage = () => {
 			</TitleSection>
 
 			<List>
-				{assignments.map((assignment) => (
+				{assignments.length > 0 ? assignments.map((assignment) => (
 					<AssignmentItem key={assignment.id}>
 						<ListItemText
 							primary={assignment.title}
@@ -273,7 +275,15 @@ const AssignmentCreationPage = () => {
 							<DeleteIcon />
 						</IconButton>
 					</AssignmentItem>
-				))}
+				)) : <EmptyStateContainer>
+					<AssignmentIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+					<Typography variant="h5" color="text.secondary" gutterBottom>
+						No Assignment Yet
+					</Typography>
+					<Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+						Start engaging with your students by creating your first course announcement.
+					</Typography>
+				</EmptyStateContainer>}
 			</List>
 
 			<Snackbar

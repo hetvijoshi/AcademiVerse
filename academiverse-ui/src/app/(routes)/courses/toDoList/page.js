@@ -13,11 +13,12 @@ import {
   Alert
 } from '@mui/material';
 import { styled } from '@mui/system';
-import { CheckCircle as DoneIcon } from '@mui/icons-material';
+import { CheckCircle as DoneIcon, List as ListIcon } from '@mui/icons-material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getUserTodos, markCompleted } from '../../../services/todoService';
 import dayjs from 'dayjs';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const TodoCard = styled(Card)(({ theme }) => ({
   display: 'flex',
@@ -143,14 +144,12 @@ const ToDoListScreen = () => {
           Task Tracker
         </Typography>
       </TitleSection>
-      <ContentSection>
+      {todos.length > 0 ? <ContentSection>
         {loading ? (
           <CircularProgress />
         ) : (
           <TodoContainer2>
-            {todos != null && todos.length <= 0 ? (<Typography variant="h6" color="text.secondary">
-              No todos
-            </Typography>) : todos.map((todo) => (
+            {todos.map((todo) => (
               <TodoItem key={todo.toDoId}>
                 <TodoCard elevation={2}>
                   <TodoContent>
@@ -173,17 +172,26 @@ const ToDoListScreen = () => {
             ))}
           </TodoContainer2>
         )}
-      </ContentSection>
+      </ContentSection> : <EmptyStateContainer>
+        <ListIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+        <Typography variant="h5" color="text.secondary" gutterBottom>
+          No Todo Yet
+        </Typography>
+        <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+          Start engaging with your students by creating your first course announcement.
+        </Typography>
+      </EmptyStateContainer>}
+
       <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </TodoContainer>
   );
 };

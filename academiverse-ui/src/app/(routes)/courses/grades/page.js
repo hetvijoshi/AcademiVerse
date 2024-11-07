@@ -24,6 +24,7 @@ import { useSession } from 'next-auth/react';
 import { Grade as GradeIcon } from '@mui/icons-material';
 import { getStudentGrades } from '../../../services/gradeService'
 import dayjs from 'dayjs';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const GradeContainer = styled(Box)(({ theme }) => ({
   width: '100%',
@@ -214,7 +215,7 @@ const GradePage = () => {
         </Typography>
       </TitleSection>
 
-      <GradeCard>
+      {grades.length > 0 ? <><GradeCard>
         <GradeCircle grade={overallGrade}>
           {overallGrade}
         </GradeCircle>
@@ -238,62 +239,71 @@ const GradePage = () => {
         </Box>
       </GradeCard>
 
-      <StyledTableContainer>
-        <Table>
-          <StyledTableHead>
-            <TableRow>
-              <TableCell>Assignment</TableCell>
-              <TableCell align="center">Score</TableCell>
-              <TableCell align="center">Out of</TableCell>
-              <TableCell align="center">Percentage</TableCell>
-              <TableCell align="center">Due Date</TableCell>
-              <TableCell align="center">Submitted</TableCell>
-            </TableRow>
-          </StyledTableHead>
-          <TableBody>
-            {grades.map((grade) => {
-              const percentage = (grade.obtainedMarks / grade.totalMarks) * 100;
-              return (
-                <StyledTableRow key={grade.gradeId}>
-                  <TableCell component="th" scope="row" sx={{ fontWeight: 500 }}>
-                    {grade.gradeTitle}
-                  </TableCell>
-                  <TableCell align="center">{grade.obtainedMarks}</TableCell>
-                  <TableCell align="center">{grade.totalMarks}</TableCell>
-                  <TableCell align="center">
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-                      <ProgressBar
-                        variant="determinate"
-                        value={percentage}
-                        sx={{ width: 60 }}
-                      />
-                      <Typography variant="body2" color="text.secondary">
-                        {percentage.toFixed(1)}%
-                      </Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell align="center">
-                    {dayjs(grade.quiz !== null ? grade.quiz.quizDueDate : grade.assignment.assignmentDueDate).format('YYYY-MM-DD hh:mm A')}
-                  </TableCell>
-                  <TableCell align="center">
-                    {dayjs(grade.createdAt).format('YYYY-MM-DD hh:mm A')}
-                  </TableCell>
-                </StyledTableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-        <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
-      </StyledTableContainer>
+        <StyledTableContainer>
+          <Table>
+            <StyledTableHead>
+              <TableRow>
+                <TableCell>Assignment</TableCell>
+                <TableCell align="center">Score</TableCell>
+                <TableCell align="center">Out of</TableCell>
+                <TableCell align="center">Percentage</TableCell>
+                <TableCell align="center">Due Date</TableCell>
+                <TableCell align="center">Submitted</TableCell>
+              </TableRow>
+            </StyledTableHead>
+            <TableBody>
+              {grades.map((grade) => {
+                const percentage = (grade.obtainedMarks / grade.totalMarks) * 100;
+                return (
+                  <StyledTableRow key={grade.gradeId}>
+                    <TableCell component="th" scope="row" sx={{ fontWeight: 500 }}>
+                      {grade.gradeTitle}
+                    </TableCell>
+                    <TableCell align="center">{grade.obtainedMarks}</TableCell>
+                    <TableCell align="center">{grade.totalMarks}</TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+                        <ProgressBar
+                          variant="determinate"
+                          value={percentage}
+                          sx={{ width: 60 }}
+                        />
+                        <Typography variant="body2" color="text.secondary">
+                          {percentage.toFixed(1)}%
+                        </Typography>
+                      </Box>
+                    </TableCell>
+                    <TableCell align="center">
+                      {dayjs(grade.quiz !== null ? grade.quiz.quizDueDate : grade.assignment.assignmentDueDate).format('YYYY-MM-DD hh:mm A')}
+                    </TableCell>
+                    <TableCell align="center">
+                      {dayjs(grade.createdAt).format('YYYY-MM-DD hh:mm A')}
+                    </TableCell>
+                  </StyledTableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+          <Snackbar
+            open={snackbar.open}
+            autoHideDuration={6000}
+            onClose={handleCloseSnackbar}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+          >
+            <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+              {snackbar.message}
+            </Alert>
+          </Snackbar>
+        </StyledTableContainer></> :
+        <EmptyStateContainer>
+          <GradeIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Grades Yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            Start engaging with your students by creating your first course announcement.
+          </Typography>
+        </EmptyStateContainer>}
     </GradeContainer>
   );
 };

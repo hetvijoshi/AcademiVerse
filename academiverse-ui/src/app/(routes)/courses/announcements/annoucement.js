@@ -15,6 +15,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchInstructAnnouncements, saveAnnouncement } from '../../../services/announcementService';
 import { create } from 'domain';
 import dayjs from 'dayjs';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState'
 
 const PageContainer = styled(Box)(({ theme }) => ({
   width: '100%',
@@ -178,7 +179,7 @@ const AnnouncementPage = () => {
         )}
       </TitleSection>
       <AnnouncementsContainer>
-        {announcements.map((announcement) => (
+        {announcements.length > 0 ? announcements.map((announcement) => (
           <AnnouncementItem key={announcement.announcementId}>
             <AnnouncementCard onClick={() => handleAnnouncementClick(announcement)}>
               <AnnouncementContent>
@@ -202,7 +203,17 @@ const AnnouncementPage = () => {
               </AnnouncementContent>
             </AnnouncementCard>
           </AnnouncementItem>
-        ))}
+        )) : <EmptyStateContainer>
+          <CommentIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Announcements Yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            {isProfessor
+              ? "Start engaging with your students by creating your first course announcement."
+              : "There are no announcements for this course yet. Check back later for updates from your professor."}
+          </Typography>
+        </EmptyStateContainer>}
         <Snackbar
           open={snackbar.open}
           autoHideDuration={6000}

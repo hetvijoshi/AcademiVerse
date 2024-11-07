@@ -17,16 +17,25 @@ import {
   Snackbar,
   Alert
 } from '@mui/material';
+import { Grade as GradeIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getInstructGrades } from '../../../services/gradeService';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const GradeCreationContainer = styled(Box)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
   //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
+}));
+
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }));
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -116,10 +125,12 @@ const GradeCreationPage = () => {
 
   return (
     <GradeCreationContainer>
-      <Typography variant="h4" fontWeight="bold" color="primary">
-        Grade Management
-      </Typography>
-      <TableContainer component={Paper} style={{ margin: '24px 0 0 0' }}>
+      <TitleSection>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          Grade Management
+        </Typography>
+      </TitleSection>
+      {grades.length > 0 ? <><TableContainer component={Paper} style={{ margin: '24px 0 0 0' }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -158,17 +169,26 @@ const GradeCreationPage = () => {
             ))}
           </TableBody>
         </Table>
-      </TableContainer>
+      </TableContainer></> :
+        <EmptyStateContainer>
+          <GradeIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Grades Yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            Start engaging with your students by creating your first course announcement.
+          </Typography>
+        </EmptyStateContainer>}
       <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </GradeCreationContainer>
   );
 };

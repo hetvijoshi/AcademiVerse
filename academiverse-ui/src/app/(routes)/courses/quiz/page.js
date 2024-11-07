@@ -23,18 +23,27 @@ import {
   Snackbar,
   Alert
 } from '@mui/material';
+import { Quiz as QuizIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import QuizCreationPage from './quizCreation';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { fetchQuizByInstructId, fetchStudentQuizQuestions, submitQuiz } from '../../../services/quizService';
 import dayjs from 'dayjs';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const QuizContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
   //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
+}));
+
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }));
 
 const QuizInfo = styled(Box)(({ theme }) => ({
@@ -244,10 +253,12 @@ const QuizPage = () => {
 
   return (
     <QuizContainer>
-      <Typography variant="h4" fontWeight="bold" color="primary">
-        Available Quizzes
-      </Typography>
-      <List>
+      <TitleSection>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          Available Quizzes
+        </Typography>
+      </TitleSection>
+      {quizzes.length > 0 ? <List>
         {quizzes.map((quiz, index) => (
           <React.Fragment key={quiz.quiz.quizId}>
             <QuizItem>
@@ -275,7 +286,16 @@ const QuizPage = () => {
             </QuizItem>
           </React.Fragment>
         ))}
-      </List>
+      </List> :
+        <EmptyStateContainer>
+          <QuizIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Quizzes Yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            Start engaging with your students by creating your first course announcement.
+          </Typography>
+        </EmptyStateContainer>}
       {openQuiz && (
         <QuizDialog
           open={!!openQuiz}
