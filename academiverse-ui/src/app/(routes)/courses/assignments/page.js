@@ -47,49 +47,28 @@ const AssignmentPage = () => {
   const { data: session } = useSession();
 
   const fetchAssignments = async () => {
-    if(session?.userDetails?.role === 'student'){
-      const reqData = {
-        instructId: instructId,
-        userId: session.userDetails?.userId,
-      }
-      const res = await getAssignmentsForStudentByInstruct(reqData, session.id_token);
-      if (!res.isError) {
-        const formattedData = res.data.map((data) => ({
-          id: data.assignment.assignmentId,
-          title: data.assignment.assignmentTitle,
-          description: data.assignment.assignmentDescription,
-          dueDate: data.assignment.assignmentDueDate,
-          totalMarks: data.assignment.totalMarks,
-          submitted: data.submitted
-        }));
-        setAssignments(formattedData);
-      } else {
-        setSnackbarMessage(res.message);
-        setSnackbarOpen(true);
-      }
-    } else {
-      const res = await getActiveAssignmentsByInstructId(instructId, session.id_token);
-      if (!res.isError) {
-        const formattedData = res.data.map((assignment) => ({
-          id: assignment.assignmentId,
-          title: assignment.assignmentTitle,
-          description: assignment.assignmentDescription,
-          dueDate: assignment.assignmentDueDate,
-          totalMarks: assignment.totalMarks
-        }));
-        setAssignments(formattedData);
-      } else {
-        setSnackbarMessage(res.message);
-        setSnackbarOpen(true);
-      }
+    const reqData = {
+      instructId: instructId,
+      userId: session.userDetails?.userId,
     }
-    
+    const res = await getAssignmentsForStudentByInstruct(reqData, session.id_token);
+    if (!res.isError) {
+      const formattedData = res.data.map((data) => ({
+        id: data.assignment.assignmentId,
+        title: data.assignment.assignmentTitle,
+        description: data.assignment.assignmentDescription,
+        dueDate: data.assignment.assignmentDueDate,
+        totalMarks: data.assignment.totalMarks,
+        submitted: data.submitted
+      }));
+      setAssignments(formattedData);
+    } else {
+      setSnackbarMessage(res.message);
+      setSnackbarOpen(true);
+    }
   };
 
   useEffect(() => {
-    // Fetch assignments from API
-
-
     fetchAssignments();
   }, []);
 
@@ -123,11 +102,11 @@ const AssignmentPage = () => {
               <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY hh:mm A')}`} color="primary" variant="outlined" size="small" />
               <StyledChip label={`Total marks: ${assignment.totalMarks}`} color="secondary" variant="outlined" size="small" />
               {session?.userDetails?.role === 'student' && (
-                <StyledChip 
-                  label={assignment.submitted ? 'Submitted' : 'Not Submitted'} 
-                  color={assignment.submitted ? 'success' : 'error'} 
-                  variant="filled" 
-                  size="small" 
+                <StyledChip
+                  label={assignment.submitted ? 'Submitted' : 'Not Submitted'}
+                  color={assignment.submitted ? 'success' : 'error'}
+                  variant="filled"
+                  size="small"
                 />
               )}
             </Box>

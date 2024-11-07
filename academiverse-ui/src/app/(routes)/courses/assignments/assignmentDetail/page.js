@@ -65,8 +65,11 @@ const AssignmentDetail = () => {
       }
       setAssignment(formattedData);
     } else {
-      setSnackbarMessage(res.message);
-      setSnackbarOpen(true);
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
     }
   };
 
@@ -84,7 +87,7 @@ const AssignmentDetail = () => {
     const formData = new FormData();
     formData.append('file', file);
     const res1 = await uploadDocument(formData, session.id_token);
-    if(!res1.isError) {
+    if (!res1.isError) {
       setFile(null);
       const reqData = {
         userId: session?.userDetails?.userId,
@@ -116,7 +119,7 @@ const AssignmentDetail = () => {
         severity: 'error',
       });
     }
-    setUploading(false); 
+    setUploading(false);
     // Here you would typically send the file to your server
     console.log('File uploaded:', file.name);
   };
@@ -166,10 +169,10 @@ const AssignmentDetail = () => {
         <Typography variant="h6" gutterBottom>
           {assignment.assignmentSubmission ? 'Last Submission' : 'No submission'}
         </Typography>
-        
+
         {assignment.assignmentSubmission && (
           <Box sx={{ mb: 3 }}>
-            <iframe 
+            <iframe
               src={assignment.assignmentSubmission.assignmentLink}
               width="100%"
               height="500px"
@@ -204,15 +207,15 @@ const AssignmentDetail = () => {
         </UploadButton>
       </DetailPaper>
       <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </DetailContainer>
   );
 };
