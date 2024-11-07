@@ -16,14 +16,14 @@ public class AssignmentController {
     private final AssignmentService assignmentService;
 
     @GetMapping("/student")
-    public ResponseEntity<BaseResponse> getAssignmentsForStudentByInstruct(@RequestBody AssignmentForStudentGetRequest assignmentForStudentGetRequest) {
-        return ResponseEntity.ok().body(assignmentService.getAssignmentsForStudentByInstruct(assignmentForStudentGetRequest.instructId, assignmentForStudentGetRequest.userId));
+    public ResponseEntity<BaseResponse> getAssignmentsForStudentByInstruct(@RequestParam Long instructId, @RequestParam Long userId ) {
+        return ResponseEntity.ok().body(assignmentService.getAssignmentsForStudentByInstruct(instructId, userId));
     }
 
 
-    @GetMapping("/{id}")
-    public ResponseEntity<BaseResponse> getAssignmentById(@PathVariable Long id) {
-        return ResponseEntity.ok().body(assignmentService.getAssignmentById(id));
+    @GetMapping("/detail")
+    public ResponseEntity<BaseResponse> getAssignmentById(@RequestParam Long assignmentId, @RequestParam Long userId) {
+        return ResponseEntity.ok().body(assignmentService.getAssignmentById(assignmentId, userId));
     }
 
     @PostMapping

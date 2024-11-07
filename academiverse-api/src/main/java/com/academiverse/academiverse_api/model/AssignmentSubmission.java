@@ -1,5 +1,6 @@
 package com.academiverse.academiverse_api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class AssignmentSubmission {
     private Long assignmentSubmissionId;
 
     @ManyToOne
+    @JsonIgnore
     @JoinColumn(name = "assignmentId", referencedColumnName = "assignmentId", nullable = false)
     private Assignment assignment;
 

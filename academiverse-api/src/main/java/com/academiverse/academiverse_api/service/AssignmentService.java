@@ -4,6 +4,7 @@ import com.academiverse.academiverse_api.dto.request.AssignmentSaveRequest;
 import com.academiverse.academiverse_api.dto.request.AssignmentSubmitGetRequest;
 import com.academiverse.academiverse_api.dto.request.AssignmentSubmitRequest;
 import com.academiverse.academiverse_api.dto.request.AssignmentUpdateRequest;
+import com.academiverse.academiverse_api.dto.response.AssignmentByIdResponse;
 import com.academiverse.academiverse_api.dto.response.AssignmentResponse;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
 import com.academiverse.academiverse_api.model.Assignment;
@@ -40,17 +41,22 @@ public class AssignmentService {
         return response;
     }
 
-    public BaseResponse<Assignment> getAssignmentById(Long id) {
-        Optional<Assignment> optionalAssignment = assignmentRepository.findById(id);
-        BaseResponse<Assignment> response = new BaseResponse<>();
-        if (optionalAssignment.isPresent()) {
-            response.data = optionalAssignment.get();
+    public BaseResponse<AssignmentByIdResponse> getAssignmentById(Long assignmentId, Long userId) {
+        Optional<AssignmentSubmission> optionalAssignmentSubmission = assignmentSubmissionRepository.findByAssignmentAssignmentIdAndUserUserId(assignmentId,userId);
+        Optional<Assignment> assignment = assignmentRepository.findById(assignmentId);
+        BaseResponse<AssignmentByIdResponse> response = new BaseResponse<>();
+        AssignmentByIdResponse res = new AssignmentByIdResponse();
+        if(assignment.isPresent()){
+            res.assignment = assignment.get();
+            res.assignmentSubmission = optionalAssignmentSubmission.orElse(null);
+            response.data = res;
             response.isError = false;
-            response.message = MessageFormat.format("Assignment with id {0} found.", id);
-        } else {
+            response.message = MessageFormat.format("Assignment with id {0} found.", assignmentId);
+        }
+        else{
             response.data = null;
             response.isError = true;
-            response.message = MessageFormat.format("Assignment with id {0} not found.", id);
+            response.message = MessageFormat.format("Assignment with id {0} not found.", assignmentId);
         }
         return response;
     }

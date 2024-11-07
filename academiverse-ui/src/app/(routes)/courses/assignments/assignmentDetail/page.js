@@ -49,14 +49,19 @@ const AssignmentDetail = () => {
 
   const fetchAssignment = async (assignmentId) => {
     // Replace with actual API call
-    const res = await getAssignmentById(assignmentId, session.id_token);
+    const reqData = {
+      assignmentId: assignmentId,
+      userId: session.userDetails?.userId,
+    }
+    const res = await getAssignmentById(reqData, session.id_token);
     if (!res.isError) {
       const formattedData = {
-        id: res.data?.assignmentId,
-        title: res.data?.assignmentTitle,
-        description: res.data?.assignmentDescription,
-        dueDate: res.data?.assignmentDueDate,
-        totalMarks: res.data?.totalMarks
+        id: res.data?.assignment.assignmentId,
+        title: res.data?.assignment.assignmentTitle,
+        description: res.data?.assignment.assignmentDescription,
+        dueDate: res.data?.assignment.assignmentDueDate,
+        totalMarks: res.data?.assignment.totalMarks,
+        assignmentSubmission: res.data?.assignmentSubmission
       }
       setAssignment(formattedData);
     } else {
@@ -157,6 +162,22 @@ const AssignmentDetail = () => {
           <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY hh:mm A')}`} color="primary" variant="outlined" />
           <StyledChip label={`Total Marks: ${assignment.totalMarks}`} color="secondary" variant="outlined" />
         </Box>
+
+        <Typography variant="h6" gutterBottom>
+          {assignment.assignmentSubmission ? 'Last Submission' : 'No submission'}
+        </Typography>
+        
+        {assignment.assignmentSubmission && (
+          <Box sx={{ mb: 3 }}>
+            <iframe 
+              src={assignment.assignmentSubmission.assignmentLink}
+              width="100%"
+              height="500px"
+              style={{ border: 'none' }}
+              title="Assignment Submission"
+            />
+          </Box>
+        )}
 
         <Typography variant="h6" color="primary" gutterBottom>
           Submit Assignment
