@@ -8,14 +8,17 @@ import {
   Typography,
   IconButton,
   CircularProgress,
-  Paper
+  Paper,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { styled } from '@mui/system';
-import { CheckCircle as DoneIcon } from '@mui/icons-material';
+import { CheckCircle as DoneIcon, List as ListIcon } from '@mui/icons-material';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { getUserTodos, markCompleted } from '../../../services/todoService';
 import dayjs from 'dayjs';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const TodoCard = styled(Card)(({ theme }) => ({
   display: 'flex',
@@ -41,7 +44,7 @@ const TodoContent = styled(CardContent)({
 const TodoContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  marginLeft: theme.spacing(2),
+  //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
 }));
 
@@ -75,6 +78,11 @@ const ToDoListScreen = () => {
   const router = useRouter();
   const instructId = useSearchParams().get('id');
   const { data: session } = useSession();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchTodos = async () => {
     try {
@@ -84,9 +92,18 @@ const ToDoListScreen = () => {
         setLoading(false);
       } else {
         setLoading(false);
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
       }
     } catch (error) {
-      console.error('Error fetching todos:', error);
+      setSnackbar({
+        open: true,
+        message: "Error while fetching todos.",
+        severity: 'error',
+      });
       setLoading(false);
     }
   };
@@ -104,8 +121,20 @@ const ToDoListScreen = () => {
         setLoading(false);
       } else {
         setLoading(false);
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
       }
     }
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   return (
@@ -115,14 +144,12 @@ const ToDoListScreen = () => {
           Task Tracker
         </Typography>
       </TitleSection>
-      <ContentSection>
+      {todos.length > 0 ? <ContentSection>
         {loading ? (
           <CircularProgress />
         ) : (
           <TodoContainer2>
-            {todos != null && todos.length <= 0 ? (<Typography variant="h6" color="text.secondary">
-              No todos
-            </Typography>) : todos.map((todo) => (
+            {todos.map((todo) => (
               <TodoItem key={todo.toDoId}>
                 <TodoCard elevation={2}>
                   <TodoContent>
@@ -145,7 +172,26 @@ const ToDoListScreen = () => {
             ))}
           </TodoContainer2>
         )}
-      </ContentSection>
+      </ContentSection> : <EmptyStateContainer>
+        <ListIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+        <Typography variant="h5" color="text.secondary" gutterBottom>
+          No Todo Yet
+        </Typography>
+        <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+          Start engaging with your students by creating your first course announcement.
+        </Typography>
+      </EmptyStateContainer>}
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </TodoContainer>
   );
 };

@@ -13,7 +13,7 @@ import { uploadDocument } from '../../../../services/genericService';
 const DetailContainer = styled(Box)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  marginLeft: theme.spacing(2),
+  //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
 }));
 

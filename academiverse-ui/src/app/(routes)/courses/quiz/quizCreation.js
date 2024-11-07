@@ -25,18 +25,19 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon, Upload as UploadIcon } from '@mui/icons-material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon, Upload as UploadIcon, Quiz as QuizIcon } from '@mui/icons-material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider, DateTimePicker } from '@mui/x-date-pickers';
 import dayjs from 'dayjs';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import { saveQuiz, fetchInstructQuizzes, fetchQuizQuestions, deleteQuiz, editQuiz, activeQuiz, generateQuizQuestions } from '../../../services/quizService';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const QuizCreationContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  marginLeft: theme.spacing(2),
+  //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
 }));
 
@@ -124,6 +125,12 @@ const QuizCreationPage = () => {
         if (!res.isError) {
           setLoading(false);
           setQuestions(res.data);
+        } else {
+          setSnackbar({
+            open: true,
+            message: res.message,
+            severity: 'error',
+          });
         }
       } catch (error) {
         setLoading(false);
@@ -322,7 +329,7 @@ const QuizCreationPage = () => {
         </Button>
       </TitleSection>
 
-      <QuizList>
+      {quizzes.length > 0 ? <QuizList>
         {quizzes.map((quiz) => (
           <QuizListItem key={quiz.quizId}>
             <ListItemText
@@ -342,7 +349,16 @@ const QuizCreationPage = () => {
             </IconButton>
           </QuizListItem>
         ))}
-      </QuizList>
+      </QuizList> :
+        <EmptyStateContainer>
+          <QuizIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Quizzes Yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            Start engaging with your students by creating your first course announcement.
+          </Typography>
+        </EmptyStateContainer>}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

@@ -26,7 +26,7 @@ import { enrolledStudent, getEnrolledStudents } from '../../../services/enrollSe
 const EnrollmentContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  marginLeft: theme.spacing(2),
+  //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
 }));
 
@@ -169,7 +169,6 @@ const EnrollmentPage = () => {
     setLoading(true);
     try {
       const filteredStudents = allStudents.filter(s => { return s.user.name.search(searchValue) >= 0 || s.user.userEmail.search(searchValue) >= 0 })
-      console.log(searchValue, filteredStudents)
       setStudents(filteredStudents);
     } catch (error) {
       setSnackbar({
@@ -200,15 +199,6 @@ const EnrollmentPage = () => {
           value={searchTerm}
           onChange={(e) => searchStudents(e.target.value)}
         />
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<SearchIcon />}
-          onClick={handleSearch}
-          disabled={loading}
-        >
-          Search
-        </Button>
       </SearchBox>
       <FilterBox>
         <FormControlLabel

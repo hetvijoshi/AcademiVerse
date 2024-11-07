@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, List, Paper, Chip, Button } from '@mui/material';
+import { Box, Typography, List, Paper, Chip, Button, Snackbar, Alert } from '@mui/material';
 import { styled } from '@mui/system';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Assignment as AssignmentIcon } from '@mui/icons-material';
@@ -9,11 +9,12 @@ import { useSession } from 'next-auth/react';
 import AssignmentCreationPage from './assignmentCreation';
 import { getActiveAssignmentsByInstructId, getAssignmentsByInstructId, getAssignmentsForStudentByInstruct } from '../../../services/assignmentService';
 import dayjs from 'dayjs';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const AssignmentContainer = styled(Box)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  marginLeft: theme.spacing(2),
+  //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
 }));
 
@@ -45,6 +46,11 @@ const AssignmentPage = () => {
   const router = useRouter();
   const instructId = useSearchParams().get('id');
   const { data: session } = useSession();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchAssignments = async () => {
     const reqData = {
@@ -63,8 +69,11 @@ const AssignmentPage = () => {
       }));
       setAssignments(formattedData);
     } else {
-      setSnackbarMessage(res.message);
-      setSnackbarOpen(true);
+      setSnackbar({
+        open: true,
+        message: res.message,
+        severity: 'error',
+      });
     }
   };
 
@@ -80,16 +89,22 @@ const AssignmentPage = () => {
     return <AssignmentCreationPage />;
   }
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
+
   return (
     <AssignmentContainer>
       <TitleSection>
         <Typography variant="h4" fontWeight="bold" color="primary">
-          <AssignmentIcon sx={{ marginRight: 1, verticalAlign: 'middle' }} />
           Assignments
         </Typography>
       </TitleSection>
       <List>
-        {assignments.map((assignment) => (
+        {assignments.length > 0 ? assignments.map((assignment) => (
           <AssignmentItem
             key={assignment.id}
             onClick={() => handleAssignmentClick(assignment.id)}
@@ -123,8 +138,26 @@ const AssignmentPage = () => {
               View Details
             </Button>
           </AssignmentItem>
-        ))}
+        )) : <EmptyStateContainer>
+          <AssignmentIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Assignments Yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            There are no announcements for this course yet. Check back later for updates from your professor.
+          </Typography>
+        </EmptyStateContainer>}
       </List>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </AssignmentContainer>
   );
 };

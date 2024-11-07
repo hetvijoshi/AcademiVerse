@@ -16,18 +16,20 @@ import {
   Description as FileIcon,
   Add as AddIcon,
   Close as CloseIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  ViewModule as ModuleIcon
 } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { getModules, saveModules } from '../../../services/moduleService';
 import { uploadDocument } from '../../../services/genericService';
 import { deleteDocument, saveDocument } from '../../../services/documentService';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const PageContainer = styled(Box)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  marginLeft: theme.spacing(2),
+  //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
   display: 'flex',
   flexDirection: 'column',
@@ -123,7 +125,11 @@ const ModulePage = () => {
       setExpandedModules(initialExpandedState);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching modules:', error);
+      setSnackbar({
+        open: true,
+        message: "Error while fetching modules.",
+        severity: 'error',
+      });
       setLoading(false);
     }
   };
@@ -283,7 +289,7 @@ const ModulePage = () => {
             <LoadingContainer>
               <CircularProgress />
             </LoadingContainer>
-          ) : (
+          ) : (modules.length > 0 ?
             modules.map((module) => (
               <ModuleAccordion
                 key={module.moduleId}
@@ -324,7 +330,17 @@ const ModulePage = () => {
                   </List>
                 </AccordionDetails>
               </ModuleAccordion>
-            ))
+            )) : <EmptyStateContainer>
+              <ModuleIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+              <Typography variant="h5" color="text.secondary" gutterBottom>
+                No Modules Yet
+              </Typography>
+              <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+                {isProfessor
+                  ? "Start engaging with your students by creating your first course announcement."
+                  : "There are no announcements for this course yet. Check back later for updates from your professor."}
+              </Typography>
+            </EmptyStateContainer>
           )}
         </Paper>
         <Snackbar

@@ -13,17 +13,29 @@ import {
   Paper,
   Button,
   CircularProgress,
-  Link
+  Link,
+  Snackbar,
+  Alert
 } from '@mui/material';
+import { Grade as GradeIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { getInstructGrades } from '../../../services/gradeService';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const GradeCreationContainer = styled(Box)(({ theme }) => ({
   width: '100%',
   padding: theme.spacing(3),
-  marginLeft: theme.spacing(2),
+  //marginLeft: theme.spacing(2),
   backgroundColor: theme.palette.background.paper,
+}));
+
+const TitleSection = styled(Box)(({ theme }) => ({
+  marginBottom: theme.spacing(4),
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 }));
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -39,11 +51,42 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const GradeCreationPage = ({ courseId }) => {
-  const [assignments, setAssignments] = useState([]);
+const GradeCreationPage = () => {
+  const [grades, setGrades] = useState([]);
   const [loading, setLoading] = useState(true);
   const { data: session } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const courseId = searchParams.get('id');
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
+
+  const fetchInstructGrades = async () => {
+    try {
+      // Simulated API call
+      const response = await getInstructGrades(courseId, session.id_token);
+      if (!response.isError) {
+        setGrades(response.data);
+      } else {
+        setSnackbar({
+          open: true,
+          message: response.message,
+          severity: 'error',
+        });
+      }
+      setLoading(false);
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: "Error while fetching grades.",
+        severity: 'error',
+      });
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (session?.userDetails?.role !== 'professor') {
@@ -51,29 +94,25 @@ const GradeCreationPage = ({ courseId }) => {
       return;
     }
 
-    const fetchAssignments = async () => {
-      try {
-        // Simulated API call
-        const response = await new Promise(resolve =>
-          setTimeout(() => resolve([
-            { id: 1, name: 'Assignment 1', totalMarks: 100, minMarks: 60, avgMarks: 75, maxMarks: 95, submittedCount: 28, totalStudents: 30 },
-            { id: 2, name: 'Quiz 1', totalMarks: 100, minMarks: 12, avgMarks: 16, maxMarks: 20, submittedCount: 30, totalStudents: 30 },
-            { id: 3, name: 'Assignment 2', totalMarks: 100, minMarks: 70, avgMarks: 82, maxMarks: 98, submittedCount: 29, totalStudents: 30 },
-          ]), 1000)
-        );
-        setAssignments(response);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching assignments:', error);
-        setLoading(false);
-      }
-    };
 
-    fetchAssignments();
+
+    fetchInstructGrades();
   }, [session, router]);
 
-  const handleViewStudents = (assignmentId) => {
-    router.push(`/courses?id=${courseId}&section=gradesDetail&assignmentId=${assignmentId}`);
+  const handleViewStudents = (grade) => {
+    if (grade.assignmentId != null) {
+      router.push(`/courses?id=${courseId}&section=gradesDetail&assignmentId=${grade.assignmentId}`);
+    } else {
+      router.push(`/courses?id=${courseId}&section=gradesDetail&quizId=${grade.quizId}`);
+    }
+
+  };
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
   };
 
   if (loading) {
@@ -86,10 +125,12 @@ const GradeCreationPage = ({ courseId }) => {
 
   return (
     <GradeCreationContainer>
-      <Typography variant="h4" fontWeight="bold" color="primary">
-        Grade Management
-      </Typography>
-      <TableContainer component={Paper} style={{ margin: '24px 0 0 0' }}>
+      <TitleSection>
+        <Typography variant="h4" fontWeight="bold" color="primary">
+          Grade Management
+        </Typography>
+      </TitleSection>
+      {grades.length > 0 ? <><TableContainer component={Paper} style={{ margin: '24px 0 0 0' }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -104,22 +145,22 @@ const GradeCreationPage = ({ courseId }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {assignments.map((assignment) => (
-              <StyledTableRow key={assignment.id}>
+            {grades.map((grade) => (
+              <StyledTableRow key={grade.quizId != null ? grade.quizId : grade.assignmentId}>
                 <TableCell component="th" scope="row" style={{ padding: '16px' }}>
-                  {assignment.name}
+                  {grade.gradeTitle}
                 </TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.totalMarks}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.minMarks}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.avgMarks}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.maxMarks}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.submittedCount}</TableCell>
-                <TableCell align="center" style={{ padding: '16px' }}>{assignment.totalStudents}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.totalMarks}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.minMarks}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.avgMarks}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.maxMarks}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.submittedCount}</TableCell>
+                <TableCell align="center" style={{ padding: '16px' }}>{grade.totalStudents}</TableCell>
                 <TableCell align="center" style={{ padding: '16px' }}>
                   <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => handleViewStudents(assignment.id)}
+                    onClick={() => handleViewStudents(grade)}
                   >
                     View Students
                   </Button>
@@ -128,7 +169,26 @@ const GradeCreationPage = ({ courseId }) => {
             ))}
           </TableBody>
         </Table>
-      </TableContainer>
+      </TableContainer></> :
+        <EmptyStateContainer>
+          <GradeIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Grades Yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            Start engaging with your students by creating your first course announcement.
+          </Typography>
+        </EmptyStateContainer>}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </GradeCreationContainer>
   );
 };

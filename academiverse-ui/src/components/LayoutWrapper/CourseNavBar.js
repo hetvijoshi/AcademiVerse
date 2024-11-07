@@ -66,12 +66,14 @@ const NavItem = styled(ListItem)(({ theme, isActive }) => ({
 }));
 
 const HeaderBox = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(2),
+  paddingTop: theme.spacing(3),
+  paddingBottom: theme.spacing(3),
+  paddingLeft: theme.spacing(2),
   borderBottom: '1px solid rgba(0, 0, 0, 0.12)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  height: '64px',
+  height: '84px',
 }));
 
 const CourseNavBar = ({ course = {} }) => {
