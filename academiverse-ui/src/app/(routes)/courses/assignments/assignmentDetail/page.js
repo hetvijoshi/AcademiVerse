@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Paper, Chip, Button, TextField, CircularProgress } from '@mui/material';
+import { Box, Typography, Paper, Chip, Button, TextField, CircularProgress, Snackbar, Alert } from '@mui/material';
 import { styled } from '@mui/system';
 import { Assignment as AssignmentIcon, CloudUpload as CloudUploadIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getAssignmentById } from '../../../../services/assignmentService';
+import { getAssignmentById, submitAssignment } from '../../../../services/assignmentService';
 import { useSession } from 'next-auth/react';
 import dayjs from 'dayjs';
+import { uploadDocument } from '../../../../services/genericService';
 
 const DetailContainer = styled(Box)(({ theme }) => ({
   width: '100%',
@@ -40,6 +41,11 @@ const AssignmentDetail = () => {
   const courseId = searchParams.get('id');
   const router = useRouter();
   const { data: session } = useSession();
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success',
+  });
 
   const fetchAssignment = async (assignmentId) => {
     // Replace with actual API call
@@ -70,10 +76,42 @@ const AssignmentDetail = () => {
   const handleUpload = async () => {
     if (!file) return;
     setUploading(true);
-    // Simulating file upload
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setUploading(false);
-    setFile(null);
+    const formData = new FormData();
+    formData.append('file', file);
+    const res1 = await uploadDocument(formData, session.id_token);
+    if(!res1.isError) {
+      setFile(null);
+      const reqData = {
+        userId: session?.userDetails?.userId,
+        assignmentId: assignmentId,
+        assignmentLink: res1.data,
+        createdBy: session?.userDetails?.userId,
+        updatedBy: session?.userDetails?.userId
+      }
+      const res = await submitAssignment(reqData, session.id_token);
+      if (!res.isError) {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'success',
+        });
+        handleBack();
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
+      }
+    }
+    else {
+      setSnackbar({
+        open: true,
+        message: res1.message,
+        severity: 'error',
+      });
+    }
+    setUploading(false); 
     // Here you would typically send the file to your server
     console.log('File uploaded:', file.name);
   };
@@ -85,6 +123,13 @@ const AssignmentDetail = () => {
   if (!assignment) {
     return <Typography>Assignment not found</Typography>;
   }
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbar({ ...snackbar, open: false });
+  };
 
   return (
     <DetailContainer>
@@ -137,6 +182,16 @@ const AssignmentDetail = () => {
           {uploading ? 'Uploading...' : 'Upload Assignment'}
         </UploadButton>
       </DetailPaper>
+      <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
     </DetailContainer>
   );
 };

@@ -20,7 +20,8 @@ import {
 } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getModules, saveModules, uploadDocument } from '../../../services/moduleService';
+import { getModules, saveModules } from '../../../services/moduleService';
+import { uploadDocument } from '../../../services/genericService';
 import { deleteDocument, saveDocument } from '../../../services/documentService';
 
 const PageContainer = styled(Box)(({ theme }) => ({

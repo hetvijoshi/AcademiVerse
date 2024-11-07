@@ -9,16 +9,6 @@ import {
 	IconButton,
 	CircularProgress,
 	Button,
-	Dialog,
-	DialogTitle,
-	DialogContent,
-	DialogActions,
-	TextField,
-	Select,
-	MenuItem,
-	Checkbox,
-	FormControlLabel,
-	Autocomplete,
 	Snackbar,
 	Alert,
 } from "@mui/material";
@@ -106,8 +96,7 @@ const IconContainer = styled(Box)(({ theme }) => ({
 const CourseContainer = styled(Box)(({ theme }) => ({
 	display: 'grid',
 	gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-	gap: theme.spacing(4),
-	padding: theme.spacing(0),
+	gap: theme.spacing(4),	padding: theme.spacing(0),
 }));
 
 const CourseItem = styled(Box)(({ theme }) => ({

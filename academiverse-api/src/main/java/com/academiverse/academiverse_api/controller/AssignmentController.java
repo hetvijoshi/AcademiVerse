@@ -1,7 +1,6 @@
 package com.academiverse.academiverse_api.controller;
 
-import com.academiverse.academiverse_api.dto.request.AssignmentSaveRequest;
-import com.academiverse.academiverse_api.dto.request.AssignmentUpdateRequest;
+import com.academiverse.academiverse_api.dto.request.*;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
 import com.academiverse.academiverse_api.service.AssignmentService;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +15,11 @@ import org.springframework.web.bind.annotation.*;
 public class AssignmentController {
     private final AssignmentService assignmentService;
 
-    @GetMapping
-    public ResponseEntity<BaseResponse> getAllAssignments() {
-        return ResponseEntity.ok().body(assignmentService.getAllAssignments());
+    @GetMapping("/student")
+    public ResponseEntity<BaseResponse> getAssignmentsForStudentByInstruct(@RequestBody AssignmentForStudentGetRequest assignmentForStudentGetRequest) {
+        return ResponseEntity.ok().body(assignmentService.getAssignmentsForStudentByInstruct(assignmentForStudentGetRequest.instructId, assignmentForStudentGetRequest.userId));
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<BaseResponse> getAssignmentById(@PathVariable Long id) {
@@ -55,4 +55,15 @@ public class AssignmentController {
     public ResponseEntity<BaseResponse> activateAssignment(@PathVariable Long assignmentId) {
         return ResponseEntity.ok().body(assignmentService.activateAssignment(assignmentId));
     }
+
+    @PostMapping("/submit")
+    public ResponseEntity<BaseResponse> saveAssignmentSubmission(@RequestBody AssignmentSubmitRequest assignmentSubmitRequest) {
+        return ResponseEntity.ok().body(assignmentService.submitAssignment(assignmentSubmitRequest));
+    }
+
+    @GetMapping("/submittedAssignment")
+    public ResponseEntity<BaseResponse> getAssignmentSubmission(@RequestBody AssignmentSubmitGetRequest assignmentSubmitGetRequest) {
+        return ResponseEntity.ok().body(assignmentService.getAssignmentSubmission(assignmentSubmitGetRequest));
+    }
+
 }
