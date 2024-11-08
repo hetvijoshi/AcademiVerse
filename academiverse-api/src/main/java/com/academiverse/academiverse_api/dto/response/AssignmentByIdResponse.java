@@ -2,13 +2,8 @@ package com.academiverse.academiverse_api.dto.response;
 
 import com.academiverse.academiverse_api.model.Assignment;
 import com.academiverse.academiverse_api.model.AssignmentSubmission;
-import com.academiverse.academiverse_api.model.Grade;
 
-import java.util.List;
-
-public class AssignmentGradeResponse {
+public class AssignmentByIdResponse {
     public Assignment assignment;
-    public List<Grade> grades;
-
-    public List<AssignmentSubmission> assignmentSubmissions;
+    public AssignmentSubmission assignmentSubmission;
 }

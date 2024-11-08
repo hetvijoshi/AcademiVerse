@@ -1,12 +1,20 @@
 package com.academiverse.academiverse_api.service;
 
 import com.academiverse.academiverse_api.dto.request.AssignmentSaveRequest;
+import com.academiverse.academiverse_api.dto.request.AssignmentSubmitGetRequest;
+import com.academiverse.academiverse_api.dto.request.AssignmentSubmitRequest;
 import com.academiverse.academiverse_api.dto.request.AssignmentUpdateRequest;
+import com.academiverse.academiverse_api.dto.response.AssignmentByIdResponse;
+import com.academiverse.academiverse_api.dto.response.AssignmentResponse;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
 import com.academiverse.academiverse_api.model.Assignment;
+import com.academiverse.academiverse_api.model.AssignmentSubmission;
 import com.academiverse.academiverse_api.model.Instruct;
+import com.academiverse.academiverse_api.model.User;
 import com.academiverse.academiverse_api.repository.AssignmentRepository;
+import com.academiverse.academiverse_api.repository.AssignmentSubmissionRepository;
 import com.academiverse.academiverse_api.repository.InstructRepository;
+import com.academiverse.academiverse_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +28,8 @@ import java.util.Optional;
 public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final InstructRepository instructRepository;
+    private final UserRepository userRepository;
+    private final AssignmentSubmissionRepository assignmentSubmissionRepository;
     private final ToDoService toDoService;
 
     public BaseResponse<List<Assignment>> getAllAssignments() {
@@ -31,17 +41,22 @@ public class AssignmentService {
         return response;
     }
 
-    public BaseResponse<Assignment> getAssignmentById(Long id) {
-        Optional<Assignment> optionalAssignment = assignmentRepository.findById(id);
-        BaseResponse<Assignment> response = new BaseResponse<>();
-        if (optionalAssignment.isPresent()) {
-            response.data = optionalAssignment.get();
+    public BaseResponse<AssignmentByIdResponse> getAssignmentById(Long assignmentId, Long userId) {
+        Optional<AssignmentSubmission> optionalAssignmentSubmission = assignmentSubmissionRepository.findByAssignmentAssignmentIdAndUserUserId(assignmentId,userId);
+        Optional<Assignment> assignment = assignmentRepository.findById(assignmentId);
+        BaseResponse<AssignmentByIdResponse> response = new BaseResponse<>();
+        AssignmentByIdResponse res = new AssignmentByIdResponse();
+        if(assignment.isPresent()){
+            res.assignment = assignment.get();
+            res.assignmentSubmission = optionalAssignmentSubmission.orElse(null);
+            response.data = res;
             response.isError = false;
-            response.message = MessageFormat.format("Assignment with id {0} found.", id);
-        } else {
+            response.message = MessageFormat.format("Assignment with id {0} found.", assignmentId);
+        }
+        else{
             response.data = null;
             response.isError = true;
-            response.message = MessageFormat.format("Assignment with id {0} not found.", id);
+            response.message = MessageFormat.format("Assignment with id {0} not found.", assignmentId);
         }
         return response;
     }
@@ -144,6 +159,23 @@ public class AssignmentService {
         return response;
     }
 
+    public BaseResponse<List<AssignmentResponse>> getAssignmentsForStudentByInstruct(Long instructId, Long userId) {
+        BaseResponse<List<AssignmentResponse>> response = new BaseResponse<>();
+        List<Assignment> assignments = assignmentRepository.findByInstructInstructId(instructId);
+        List<Long> submittedAssignments = assignmentSubmissionRepository.findByUserUserIdAndAssignmentIn(userId, assignments).stream().map((a)->a.getAssignment().getAssignmentId()).toList();
+
+        response.data = assignments.stream().map((a)->{
+            AssignmentResponse res = new AssignmentResponse();
+            res.assignment = a;
+            res.submitted = submittedAssignments.contains(a.getAssignmentId());
+            return res;
+        }).toList();
+
+        response.isError = false;
+        response.message = "List of assignments";
+        return response;
+    }
+
     public BaseResponse<Assignment> activateAssignment(Long assignmentId){
         Optional<Assignment> assignment = assignmentRepository.findById(assignmentId);
         if(assignment.isPresent())
@@ -163,6 +195,46 @@ public class AssignmentService {
             response.message = MessageFormat.format("Assignment with id {0} not found.", assignmentId);
             return response;
         }
+    }
 
+    public BaseResponse<AssignmentSubmission> submitAssignment(AssignmentSubmitRequest assignmentSubmitRequest){
+        Optional<Assignment> assignment = assignmentRepository.findById(assignmentSubmitRequest.assignmentId);
+        Optional<User> user = userRepository.findById(assignmentSubmitRequest.userId);
+        if(assignment.isPresent() && user.isPresent()){
+            Optional<AssignmentSubmission> prevAssignmentSubmission = assignmentSubmissionRepository.findByAssignmentAssignmentIdAndUserUserId(assignmentSubmitRequest.assignmentId, assignmentSubmitRequest.userId);
+            BaseResponse<AssignmentSubmission> response = new BaseResponse<>();
+            if(prevAssignmentSubmission.isPresent()){
+                AssignmentSubmission assignmentSubmission = prevAssignmentSubmission.get();
+                assignmentSubmission.setAssignmentLink(assignmentSubmitRequest.assignmentLink);
+                assignmentSubmission.setUpdatedBy(assignmentSubmitRequest.createdBy);
+                assignmentSubmission.setUpdatedDate(LocalDateTime.now());
+                AssignmentSubmission savedAssignmentSubmission = assignmentSubmissionRepository.save(assignmentSubmission);
+                response.data = savedAssignmentSubmission;
+                response.isError = false;
+                response.message = MessageFormat.format("Assignment submission with id {0} saved successfully.", savedAssignmentSubmission.getAssignmentSubmissionId());
+            }
+            else{
+                AssignmentSubmission assignmentSubmission = new AssignmentSubmission();
+                assignmentSubmission.setAssignmentLink(assignmentSubmitRequest.assignmentLink);
+                assignmentSubmission.setAssignment(assignment.get());
+                assignmentSubmission.setUser(user.get());
+                assignmentSubmission.setCreatedBy(assignmentSubmitRequest.createdBy);
+                assignmentSubmission.setCreatedDate(LocalDateTime.now());
+                assignmentSubmission.setUpdatedBy(assignmentSubmitRequest.createdBy);
+                assignmentSubmission.setUpdatedDate(LocalDateTime.now());
+                AssignmentSubmission savedAssignmentSubmission = assignmentSubmissionRepository.save(assignmentSubmission);
+                response.data = savedAssignmentSubmission;
+                response.isError = false;
+                response.message = MessageFormat.format("Assignment submission with id {0} saved successfully.", savedAssignmentSubmission.getAssignmentSubmissionId());
+            }
+            return response;
+        }
+        else {
+            BaseResponse<AssignmentSubmission> response = new BaseResponse<>();
+            response.data = null;
+            response.isError = true;
+            response.message = "Assignment or User not found.";
+            return response;
+        }
     }
 }

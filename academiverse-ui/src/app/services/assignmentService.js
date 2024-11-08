@@ -45,14 +45,15 @@ export const getActiveAssignmentsByInstructId = async (instructId, token) => {
 	return response.data;
 };
 
-export const getAssignmentById = async (assignmentId, token) => {
+export const getAssignmentById = async (data, token) => {
 	let response;
 	const config = {
 		headers: { Authorization: `Bearer ${token}` },
+		params: data
 	};
 	try {
 		response = await Nextclient.get(
-			`/assignments/${assignmentId}`,
+			`/assignments/detail`,
 			config,
 		);
 	} catch (err) {
@@ -114,5 +115,40 @@ export const activeAssignment = async (assignmentId, token) => {
 		console.log("Error", err);
 	}
 
+	return response.data;
+}
+
+export const submitAssignment = async (data, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+	};
+	try {
+		response = await Nextclient.post(
+			'/assignments/submit',
+			data,
+			config,
+		);
+	} catch (err) {
+		console.log("Error", err);
+	}
+
+	return response.data;
+}
+
+export const getAssignmentsForStudentByInstruct = async (data, token) => {
+	let response;
+
+	const config = {
+		headers: { Authorization: `Bearer ${token}` },
+		params: data
+	};	
+	try {
+		response = await Nextclient.get('/assignments/student', config);
+	} catch (err) {
+		console.log("Error", err); 
+	}
+	
 	return response.data;
 }

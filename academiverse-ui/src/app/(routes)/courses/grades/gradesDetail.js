@@ -16,8 +16,14 @@ import {
   CircularProgress,
   InputAdornment,
   Snackbar,
-  Alert
+  Alert,
+  Link,
+  Dialog,
+  DialogTitle,
+  IconButton,
+  DialogContent
 } from '@mui/material';
+import { Close as CloseIcon } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -50,6 +56,7 @@ const GradesDetail = () => {
   const [loading, setLoading] = useState(true);
   const [assignmentName, setAssignmentName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [assignmentSubmission, setAssignmentSubmission] = useState([]);
   const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -61,6 +68,8 @@ const GradesDetail = () => {
     message: '',
     severity: 'success',
   });
+  const [openFileViewer, setOpenFileViewer] = useState(false);
+  const [selectedSubmission, setSelectedSubmission] = useState(null);
 
   const fetchStudentGrades = async () => {
     try {
@@ -74,6 +83,7 @@ const GradesDetail = () => {
         response = response.data;
         setAssignmentName(response.quiz != null ? response.quiz.quizName : response.assignment.assignmentTitle);
         setStudents(response.grades);
+        setAssignmentSubmission(response.assignmentSubmissions)
         setFilteredStudents(response.grades);
         setLoading(false);
       } else {
@@ -155,6 +165,23 @@ const GradesDetail = () => {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  const handleSubmissionClick = (material) => {
+    setSelectedSubmission(material);
+    setOpenFileViewer(true);
+  };
+
+  const handleCloseFileViewer = () => {
+    setOpenFileViewer(false);
+    setSelectedSubmission(null);
+  };
+
+  const getAssignmentSubmission = (userId) => {
+    const as = assignmentSubmission.filter(as => {
+      return as.user.userId == userId;
+    });
+    return as.length > 0 ? as[0] : null;
+  }
+
   if (loading) {
     return (
       <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
@@ -195,6 +222,7 @@ const GradesDetail = () => {
               <StyledTableCell>Student Name</StyledTableCell>
               <StyledTableCell align="center">Obtained Marks</StyledTableCell>
               <StyledTableCell align="center">Total Marks</StyledTableCell>
+              {!quizId && <StyledTableCell align="center">Submission</StyledTableCell>}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -220,6 +248,21 @@ const GradesDetail = () => {
                     inputProps={{ min: 0 }}
                   />
                 </TableCell>
+                {!quizId && (
+                  <TableCell align="center" style={{ padding: '16px' }}>
+                    {getAssignmentSubmission(student.user.userId) != null ? (
+                      <Button
+                        onClick={() => handleSubmissionClick(getAssignmentSubmission(student.user.userId)?.assignmentLink)}
+                        variant="contained"
+                        color="primary"
+                      >
+                        View Submission
+                      </Button>
+                    ) : (
+                      "No submission"
+                    )}
+                  </TableCell>
+                )}
               </StyledTableRow>
             ))}
           </TableBody>
@@ -230,16 +273,48 @@ const GradesDetail = () => {
           Save Grades
         </Button>
       </Box>
+      <Dialog
+        open={openFileViewer}
+        onClose={handleCloseFileViewer}
+        fullWidth
+        maxWidth="md"
+      >
+        <DialogTitle>
+          Submission
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseFileViewer}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          {selectedSubmission && (
+            <iframe
+              src={selectedSubmission}
+              width="100%"
+              height="600px"
+              title="Submission"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
       <Snackbar
-          open={snackbar.open}
-          autoHideDuration={6000}
-          onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        >
-          <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-            {snackbar.message}
-          </Alert>
-        </Snackbar>
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </StudentGradesContainer>
   );
 };

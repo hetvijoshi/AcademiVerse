@@ -28,8 +28,7 @@ public class Assignment {
     private float assignmentWeightage;
     private int totalMarks;
     @Column(name = "active", nullable = true)
-    private boolean active = true; // Ensure this is a class-level field, not a method
-
+    private boolean active = true;
     private Long createdBy;
     private LocalDateTime createdDate;
     private Long updatedBy;

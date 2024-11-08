@@ -5,9 +5,10 @@ import { Box, Typography, Paper, Chip, Button, TextField, CircularProgress, Snac
 import { styled } from '@mui/system';
 import { Assignment as AssignmentIcon, CloudUpload as CloudUploadIcon, ArrowBack as ArrowBackIcon } from '@mui/icons-material';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { getAssignmentById } from '../../../../services/assignmentService';
+import { getAssignmentById, submitAssignment } from '../../../../services/assignmentService';
 import { useSession } from 'next-auth/react';
 import dayjs from 'dayjs';
+import { uploadDocument } from '../../../../services/genericService';
 
 const DetailContainer = styled(Box)(({ theme }) => ({
   width: '100%',
@@ -48,14 +49,19 @@ const AssignmentDetail = () => {
 
   const fetchAssignment = async (assignmentId) => {
     // Replace with actual API call
-    const res = await getAssignmentById(assignmentId, session.id_token);
+    const reqData = {
+      assignmentId: assignmentId,
+      userId: session.userDetails?.userId,
+    }
+    const res = await getAssignmentById(reqData, session.id_token);
     if (!res.isError) {
       const formattedData = {
-        id: res.data?.assignmentId,
-        title: res.data?.assignmentTitle,
-        description: res.data?.assignmentDescription,
-        dueDate: res.data?.assignmentDueDate,
-        totalMarks: res.data?.totalMarks
+        id: res.data?.assignment.assignmentId,
+        title: res.data?.assignment.assignmentTitle,
+        description: res.data?.assignment.assignmentDescription,
+        dueDate: res.data?.assignment.assignmentDueDate,
+        totalMarks: res.data?.assignment.totalMarks,
+        assignmentSubmission: res.data?.assignmentSubmission
       }
       setAssignment(formattedData);
     } else {
@@ -78,10 +84,42 @@ const AssignmentDetail = () => {
   const handleUpload = async () => {
     if (!file) return;
     setUploading(true);
-    // Simulating file upload
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    const formData = new FormData();
+    formData.append('file', file);
+    const res1 = await uploadDocument(formData, session.id_token);
+    if (!res1.isError) {
+      setFile(null);
+      const reqData = {
+        userId: session?.userDetails?.userId,
+        assignmentId: assignmentId,
+        assignmentLink: res1.data,
+        createdBy: session?.userDetails?.userId,
+        updatedBy: session?.userDetails?.userId
+      }
+      const res = await submitAssignment(reqData, session.id_token);
+      if (!res.isError) {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'success',
+        });
+        handleBack();
+      } else {
+        setSnackbar({
+          open: true,
+          message: res.message,
+          severity: 'error',
+        });
+      }
+    }
+    else {
+      setSnackbar({
+        open: true,
+        message: res1.message,
+        severity: 'error',
+      });
+    }
     setUploading(false);
-    setFile(null);
     // Here you would typically send the file to your server
     console.log('File uploaded:', file.name);
   };
@@ -127,6 +165,22 @@ const AssignmentDetail = () => {
           <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY hh:mm A')}`} color="primary" variant="outlined" />
           <StyledChip label={`Total Marks: ${assignment.totalMarks}`} color="secondary" variant="outlined" />
         </Box>
+
+        <Typography variant="h6" gutterBottom>
+          {assignment.assignmentSubmission ? 'Last Submission' : 'No submission'}
+        </Typography>
+
+        {assignment.assignmentSubmission && (
+          <Box sx={{ mb: 3 }}>
+            <iframe
+              src={assignment.assignmentSubmission.assignmentLink}
+              width="100%"
+              height="500px"
+              style={{ border: 'none' }}
+              title="Assignment Submission"
+            />
+          </Box>
+        )}
 
         <Typography variant="h6" color="primary" gutterBottom>
           Submit Assignment

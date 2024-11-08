@@ -5,14 +5,8 @@ import com.academiverse.academiverse_api.dto.response.AssignmentGradeResponse;
 import com.academiverse.academiverse_api.dto.response.BaseResponse;
 import com.academiverse.academiverse_api.dto.response.InstructGradeResponse;
 import com.academiverse.academiverse_api.dto.response.QuizGradeResponse;
-import com.academiverse.academiverse_api.model.Enrolment;
-import com.academiverse.academiverse_api.model.Grade;
-import com.academiverse.academiverse_api.model.Assignment;
-import com.academiverse.academiverse_api.model.Quiz;
-import com.academiverse.academiverse_api.repository.AssignmentRepository;
-import com.academiverse.academiverse_api.repository.EnrolmentRepository;
-import com.academiverse.academiverse_api.repository.GradeRepository;
-import com.academiverse.academiverse_api.repository.QuizRepository;
+import com.academiverse.academiverse_api.model.*;
+import com.academiverse.academiverse_api.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +25,7 @@ public class GradeService {
     private final AssignmentRepository assignmentRepository;
     private final QuizRepository quizRepository;
     private final EnrolmentRepository enrolmentRepository;
+    private final AssignmentSubmissionRepository assignmentSubmissionRepository;
 
     public BaseResponse<List<Grade>> getStudentGrades(Long instructId, Long studentId) {
         List<Quiz> quizzes= quizRepository.findByInstructInstructIdAndIsActive(instructId, true);
@@ -106,10 +101,15 @@ public class GradeService {
         if(assignment.isPresent()){
             res.assignment = assignment.get();
             res.grades = new ArrayList<>();
+
+            List<AssignmentSubmission> submissions = assignmentSubmissionRepository.findByAssignmentAssignmentId(assignmentId);
+            res.assignmentSubmissions = submissions;
+
             List<Enrolment> enrolments = enrolmentRepository.findByInstructInstructId(assignment.get().getInstruct().getInstructId());
             List<Grade> grades = gradeRepository.findByAssignmentAssignmentId(assignmentId);
             res.grades.addAll(enrolments.stream().map(e->{
                 Optional<Grade> sg = grades.stream().filter(g-> g.getUser().getUserId() == e.getUser().getUserId()).findFirst();
+                Optional<AssignmentSubmission> as = submissions.stream().filter(s->s.getUser().getUserId() == e.getUser().getUserId()).findFirst();
                 if(sg.isPresent()){
                     return sg.get();
                 }else{

@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Assignment as AssignmentIcon } from '@mui/icons-material';
 import { useSession } from 'next-auth/react';
 import AssignmentCreationPage from './assignmentCreation';
-import { getActiveAssignmentsByInstructId, getAssignmentsByInstructId } from '../../../services/assignmentService';
+import { getActiveAssignmentsByInstructId, getAssignmentsByInstructId, getAssignmentsForStudentByInstruct } from '../../../services/assignmentService';
 import dayjs from 'dayjs';
 import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
@@ -53,14 +53,19 @@ const AssignmentPage = () => {
   });
 
   const fetchAssignments = async () => {
-    const res = await getActiveAssignmentsByInstructId(instructId, session.id_token);
+    const reqData = {
+      instructId: instructId,
+      userId: session.userDetails?.userId,
+    }
+    const res = await getAssignmentsForStudentByInstruct(reqData, session.id_token);
     if (!res.isError) {
-      const formattedData = res.data.map((assignment) => ({
-        id: assignment.assignmentId,
-        title: assignment.assignmentTitle,
-        description: assignment.assignmentDescription,
-        dueDate: assignment.assignmentDueDate,
-        totalMarks: assignment.totalMarks
+      const formattedData = res.data.map((data) => ({
+        id: data.assignment.assignmentId,
+        title: data.assignment.assignmentTitle,
+        description: data.assignment.assignmentDescription,
+        dueDate: data.assignment.assignmentDueDate,
+        totalMarks: data.assignment.totalMarks,
+        submitted: data.submitted
       }));
       setAssignments(formattedData);
     } else {
@@ -73,9 +78,6 @@ const AssignmentPage = () => {
   };
 
   useEffect(() => {
-    // Fetch assignments from API
-
-
     fetchAssignments();
   }, []);
 
@@ -114,6 +116,14 @@ const AssignmentPage = () => {
             <Box sx={{ mt: 1 }}>
               <StyledChip label={`Due: ${dayjs(assignment.dueDate).format('DD-MM-YYYY hh:mm A')}`} color="primary" variant="outlined" size="small" />
               <StyledChip label={`Total marks: ${assignment.totalMarks}`} color="secondary" variant="outlined" size="small" />
+              {session?.userDetails?.role === 'student' && (
+                <StyledChip
+                  label={assignment.submitted ? 'Submitted' : 'Not Submitted'}
+                  color={assignment.submitted ? 'success' : 'error'}
+                  variant="filled"
+                  size="small"
+                />
+              )}
             </Box>
             <Button
               variant="outlined"
