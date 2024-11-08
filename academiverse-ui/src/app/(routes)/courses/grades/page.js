@@ -301,7 +301,9 @@ const GradePage = () => {
             No Grades Yet
           </Typography>
           <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
-            Start engaging with your students by creating your first course announcement.
+            {session?.userDetails?.role === 'professor' 
+              ? "Start evaluating your students by grading their assignments and quizzes. This will help them track their progress and performance in the course."
+              : "Your grades for assignments and quizzes will appear here once they are evaluated. Check back later for updates on your performance."}
           </Typography>
         </EmptyStateContainer>}
     </GradeContainer>

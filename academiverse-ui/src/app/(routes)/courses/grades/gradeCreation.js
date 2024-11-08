@@ -176,7 +176,8 @@ const GradeCreationPage = () => {
             No Grades Yet
           </Typography>
           <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
-            Start engaging with your students by creating your first course announcement.
+            There are no grades available yet for this course. Once students submit their assignments or quizzes,
+            you will be able to view and manage their grades here. 
           </Typography>
         </EmptyStateContainer>}
       <Snackbar

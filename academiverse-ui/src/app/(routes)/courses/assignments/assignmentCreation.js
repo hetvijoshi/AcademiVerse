@@ -278,10 +278,10 @@ const AssignmentCreationPage = () => {
 				)) : <EmptyStateContainer>
 					<AssignmentIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
 					<Typography variant="h5" color="text.secondary" gutterBottom>
-						No Assignment Yet
+						No Assignments Yet
 					</Typography>
 					<Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
-						Start engaging with your students by creating your first course announcement.
+						Start engaging with your students by creating your first assignment. You can set due dates, marks, and track student submissions.
 					</Typography>
 				</EmptyStateContainer>}
 			</List>

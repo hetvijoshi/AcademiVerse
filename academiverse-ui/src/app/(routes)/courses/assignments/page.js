@@ -144,7 +144,7 @@ const AssignmentPage = () => {
             No Assignments Yet
           </Typography>
           <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
-            There are no announcements for this course yet. Check back later for updates from your professor.
+            There are no assignments posted for this course yet. Check back later for updates from your professor.
           </Typography>
         </EmptyStateContainer>}
       </List>

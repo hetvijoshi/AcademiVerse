@@ -19,6 +19,8 @@ import { styled } from '@mui/material/styles';
 import { getInstructStudents } from '../../../services/enrollService';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
+import GroupIcon from '@mui/icons-material/Group';
 
 const ClassmateContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
@@ -119,19 +121,31 @@ const ClassmatePage = () => {
           Your Classmates
         </Typography>
       </TitleSection>
-      <List>
-        {classmates.map((classmate, index) => (
-          <React.Fragment key={classmate.user.userId}>
-            <StyledListItem>
-              <ListItemAvatar>
-                <StyledAvatar alt={classmate.user.name} />
-              </ListItemAvatar>
-              <StyledListItemText primary={classmate.user.name} />
-            </StyledListItem>
-            {index < classmates.length - 1 && <Divider variant="inset" component="li" />}
-          </React.Fragment>
-        ))}
-      </List>
+      {classmates.length > 0 ? (
+        <List>
+          {classmates.map((classmate, index) => (
+            <React.Fragment key={classmate.user.userId}>
+              <StyledListItem>
+                <ListItemAvatar>
+                  <StyledAvatar alt={classmate.user.name} />
+                </ListItemAvatar>
+                <StyledListItemText primary={classmate.user.name} />
+              </StyledListItem>
+              {index < classmates.length - 1 && <Divider variant="inset" component="li" />}
+            </React.Fragment>
+          ))}
+        </List>
+      ) : (
+        <EmptyStateContainer>
+          <GroupIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Classmates Yet
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            You are currently the only student enrolled in this course. As more students join, they will appear here.
+          </Typography>
+        </EmptyStateContainer>
+      )}
       <Snackbar
           open={snackbar.open}
           autoHideDuration={6000}

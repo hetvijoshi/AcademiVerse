@@ -293,7 +293,7 @@ const QuizPage = () => {
             No Quizzes Yet
           </Typography>
           <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
-            Start engaging with your students by creating your first course announcement.
+            There are currently no quizzes available in this course. Your professor will create and assign quizzes to help assess your understanding of the course material.
           </Typography>
         </EmptyStateContainer>}
       {openQuiz && (

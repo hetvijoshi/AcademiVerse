@@ -19,9 +19,11 @@ import {
 import { styled } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import GroupIcon from '@mui/icons-material/Group';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { enrolledStudent, getEnrolledStudents } from '../../../services/enrollService';
+import { EmptyStateContainer } from '../../../../components/EmptyState/EmptyState';
 
 const EnrollmentContainer = styled(Paper)(({ theme }) => ({
   width: '100%',
@@ -83,7 +85,7 @@ const EnrollmentPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [students, setStudents] = useState([]);
   const [allStudents, setAllStudents] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showOnlyEnrolled, setShowOnlyEnrolled] = useState(false);
   const { data: session } = useSession();
   const searchParams = useSearchParams();
@@ -192,53 +194,65 @@ const EnrollmentPage = () => {
           Course Enrollment
         </Typography>
       </TitleSection>
-      <SearchBox>
-        <SearchField
-          variant="outlined"
-          placeholder="Search by name or email"
-          value={searchTerm}
-          onChange={(e) => searchStudents(e.target.value)}
-        />
-      </SearchBox>
-      <FilterBox>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={showOnlyEnrolled}
-              onChange={(e) => setShowOnlyEnrolled(e.target.checked)}
-              color="primary"
-            />
-          }
-          label="Show Only Enrolled Students"
-        />
-      </FilterBox>
       {loading ? (
         <Box display="flex" justifyContent="center">
           <CircularProgress />
         </Box>
+      ) : students.length > 0 ? (
+        <>
+          <SearchBox>
+            <SearchField
+              variant="outlined"
+              placeholder="Search by name or email"
+              value={searchTerm}
+              onChange={(e) => searchStudents(e.target.value)}
+            />
+          </SearchBox>
+          <FilterBox>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showOnlyEnrolled}
+                  onChange={(e) => setShowOnlyEnrolled(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Show Only Enrolled Students"
+            />
+          </FilterBox>
+          <StudentList>
+            {displayedStudents.map((student, index) => (
+              <StudentListItem key={student.user.userId} divider>
+                <Typography variant="body1" sx={{ minWidth: '50px', color: 'text.secondary' }}>
+                  {index + 1}.
+                </Typography>
+                <ListItemText
+                  primary={`${student.user.name}`}
+                  secondary={student.user.userEmail}
+                />
+                <EnrollButton
+                  variant="contained"
+                  color={student.isEnrolled ? "default" : "secondary"}
+                  startIcon={<PersonAddIcon />}
+                  onClick={() => handleEnroll(student)}
+                  disabled={student.isEnrolled}
+                >
+                  {student.isEnrolled ? "Enrolled" : "Enroll"}
+                </EnrollButton>
+              </StudentListItem>
+            ))}
+          </StudentList>
+        </>
       ) : (
-        <StudentList>
-          {displayedStudents.map((student, index) => (
-            <StudentListItem key={student.user.userId} divider>
-              <Typography variant="body1" sx={{ minWidth: '50px', color: 'text.secondary' }}>
-                {index + 1}.
-              </Typography>
-              <ListItemText
-                primary={`${student.user.name}`}
-                secondary={student.user.userEmail}
-              />
-              <EnrollButton
-                variant="contained"
-                color={student.isEnrolled ? "default" : "secondary"}
-                startIcon={<PersonAddIcon />}
-                onClick={() => handleEnroll(student)}
-                disabled={student.isEnrolled}
-              >
-                {student.isEnrolled ? "Enrolled" : "Enroll"}
-              </EnrollButton>
-            </StudentListItem>
-          ))}
-        </StudentList>
+        <EmptyStateContainer>
+          <GroupIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />
+          <Typography variant="h5" color="text.secondary" gutterBottom>
+            No Students Available
+          </Typography>
+          <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+            There are currently no students available to enroll in this course. Students will appear here once they register on the platform.
+          </Typography>
+        </EmptyStateContainer>
       )}
       <Snackbar
         open={snackbar.open}

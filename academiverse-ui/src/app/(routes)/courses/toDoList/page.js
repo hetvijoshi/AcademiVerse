@@ -178,7 +178,7 @@ const ToDoListScreen = () => {
           No Todo Yet
         </Typography>
         <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
-          Start engaging with your students by creating your first course announcement.
+          You currently don&apos;t have any pending tasks or assignments. When your professor assigns new work, it will appear here to help you stay on track with your coursework and meet important deadlines.
         </Typography>
       </EmptyStateContainer>}
 
