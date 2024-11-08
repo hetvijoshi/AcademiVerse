@@ -61,9 +61,4 @@ public class AssignmentController {
         return ResponseEntity.ok().body(assignmentService.submitAssignment(assignmentSubmitRequest));
     }
 
-    @GetMapping("/submittedAssignment")
-    public ResponseEntity<BaseResponse> getAssignmentSubmission(@RequestBody AssignmentSubmitGetRequest assignmentSubmitGetRequest) {
-        return ResponseEntity.ok().body(assignmentService.getAssignmentSubmission(assignmentSubmitGetRequest));
-    }
-
 }

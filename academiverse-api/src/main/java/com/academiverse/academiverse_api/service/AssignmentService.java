@@ -237,24 +237,4 @@ public class AssignmentService {
             return response;
         }
     }
-
-    public BaseResponse<AssignmentSubmission> getAssignmentSubmission(AssignmentSubmitGetRequest assignmentSubmitGetRequest) {
-        Optional<Assignment> assignment = assignmentRepository.findById(assignmentSubmitGetRequest.assignmentId);
-        Optional<User> user = userRepository.findById(assignmentSubmitGetRequest.userId);
-        BaseResponse<AssignmentSubmission> response = new BaseResponse<>();
-        if(assignment.isPresent() && user.isPresent()){
-            Optional<AssignmentSubmission> assignmentSubmission = assignmentSubmissionRepository.findByAssignmentAssignmentIdAndUserUserId(assignmentSubmitGetRequest.assignmentId, assignmentSubmitGetRequest.userId);
-            if(assignmentSubmission.isPresent()){
-                response.data = assignmentSubmission.get();
-                response.isError = false;
-                response.message = MessageFormat.format("Assignment submission with id {0} found.", assignmentSubmission.get().getAssignmentSubmissionId());
-            }
-        }
-        else {
-            response.data = null;
-            response.isError = true;
-            response.message = MessageFormat.format("User with id {0} or Assignment with id {1} not found", assignmentSubmitGetRequest.userId, assignmentSubmitGetRequest.assignmentId);
-        }
-        return response;
-    }
 }
