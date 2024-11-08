@@ -337,8 +337,8 @@ const ModulePage = () => {
               </Typography>
               <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
                 {isProfessor
-                  ? "Start engaging with your students by creating your first course announcement."
-                  : "There are no announcements for this course yet. Check back later for updates from your professor."}
+                  ? "Start organizing your course content by creating modules. Add lecture materials, assignments, and resources to help your students learn effectively."
+                  : "No course materials have been added yet. Once your professor creates modules, you'll be able to access lecture materials, assignments and other learning resources here."}
               </Typography>
             </EmptyStateContainer>
           )}
