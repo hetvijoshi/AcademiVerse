@@ -10,5 +10,5 @@ public class AssignmentGradeResponse {
     public Assignment assignment;
     public List<Grade> grades;
 
-    public List<AssignmentSubmission> gradeSubmission;
+    public List<AssignmentSubmission> assignmentSubmissions;
 }

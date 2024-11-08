@@ -101,9 +101,9 @@ public class GradeService {
         if(assignment.isPresent()){
             res.assignment = assignment.get();
             res.grades = new ArrayList<>();
-            
+
             List<AssignmentSubmission> submissions = assignmentSubmissionRepository.findByAssignmentAssignmentId(assignmentId);
-            res.gradeSubmission = submissions;
+            res.assignmentSubmissions = submissions;
 
             List<Enrolment> enrolments = enrolmentRepository.findByInstructInstructId(assignment.get().getInstruct().getInstructId());
             List<Grade> grades = gradeRepository.findByAssignmentAssignmentId(assignmentId);
