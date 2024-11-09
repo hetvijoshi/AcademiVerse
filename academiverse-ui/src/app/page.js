@@ -415,6 +415,7 @@ const CourseScreen = () => {
 					}}>
 						<Box>
 							<Typography
+								data-testid="welcome-message"
 								variant="h4"
 								sx={{
 									color: "primary.dark",
@@ -426,6 +427,7 @@ const CourseScreen = () => {
 								Welcome back, {session.userDetails?.name}🎓!
 							</Typography>
 							<Typography
+								data-testid="user-role"
 								variant="subtitle1"
 								sx={{
 									color: "text.secondary",

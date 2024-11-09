@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start -p 8080",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "cypress:open": "cypress open",
+    "autotest": "start-server-and-test start http://localhost:3000 cypress"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
@@ -22,7 +24,8 @@
     "next": "14.2.7",
     "next-auth": "^5.0.0-beta.20",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "start-server-and-test": "^2.0.8"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",
@@ -30,6 +33,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.0.1",
     "@types/node": "22.5.2",
+    "cypress": "^13.15.2",
     "eslint": "^8",
     "eslint-config-next": "14.2.7",
     "identity-obj-proxy": "^3.0.0",
