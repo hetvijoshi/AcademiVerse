@@ -356,7 +356,7 @@ const QuizCreationPage = () => {
             No Quizzes Yet
           </Typography>
           <Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
-            Start engaging with your students by creating your first course announcement.
+            Start creating quizzes to assess your students&apos; knowledge and track their progress. 
           </Typography>
         </EmptyStateContainer>}
       <Snackbar
