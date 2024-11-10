@@ -424,7 +424,7 @@ const CourseScreen = () => {
 									lineHeight: 1.2,
 								}}
 							>
-								Welcome back, {session.userDetails?.name}🎓!
+								Welcome back, {session.userDetails?.name || ''}🎓!
 							</Typography>
 							<Typography
 								data-testid="user-role"
@@ -465,7 +465,7 @@ const CourseScreen = () => {
 				</TitleSection>
 
 				<ContentSection>
-					<CourseContainer>
+					<CourseContainer data-testid="course-container">
 						{loading ? (
 							<CircularProgress />
 						) : (

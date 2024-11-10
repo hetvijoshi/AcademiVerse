@@ -5,11 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start -p 8080",
+    "start": "next start -p 3000",
     "lint": "next lint",
     "test": "jest",
-    "cypress:open": "cypress open",
-    "autotest": "start-server-and-test start http://localhost:3000 cypress"
+    "cypress:open": "cypress open"
   },
   "dependencies": {
     "@emotion/react": "^11.13.3",
@@ -24,8 +23,7 @@
     "next": "14.2.7",
     "next-auth": "^5.0.0-beta.20",
     "react": "^18",
-    "react-dom": "^18",
-    "start-server-and-test": "^2.0.8"
+    "react-dom": "^18"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.26.0",

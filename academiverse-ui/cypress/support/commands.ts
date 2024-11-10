@@ -35,21 +35,18 @@
 //     }
 //   }
 // }
-export {};
+export { };
 
 declare global {
-    namespace Cypress {
-      interface Chainable {
-        // ... existing declarations ...
-        loginViaMicrosoft(email: string, password: string): Chainable<void>
-      }
+  namespace Cypress {
+    interface Chainable {
+      // ... existing declarations ...
+      login(): Chainable<void>
     }
   }
-Cypress.Commands.add("loginViaMicrosoft", (email: string, password: string) => {
-    // Custom command to handle Microsoft authentication
-    cy.session([email, password], () => {
-      cy.visit('/');
-      // Add Microsoft login automation steps here
-      // Note: It's often better to mock this in tests rather than actually logging in
-    });
-  });
+}
+
+Cypress.Commands.add("login", () => {
+  cy.intercept("/api/auth/session", { fixture: "session.json" }).as("session");
+  cy.setCookie("next-auth.session-token", "a valid cookie from your browser session");
+});
