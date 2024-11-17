@@ -381,7 +381,7 @@ public class QuizService {
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Authorization", "Bearer sk-dWnQ6dyQrKvqv0AgtZxlGTB7KQaSJ2XKTdED7RyW3XT3BlbkFJWkP-5ZyQ96USabgrgfauPzEwnnBjQbH1pg-LK7LxkA");
+        headers.set("Authorization", "Bearer ");
 
         String prompt = "Using provided file text, extract questions, options, and answers from the following text and format them as JSON objects: [{'questionText': '<question text here without special characters>', 'options': ['', '', '', ''], 'answer': ''}]. Make sure:\n" +
                 "1. The JSON array contains only valid JSON characters.\n" +

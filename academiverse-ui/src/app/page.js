@@ -43,6 +43,7 @@ import { getCourseByDeptId } from "./services/courseService";
 import { getAllDepartment } from "./services/departmentService";
 import { saveInstruct } from "./services/instructService";
 import NewsWidget from '../components/NewsWidget/NewsWidget';
+import { EmptyStateContainer } from '../components/EmptyState/EmptyState';
 
 const StyledCard = styled(Card)(({ theme }) => ({
 	height: '100%',
@@ -255,6 +256,7 @@ const CourseScreen = () => {
 	const getDepartments = async () => {
 		const res = await getAllDepartment(session.id_token);
 		setDepartments(res.data);
+		handleNewCourseChange("department", session.userDetails?.department);
 	};
 
 	const getCourses = async (departmentId) => {
@@ -465,126 +467,138 @@ const CourseScreen = () => {
 				</TitleSection>
 
 				<ContentSection>
-					<CourseContainer data-testid="course-container">
-						{loading ? (
-							<CircularProgress />
-						) : (
-							<>
-								{courses.map((course) => (
-									<CourseItem key={course.id}>
-										<StyledCard
-											bgcolor={course.color}
-											onClick={() => handleCourseClick(course.id)}
-											sx={{
-												border:
-													selectedCourseId === course.id
-														? "2px solid #1976D2"
-														: "none",
-												boxShadow:
-													selectedCourseId === course.id
-														? "0 0 20px rgba(25, 118, 210, 0.5)"
-														: "none",
-											}}
-										>
-											<CardHeader>
+					{loading ? (
+						<CircularProgress />
+					) : courses?.length === 0 ? (
+						<EmptyStateContainer sx={{ backgroundColor: 'white' }}>
+							{/*<CommentIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }} />*/}
+							<School sx={{ fontSize: 64, color: 'text.secondary', mb: 2, opacity: 0.5 }}/>
+							<Typography variant="h5" color="text.secondary" gutterBottom>
+								No Courses Yet
+							</Typography>
+							<Typography variant="body1" color="text.secondary" align="center" sx={{ maxWidth: 450 }}>
+								{isProfessor
+									? "Get started by adding your first course to begin teaching and managing your classes."
+									: "You haven't enrolled in any courses yet. Once you enroll, your courses will appear here."}
+							</Typography>
+						</EmptyStateContainer>
+					) : (
+						<CourseContainer data-testid="course-container">
+							{courses.map((course) => (
+								<CourseItem key={course.id}>
+									<StyledCard
+										bgcolor={course.color}
+										onClick={() => handleCourseClick(course.id)}
+										sx={{
+											border:
+												selectedCourseId === course.id
+													? "2px solid #1976D2"
+													: "none",
+											boxShadow:
+												selectedCourseId === course.id
+													? "0 0 20px rgba(25, 118, 210, 0.5)"
+													: "none",
+										}}
+									>
+										<CardHeader>
+											<Typography
+												variant="h6"
+												component="div"
+												sx={{ fontWeight: "bold", color: "rgba(0,0,0,0.8)" }}
+											>
+												{course.code}: {course.name}
+											</Typography>
+										</CardHeader>
+										<CardBody>
+											<Box>
 												<Typography
-													variant="h6"
-													component="div"
-													sx={{ fontWeight: "bold", color: "rgba(0,0,0,0.8)" }}
+													variant="body2"
+													color="text.secondary"
+													sx={{ mb: 1 }}
 												>
-													{course.code}: {course.name}
+													Days:{" "}
+													{Array.isArray(course.days)
+														? course.days.join(", ")
+														: "N/A"}
 												</Typography>
-											</CardHeader>
-											<CardBody>
-												<Box>
-													<Typography
-														variant="body2"
-														color="text.secondary"
-														sx={{ mb: 1 }}
+												<Typography variant="body2" color="text.secondary">
+													Time: {course.startTime} - {course.endTime}
+												</Typography>
+											</Box>
+											<IconContainer>
+												{icons.map((item, index) => (
+													<IconButton
+														key={index}
+														title={item.label}
+														onClick={(e) => {
+															e.stopPropagation();
+															handleIconClick(
+																course.id,
+																item.section.toLowerCase(),
+															);
+														}}
+														sx={{
+															color: "rgba(0,0,0,0.6)",
+															"&:hover": { color: "rgba(0,0,0,0.8)" },
+														}}
 													>
-														Days:{" "}
-														{Array.isArray(course.days)
-															? course.days.join(", ")
-															: "N/A"}
-													</Typography>
-													<Typography variant="body2" color="text.secondary">
-														Time: {course.startTime} - {course.endTime}
-													</Typography>
-												</Box>
-												<IconContainer>
-													{icons.map((item, index) => (
+														{item.icon}
+													</IconButton>
+												))}
+												{isProfessor && (
+													<>
 														<IconButton
-															key={index}
-															title={item.label}
+															title="Enrollments"
 															onClick={(e) => {
 																e.stopPropagation();
-																handleIconClick(
-																	course.id,
-																	item.section.toLowerCase(),
-																);
+																handleIconClick(course.id, "enrollments");
 															}}
 															sx={{
 																color: "rgba(0,0,0,0.6)",
 																"&:hover": { color: "rgba(0,0,0,0.8)" },
 															}}
 														>
-															{item.icon}
+															<EnrollmentIcon />
 														</IconButton>
-													))}
-													{isProfessor && (
-														<>
-															<IconButton
-																title="Enrollments"
-																onClick={(e) => {
-																	e.stopPropagation();
-																	handleIconClick(course.id, "enrollments");
-																}}
-																sx={{
-																	color: "rgba(0,0,0,0.6)",
-																	"&:hover": { color: "rgba(0,0,0,0.8)" },
-																}}
-															>
-																<EnrollmentIcon />
-															</IconButton>
-															<IconButton
-																title="Edit Course"
-																onClick={(e) => {
-																	e.stopPropagation();
-																	handleEditCourse(course);
-																}}
-																sx={{
-																	color: "rgba(0,0,0,0.6)",
-																	"&:hover": { color: "rgba(0,0,0,0.8)" },
-																}}
-															>
-																<EditIcon />
-															</IconButton>
-														</>
-													)}
-												</IconContainer>
-											</CardBody>
-										</StyledCard>
-									</CourseItem>
-								))}
-							</>
-						)}
-						<Snackbar
-							open={snackbar.open}
-							autoHideDuration={6000}
-							onClose={handleCloseSnackbar}
-							anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-						>
-							<Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
-								{snackbar.message}
-							</Alert>
-						</Snackbar>
-					</CourseContainer>
+														<IconButton
+															title="Edit Course"
+															onClick={(e) => {
+																e.stopPropagation();
+																handleEditCourse(course);
+															}}
+															sx={{
+																color: "rgba(0,0,0,0.6)",
+																"&:hover": { color: "rgba(0,0,0,0.8)" },
+															}}
+														>
+															<EditIcon />
+														</IconButton>
+													</>
+												)}
+											</IconContainer>
+										</CardBody>
+									</StyledCard>
+								</CourseItem>
+							))}
+						</CourseContainer>
+					)}
+					<Snackbar
+						open={snackbar.open}
+						autoHideDuration={6000}
+						onClose={handleCloseSnackbar}
+						anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+					>
+						<Alert onClose={handleCloseSnackbar} severity={snackbar.severity} sx={{ width: '100%' }}>
+							{snackbar.message}
+						</Alert>
+					</Snackbar>
 				</ContentSection>
 			</Box>
 			<Dialog open={openAddCourseDialog} onClose={handleCloseAddCourseDialog}>
 				<DialogTitle>Add New Course</DialogTitle>
 				<DialogContent>
 					<Autocomplete
+						disabled
 						options={departments}
 						getOptionLabel={(option) => option.departmentName}
 						value={newCourse.department}

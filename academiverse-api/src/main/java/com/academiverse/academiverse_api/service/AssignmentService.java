@@ -161,7 +161,7 @@ public class AssignmentService {
 
     public BaseResponse<List<AssignmentResponse>> getAssignmentsForStudentByInstruct(Long instructId, Long userId) {
         BaseResponse<List<AssignmentResponse>> response = new BaseResponse<>();
-        List<Assignment> assignments = assignmentRepository.findByInstructInstructId(instructId);
+        List<Assignment> assignments = assignmentRepository.findByInstructInstructIdAndActive(instructId, true);
         List<Long> submittedAssignments = assignmentSubmissionRepository.findByUserUserIdAndAssignmentIn(userId, assignments).stream().map((a)->a.getAssignment().getAssignmentId()).toList();
 
         response.data = assignments.stream().map((a)->{
