@@ -52,7 +52,7 @@ public class QuizService {
 
     public BaseResponse<List<QuizResponse>> getQuizzes(long instructId, long userId){
         BaseResponse<List<QuizResponse>> res = new BaseResponse<>();
-        List<Quiz> quizList = quizRepository.findByInstructInstructId(instructId);
+        List<Quiz> quizList = quizRepository.findByInstructInstructIdAndIsActive(instructId, true);
         List<Long> submittedQuizzes = gradeRepository.findByUserUserIdAndQuizIn(userId, quizList)
                 .stream()
                 .map((g)-> g.getQuiz().getQuizId())
@@ -174,7 +174,7 @@ public class QuizService {
             });
             List<Question> savedQuestionList = questionRepository.saveAll(questionList);
 
-            toDoService.generateToDoForInstruct(savedQuiz.getInstruct().getInstructId(), "Complete " + savedQuiz.getQuizName(), savedQuiz.getQuizDueDate());
+            //toDoService.generateToDoForInstruct(savedQuiz.getInstruct().getInstructId(), "Complete " + savedQuiz.getQuizName(), savedQuiz.getQuizDueDate());
 
             BaseResponse<Quiz> response = new BaseResponse<>();
             response.data = q;
@@ -327,7 +327,7 @@ public class QuizService {
                 questions.forEach((question)->{
                     Optional<SubmitQuestion> sq = quizSubmitRequest.submission.stream().filter((s)-> s.questionId == question.getQuestionId()).findFirst();
                     if(sq.isPresent()){
-                        if(sq.get().optionId == question.getAnswer().getOptionId()){
+                        if(Objects.equals(sq.get().optionId, question.getAnswer().getOptionId())){
                             quizSubmitResponse.obtainedMarks = (int) (quizSubmitResponse.obtainedMarks + question.getMarks());
                         }else{
                             quizSubmitResponse.incorrect++;
@@ -385,8 +385,8 @@ public class QuizService {
 
         String prompt = "Using provided file text, extract questions, options, and answers from the following text and format them as JSON objects: [{'questionText': '<question text here without special characters>', 'options': ['', '', '', ''], 'answer': ''}]. Make sure:\n" +
                 "1. The JSON array contains only valid JSON characters.\n" +
-                "2. Do not include any special characters or control symbols such as newline (\\n), tabs, or escape sequences.\n" +
-                "3. Output only the JSON array without additional text. I only want json output in my response. No other text should be present in response. FileText:"
+                "2. Do not include any special characters or control symbols such as single quote, newline (\\n), tabs, or escape sequences.\n" +
+                "3. Output only the JSON array without additional text. I only want json output with double quotes in my response. No other text should be present in response. FileText:"
                 + extractedText;
 
         Map<String, Object> requestBody = new HashMap<>();
@@ -409,7 +409,7 @@ public class QuizService {
         OpenAIResponse formattedResponse = objectMapper.readValue(response, OpenAIResponse.class);
         String formattedQuestions = formattedResponse.choices.get(0).message.content;
         formattedQuestions = formattedQuestions.replaceAll("\\s+", " ").trim();
-        formattedQuestions = formattedQuestions.replaceAll("'", "\"");
+        //formattedQuestions = formattedQuestions.replaceAll("'", "\"");
 
         objectMapper = new ObjectMapper();
         List<com.academiverse.academiverse_api.dto.request.Question> questions = objectMapper.readValue(formattedQuestions, new TypeReference<>() {});

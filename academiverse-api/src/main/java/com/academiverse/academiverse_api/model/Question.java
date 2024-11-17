@@ -1,6 +1,7 @@
 package com.academiverse.academiverse_api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,7 +28,7 @@ public class Question {
     private List<QOption> qOptions;
     @OneToOne
     @JoinColumn(name = "answerId", referencedColumnName = "optionId", nullable = true)
-    //@JsonIgnore
+    @JsonManagedReference
     private QOption answer;
     private float marks;
     private LocalDateTime createdAt;

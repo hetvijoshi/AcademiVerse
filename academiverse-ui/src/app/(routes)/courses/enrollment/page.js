@@ -198,7 +198,7 @@ const EnrollmentPage = () => {
         <Box display="flex" justifyContent="center">
           <CircularProgress />
         </Box>
-      ) : students.length > 0 ? (
+      ) : allStudents.length > 0 ? (
         <>
           <SearchBox>
             <SearchField

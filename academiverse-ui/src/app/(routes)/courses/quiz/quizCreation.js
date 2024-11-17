@@ -197,7 +197,7 @@ const QuizCreationPage = () => {
         totalMarks: quizTotalMarks,
         quizWeightage: 0.0,
         questions: questions,
-        isActive: true,
+        isActive: false,
         updatedBy: session?.userDetails?.userId,
       }
 
@@ -225,7 +225,7 @@ const QuizCreationPage = () => {
         totalMarks: quizTotalMarks,
         quizWeightage: 0.0,
         questions: questions,
-        isActive: true,
+        isActive: false,
         createdBy: session?.userDetails?.userId,
       }
 
