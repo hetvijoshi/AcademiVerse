@@ -18,9 +18,18 @@ describe('Authentication', () => {
             }
         }).as('instructsRequest')
 
+        cy.intercept('GET', 'https://content.guardianapis.com/**', {
+            statusCode: 200,
+            body: {
+                data: [],
+                isError: false,
+                message: ''
+            }
+        }).as('newsRequest')
+
         // Visit login page and trigger auth flow
         cy.visit('/')
-        cy.wait(["@session", "@instructsRequest"]);
+        cy.wait(["@session", "@instructsRequest", "@newsRequest"]);
         
         cy.url().should('eq', Cypress.config().baseUrl + '/')
         cy.get('[data-testid="welcome-message"]').should('exist')
