@@ -49,13 +49,13 @@ AcademiVerse/
 - **Framework**: Spring Boot 3.x
 - **Database**: MySQL/PostgreSQL (AWS RDS)
 - **ORM**: Spring Data JPA
-- **Security**: Spring Security
+- **Security**: Spring Security (Azure Entra ID)
 - **Cloud Storage**: AWS S3
 - **Testing**: JUnit
 
 ### Frontend
 - **Framework**: Next.js 14
-- **Styling**: Tailwind CSS
+- **Styling**: MUI + CSS
 - **Authentication**: NextAuth.js (Azure Entra ID)
 - **Testing**: Jest, Cypress
 - **HTTP Client**: Axios
